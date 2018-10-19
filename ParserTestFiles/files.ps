@@ -1,0 +1,2524 @@
+%!PS-Adobe-3.0
+%%Title: arith.nl, arith2.nl, call.nl, case1.nl, constdim.nl, dcs.nl, decl1.nl, decl2.nl, decl3.nl, dim.nl
+%%For: carr
+%%Creator: a2ps version 4.13
+%%CreationDate: Wed Mar 22 15:07:55 2006
+%%BoundingBox: 24 24 571 818
+%%DocumentData: Clean7Bit
+%%Orientation: Landscape
+%%Pages: 45
+%%PageOrder: Ascend
+%%DocumentMedia: A4 595 842 0 () ()
+%%DocumentNeededResources: font Courier
+%%+ font Courier-Bold
+%%+ font Courier-BoldOblique
+%%+ font Courier-Oblique
+%%+ font Helvetica
+%%+ font Helvetica-Bold
+%%+ font Symbol
+%%+ font Times-Bold
+%%+ font Times-Roman
+%%DocumentProcessColors: Black 
+%%DocumentSuppliedResources: procset a2ps-a2ps-hdr
+%%+ procset a2ps-black+white-Prolog
+%%+ encoding ISO-8859-1Encoding
+%%EndComments
+/a2psdict 200 dict def
+a2psdict begin
+%%BeginProlog
+%%Copyright: (c) 1988, 89, 90, 91, 92, 93 Miguel Santana
+%%Copyright: (c) 1995, 96, 97, 98 Akim Demaille, Miguel Santana
+% Check PostScript language level.
+/languagelevel where {
+  pop /gs_languagelevel languagelevel def
+} {
+  /gs_languagelevel 1 def
+} ifelse
+
+% EPSF import as in the Red Book
+/BeginInclude {
+  /b4_Inc_state save def    		% Save state for cleanup
+  /dict_count countdictstack def	% Count objects on dict stack
+  /op_count count 1 sub def		% Count objects on operand stack 
+  userdict begin
+    0 setgray 0 setlinecap
+    1 setlinewidth 0 setlinejoin
+    10 setmiterlimit [ ] 0 setdash newpath
+    gs_languagelevel 1 ne {
+      false setstrokeadjust false setoverprint 
+    } if
+} bind def
+
+/EndInclude {
+  count op_count sub { pos } repeat	% Clean up stacks
+  countdictstack dict_count sub { end } repeat
+  b4_Inc_state restore
+} bind def
+
+/BeginEPSF {
+  BeginInclude
+  /showpage { } def
+} bind def
+
+/EndEPSF {
+  EndInclude
+} bind def
+
+% Page prefeed
+/page_prefeed {         % bool -> -
+  statusdict /prefeed known {
+    statusdict exch /prefeed exch put
+  } {
+    pop
+  } ifelse
+} bind def
+
+/deffont {
+  findfont exch scalefont def
+} bind def
+
+/reencode_font {
+  findfont reencode 2 copy definefont pop def
+} bind def
+
+% Function c-show (str => -)
+% centers text only according to x axis.
+/c-show { 
+  dup stringwidth pop
+  2 div neg 0 rmoveto
+  show
+} bind def
+
+% Function l-show (str => -)
+% prints texts so that it ends at currentpoint
+/l-show {
+  dup stringwidth pop neg 
+  0 
+  rmoveto show
+} bind def
+
+% center-fit show (str w => -)
+% show centered, and scale currentfont so that the width is less than w
+/cfshow {
+  exch dup stringwidth pop
+  % If the title is too big, try to make it smaller
+  3 2 roll 2 copy
+  gt
+  { % if, i.e. too big
+    exch div
+    currentfont exch scalefont setfont
+  } { % ifelse
+    pop pop 
+  }
+  ifelse
+  c-show			% center title
+} bind def
+
+% Return the y size of the current font
+% - => fontsize
+/currentfontsize {
+  currentfont /FontMatrix get 3 get 1000 mul
+} bind def
+
+% reencode the font
+% <encoding-vector> <fontdict> -> <newfontdict>
+/reencode { %def
+  dup length 5 add dict begin
+    { %forall
+      1 index /FID ne 
+      { def }{ pop pop } ifelse
+    } forall
+    /Encoding exch def
+
+    % Use the font's bounding box to determine the ascent, descent,
+    % and overall height; don't forget that these values have to be
+    % transformed using the font's matrix.
+    % We use `load' because sometimes BBox is executable, sometimes not.
+    % Since we need 4 numbers an not an array avoid BBox from being executed
+    /FontBBox load aload pop
+    FontMatrix transform /Ascent exch def pop
+    FontMatrix transform /Descent exch def pop
+    /FontHeight Ascent Descent sub def
+
+    % Define these in case they're not in the FontInfo (also, here
+    % they're easier to get to.
+    /UnderlinePosition 1 def
+    /UnderlineThickness 1 def
+    
+    % Get the underline position and thickness if they're defined.
+    currentdict /FontInfo known {
+      FontInfo
+      
+      dup /UnderlinePosition known {
+	dup /UnderlinePosition get
+	0 exch FontMatrix transform exch pop
+	/UnderlinePosition exch def
+      } if
+      
+      dup /UnderlineThickness known {
+	/UnderlineThickness get
+	0 exch FontMatrix transform exch pop
+	/UnderlineThickness exch def
+      } if
+      
+    } if
+    currentdict 
+  end 
+} bind def
+
+% Function print line number (<string> # -)
+/# {
+  gsave
+    sx cw mul neg 2 div 0 rmoveto
+    f# setfont
+    c-show
+  grestore
+} bind def
+
+% -------- Some routines to enlight plain b/w printings ---------
+
+% Underline
+% width --
+/dounderline {
+  currentpoint
+  gsave
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    0 rlineto
+    stroke
+  grestore
+} bind def
+
+% Underline a string
+% string --
+/dounderlinestring {
+  stringwidth pop
+  dounderline
+} bind def
+
+/UL {
+  /ul exch store
+} bind def
+
+% Draw a box of WIDTH wrt current font
+% width --
+/dobox {
+  currentpoint
+  gsave
+    newpath
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    dup 0 rlineto
+    0 currentfont /FontHeight get currentfontsize mul rlineto
+    neg 0 rlineto
+    closepath
+    stroke
+  grestore
+} bind def
+
+/BX {
+  /bx exch store
+} bind def
+
+% Box a string
+% string --
+/doboxstring {
+  stringwidth pop
+  dobox
+} bind def
+
+%
+% ------------- Color routines ---------------
+%
+/FG /setrgbcolor load def
+
+% Draw the background
+% width --
+/dobackground {
+  currentpoint
+  gsave
+    newpath
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    dup 0 rlineto
+    0 currentfont /FontHeight get currentfontsize mul rlineto
+    neg 0 rlineto
+    closepath
+    bgcolor aload pop setrgbcolor
+    fill
+  grestore
+} bind def
+
+% Draw bg for a string
+% string --
+/dobackgroundstring {
+  stringwidth pop
+  dobackground
+} bind def
+
+
+/BG {
+  dup /bg exch store
+  { mark 4 1 roll ] /bgcolor exch store } if
+} bind def
+
+
+/Show {
+  bg { dup dobackgroundstring } if
+  ul { dup dounderlinestring } if
+  bx { dup doboxstring } if
+  show
+} bind def
+
+% Function T(ab), jumps to the n-th tabulation in the current line
+/T {
+  cw mul x0 add
+  bg { dup currentpoint pop sub dobackground } if
+  ul { dup currentpoint pop sub dounderline } if
+  bx { dup currentpoint pop sub dobox } if
+  y0 moveto
+} bind def
+
+% Function n: move to the next line
+/n {
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+% Function N: show and move to the next line
+/N {
+  Show
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+/S {
+  Show
+} bind def
+
+%%BeginResource: procset a2ps-a2ps-hdr 2.0 2
+%%Copyright: (c) 1988, 89, 90, 91, 92, 93 Miguel Santana
+%%Copyright: (c) 1995, 96, 97, 98 Akim Demaille, Miguel Santana
+% Function title: prints page header.
+% <ct> <rt> <lt> are passed as argument
+/title { 
+  % 1. Draw the background
+  x v get y v get moveto
+  gsave
+    0 th 2 div neg rmoveto 
+    th setlinewidth
+    0.95 setgray
+    pw 0 rlineto stroke
+  grestore
+  % 2. Border it
+  gsave
+    0.7 setlinewidth
+    pw 0 rlineto
+    0 th neg rlineto
+    pw neg 0 rlineto
+    closepath stroke
+  grestore
+  % stk: ct rt lt
+  x v get y v get th sub 1 add moveto
+%%IncludeResource: font Helvetica
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  % 3. The left title
+  gsave
+    dup stringwidth pop fnfs 0.8 mul add exch % leave space took on stack
+    fnfs 0.8 mul hm rmoveto
+    show			% left title
+  grestore
+  exch
+  % stk: ct ltw rt
+  % 4. the right title
+  gsave
+    dup stringwidth pop fnfs 0.8 mul add exch % leave space took on stack
+    dup
+    pw exch stringwidth pop fnfs 0.8 mul add sub
+    hm
+    rmoveto
+    show			% right title
+  grestore
+  % stk: ct ltw rtw
+  % 5. the center title
+  gsave
+    pw 3 1 roll
+    % stk: ct pw ltw rtw
+    3 copy 
+    % Move to the center of the left room
+    sub add 2 div hm rmoveto
+    % What is the available space in here?
+    add sub fnfs 0.8 mul sub fnfs 0.8 mul sub
+    % stk: ct space_left
+%%IncludeResource: font Helvetica-Bold
+  fHelvetica-Bold fnfs scalefont setfont
+    cfshow
+  grestore
+} bind def
+
+% Function border: prints virtual page border
+/border { %def
+  gsave				% print four sides
+    0 setgray
+    x v get y v get moveto
+    0.7 setlinewidth		% of the square
+    pw 0 rlineto
+    0 ph neg rlineto
+    pw neg 0 rlineto
+    closepath stroke
+  grestore
+} bind def
+
+% Function water: prints a water mark in background
+/water { %def
+  gsave
+    scx scy moveto rotate
+%%IncludeResource: font Times-Bold
+  fTimes-Bold 100 scalefont setfont
+    .97 setgray
+    dup stringwidth pop 2 div neg -50 rmoveto
+    show
+  grestore
+} bind def
+
+% Function rhead: prints the right header
+/rhead {  %def
+  lx ly moveto
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  l-show
+} bind def
+
+% Function footer (cf rf lf -> -)
+/footer {
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  dx dy moveto
+  show
+
+  snx sny moveto
+  l-show
+  
+  fnx fny moveto
+  c-show
+} bind def
+%%EndResource
+%%BeginResource: procset a2ps-black+white-Prolog 2.0 1
+
+% Function T(ab), jumps to the n-th tabulation in the current line
+/T { 
+  cw mul x0 add y0 moveto
+} bind def
+
+% Function n: move to the next line
+/n { %def
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+% Function N: show and move to the next line
+/N {
+  Show
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+}  bind def
+
+/S {
+  Show
+} bind def
+
+/p {
+  false UL
+  false BX
+  fCourier bfs scalefont setfont
+  Show
+} bind def
+
+/sy {
+  false UL
+  false BX
+  fSymbol bfs scalefont setfont
+  Show
+} bind def
+
+/k {
+  false UL
+  false BX
+  fCourier-Oblique bfs scalefont setfont
+  Show
+} bind def
+
+/K {
+  false UL
+  false BX
+  fCourier-Bold bfs scalefont setfont
+  Show
+} bind def
+
+/c {
+  false UL
+  false BX
+  fCourier-Oblique bfs scalefont setfont
+  Show
+} bind def
+
+/C {
+  false UL
+  false BX
+  fCourier-BoldOblique bfs scalefont setfont
+  Show 
+} bind def
+
+/l {
+  false UL
+  false BX
+  fHelvetica bfs scalefont setfont
+  Show
+} bind def
+
+/L {
+  false UL
+  false BX
+  fHelvetica-Bold bfs scalefont setfont
+  Show 
+} bind def
+
+/str{
+  false UL
+  false BX
+  fTimes-Roman bfs scalefont setfont
+  Show
+} bind def
+
+/e{
+  false UL
+  true BX
+  fHelvetica-Bold bfs scalefont setfont
+  Show
+} bind def
+
+%%EndResource
+%%EndProlog
+%%BeginSetup
+%%IncludeResource: font Courier
+%%IncludeResource: font Courier-Oblique
+%%IncludeResource: font Courier-Bold
+%%IncludeResource: font Times-Roman
+%%IncludeResource: font Symbol
+%%IncludeResource: font Courier-BoldOblique
+%%BeginResource: encoding ISO-8859-1Encoding
+/ISO-8859-1Encoding [
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/space /exclam /quotedbl /numbersign /dollar /percent /ampersand /quoteright 
+/parenleft /parenright /asterisk /plus /comma /minus /period /slash 
+/zero /one /two /three /four /five /six /seven 
+/eight /nine /colon /semicolon /less /equal /greater /question 
+/at /A /B /C /D /E /F /G 
+/H /I /J /K /L /M /N /O 
+/P /Q /R /S /T /U /V /W 
+/X /Y /Z /bracketleft /backslash /bracketright /asciicircum /underscore 
+/quoteleft /a /b /c /d /e /f /g 
+/h /i /j /k /l /m /n /o 
+/p /q /r /s /t /u /v /w 
+/x /y /z /braceleft /bar /braceright /asciitilde /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/space /exclamdown /cent /sterling /currency /yen /brokenbar /section 
+/dieresis /copyright /ordfeminine /guillemotleft /logicalnot /hyphen /registered /macron 
+/degree /plusminus /twosuperior /threesuperior /acute /mu /paragraph /bullet 
+/cedilla /onesuperior /ordmasculine /guillemotright /onequarter /onehalf /threequarters /questiondown 
+/Agrave /Aacute /Acircumflex /Atilde /Adieresis /Aring /AE /Ccedilla 
+/Egrave /Eacute /Ecircumflex /Edieresis /Igrave /Iacute /Icircumflex /Idieresis 
+/Eth /Ntilde /Ograve /Oacute /Ocircumflex /Otilde /Odieresis /multiply 
+/Oslash /Ugrave /Uacute /Ucircumflex /Udieresis /Yacute /Thorn /germandbls 
+/agrave /aacute /acircumflex /atilde /adieresis /aring /ae /ccedilla 
+/egrave /eacute /ecircumflex /edieresis /igrave /iacute /icircumflex /idieresis 
+/eth /ntilde /ograve /oacute /ocircumflex /otilde /odieresis /divide 
+/oslash /ugrave /uacute /ucircumflex /udieresis /yacute /thorn /ydieresis 
+] def
+%%EndResource
+% Initialize page description variables.
+/sh 595 def
+/sw 842 def
+/llx 24 def
+/urx 818 def
+/ury 571 def
+/lly 24 def
+/#copies 1 def
+/th 15.000000 def
+/fnfs 11 def
+/bfs 8.005733 def
+/cw 4.803440 def
+
+% Dictionary for ISO-8859-1 support
+/iso1dict 8 dict begin
+  /fCourier ISO-8859-1Encoding /Courier reencode_font
+  /fCourier-Bold ISO-8859-1Encoding /Courier-Bold reencode_font
+  /fCourier-BoldOblique ISO-8859-1Encoding /Courier-BoldOblique reencode_font
+  /fCourier-Oblique ISO-8859-1Encoding /Courier-Oblique reencode_font
+  /fHelvetica ISO-8859-1Encoding /Helvetica reencode_font
+  /fHelvetica-Bold ISO-8859-1Encoding /Helvetica-Bold reencode_font
+  /fTimes-Bold ISO-8859-1Encoding /Times-Bold reencode_font
+  /fTimes-Roman ISO-8859-1Encoding /Times-Roman reencode_font
+currentdict end def
+/bgcolor [ 0 0 0 ] def
+/bg false def
+/ul false def
+/bx false def
+% The font for line numbering
+/f# /Helvetica findfont bfs .6 mul scalefont def
+/fSymbol /Symbol findfont def
+/hm fnfs 0.25 mul def
+/pw
+   cw 81.400000 mul
+def
+/ph
+   501.959430 th add
+def
+/pmw urx llx sub pw 2 mul sub 1 div def
+/pmh 0 def
+/v 0 def
+/x [
+  0
+  dup pmw add pw add
+] def
+/y [
+  pmh ph add 0 mul ph add
+  dup
+] def
+/scx sw 2 div def
+/scy sh 2 div def
+/snx urx def
+/sny lly 2 add def
+/dx llx def
+/dy sny def
+/fnx scx def
+/fny dy def
+/lx snx def
+/ly ury fnfs 0.8 mul sub def
+/sx 0 def
+/tab 8 def
+/x0 0 def
+/y0 0 def
+%%EndSetup
+
+%%Page: (1) 1
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(PROGRAM arith;) p n
+() N
+(VAR a,b,c : INTEGER;) N
+() N
+(BEGIN) N
+() N
+(  a := b + c * b - c*\(a +b\);) N
+(  a := c +d;) N
+(  a := NOT \(a MOD b+c\)) N
+() N
+(END) N
+(arith.nl) (Page 1/1) (Nov 28, 05 14:51) title
+border
+grestore
+(Printed by carr) rhead
+(arith.nl) (1/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 2
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(PROGRAM arith;) p n
+() N
+(VAR a,b : INTEGER;) N
+() N
+(FUNCTION c\(x:INTEGER\) : INTEGER;) N
+() N
+(BEGIN) N
+(  RETURN x * 2) N
+(END;) N
+() N
+(BEGIN) N
+() N
+(  a := b + c\(1\) * b - c\(2\)*\(a +b\)) N
+() N
+(END) N
+(arith2.nl) (Page 1/1) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(arith2.nl) (2/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 3
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+({*This file tests the following error:) p n
+() N
+([1] Mismatch between actual parameters at a call site) N
+(    and the definition of the called procedure ) N
+() N
+(Note: There are multiple ways in which the ) N
+(above error is tested in this file *}) N
+() N
+() N
+( PROGRAM cow;) N
+( VAR b:ARRAY[1..2] OF CHARACTER;) N
+(   ) N
+() S 8 T (PROCEDURE A\(a:INTEGER\);) N
+() S 8 T (BEGIN) N
+() S 8 T (   A\(B\(100\)\) {* Function B is of type Character) N
+() S 8 T () S 16 T () S 24 T ( but parameter to A is of type ) N
+() S 8 T () S 16 T (         integer *}) N
+() S 8 T (END;) N
+() N
+() S 8 T (FUNCTION B\(a:INTEGER\):CHARACTER;) N
+(        VAR ) N
+() S 8 T (    d:INTEGER;) N
+() S 8 T (BEGIN) N
+() S 8 T (C\(1,1,1,1,1,1,1\); {*last 3 args wrong type *}) N
+() S 8 T (RETURN B\(B\(d\)\) {* B\(d\) returns a character-but parameter) N
+() S 8 T () S 16 T (       is of type integer *}) N
+() S 8 T (END;) N
+() N
+() S 8 T (PROCEDURE C\(a,b,c,d:INTEGER;e,f,g:FLOAT\);) N
+() S 8 T (BEGIN) N
+() S 8 T ( a:=b+c+d;) N
+() S 8 T ( e:=f+g;) N
+() S 8 T ( C\(1,1,1,1,1.1,1.1,1.1\) {*okay*}) N
+() S 8 T (END;) N
+() N
+(BEGIN) N
+(  C\(1,2,3,4.0,5.0,6.0\); {*calling with 6 args instead of 7*}) N
+(  C\(1,2,3,4,5.0,6.0,7.0,'a'\); {*calling with 8 args instead of 7*}) N
+(  C\(1,2,3,4,5,6,7\); {*last 3 args of wrong type*}) N
+(  C\(1,2,3,4,5.0,6.0,b[1]\); {*last arg of wrong type*}) N
+(  b[1]:=B\(b[2]\) {* error-Parameter to B is of type integer) N
+() S 8 T () S 16 T (    but b[2] is of type character *}) N
+(END) N
+(call.nl) (Page 1/1) (Mar 22, 02 14:50) title
+border
+grestore
+(Printed by carr) rhead
+(call.nl) (3/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 4
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(PROGRAM case1;) p n
+(VAR a:INTEGER;) N
+(BEGIN) N
+(   CASE a OF ) N
+(      1,2,3,4:) N
+(         WRITE\(a\);) N
+(      5.5:) N
+(         WRITE\('error'\)) N
+(   END) N
+(END) N
+() N
+(case1.nl) (Page 1/1) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(case1.nl) (4/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 5
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+({*This file tests the following error:) p n
+() N
+([1] constant valued subscript outside the range) N
+(    of the declaration of an array ) N
+() N
+(Note: There are multiple ways in which the ) N
+(above error is tested in this file *}) N
+() N
+() N
+( PROGRAM cow;) N
+( VAR b:FLOAT;) N
+(     z:ARRAY[5..6] OF FLOAT;) N
+() N
+() S 8 T (FUNCTION B\(a:ARRAY['a'..'p'] OF INTEGER\):INTEGER;) N
+(        VAR ) N
+(            c : ARRAY[25..100] OF INTEGER;) N
+() S 8 T (BEGIN) N
+() S 8 T (   c[20]:=100; {*error-reference to element of c) N
+() S 8 T () S 16 T () S 24 T ( outside the range of c \(low\) *}) N
+() S 8 T (   c[25]:=c[101]+c[10000]; {* out of range \(high\) *}) N
+() S 8 T (   RETURN B\(a['A']\) {* error-reference to element of a) N
+() S 8 T () S 16 T () S 24 T (    is outside range of a *}) N
+() S 8 T (END;) N
+() N
+(BEGIN) N
+(b:=z[200]  {*out of range \(high\) *}) N
+() N
+(END) N
+(constdim.nl) (Page 1/1) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(constdim.nl) (5/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 6
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+({ *** program created by Dave Schwartz *** }) p n
+() N
+(PROGRAM Test;) N
+() S 8 T (VAR x,y,temp : INTEGER;) N
+() S 8 T (FUNCTION fact\(a:INTEGER\):INTEGER;) N
+() S 8 T () S 16 T (BEGIN) N
+() S 8 T () S 16 T () S 24 T (IF \(a < 1\) ) N
+() S 8 T () S 16 T () S 24 T (THEN) N
+() S 8 T () S 16 T () S 24 T () S 32 T (RETURN 1) N
+() S 8 T () S 16 T () S 24 T (ELSE   ) N
+() S 8 T () S 16 T () S 24 T () S 32 T (RETURN \(fact\(a - 1\) * a\)) N
+() S 8 T () S 16 T (END;) N
+() S 8 T (BEGIN) N
+() S 8 T () S 16 T (READ\(x\);) N
+() S 8 T () S 16 T (READ\(y\);) N
+() S 8 T () S 16 T (temp := y + fact\(5\) - fact\(x\);) N
+() S 8 T () S 16 T (WRITE\(temp\);) N
+() S 8 T () S 16 T (WRITE\(x\);) N
+() S 8 T () S 16 T (WRITE\(y\)) N
+() S 8 T (END) N
+(dcs.nl) (Page 1/1) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(dcs.nl) (6/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 7
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+({*This file tests the following error:) p n
+() N
+([1] Variables referenced but not declared) N
+() N
+(Note: There are multiple ways in which the ) N
+(above error is tested in this file *}) N
+() N
+() N
+( PROGRAM cow;) N
+(   ) N
+() S 8 T (FUNCTION B\(a:INTEGER\):CHARACTER;) N
+(        VAR ) N
+() S 8 T (    b : CHARACTER;) N
+(            c : INTEGER;) N
+() S 8 T (    w : ARRAY[1..100] OF INTEGER;) N
+() S 8 T (BEGIN) N
+() S 8 T (a := c  ;) N
+() S 8 T (b:=B\(B\(C\)\); {*C referenced  but not declared *}) N
+() S 8 T (c := c+w[a]; {*okay*}) N
+() S 8 T (c := c+w[b2]+10101; {*b2 not declared*}) N
+() S 8 T (IF dummy THEN c:=0; {*dummy not declared*}) N
+() S 8 T (WHILE dummy2 DO c:=0; {*dummy2 not delcared*}) N
+() S 8 T (CASE dummy3 OF END;   {*dummy3 not delcared*}) N
+() S 8 T (WRITE\(dummy4\); {*dummy4 not declared*}) N
+() S 8 T (c:= 100*\(102+103+c+w[1]*5+d\)+4; {*d not declared*}) N
+() S 8 T (b:=B\(1+2+3+4+e+5+6\); {*e not declared*}) N
+() S 8 T (RETURN z[1] {* error-z referenced but not declared *} ) N
+() S 8 T (END;) N
+() N
+(BEGIN) N
+(b:= c {*b & c referenced but not declared \(in this scope\) *}) N
+() N
+(END) N
+(decl1.nl) (Page 1/1) (Mar 22, 02 14:37) title
+border
+grestore
+(Printed by carr) rhead
+(decl1.nl) (7/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 8
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+({*This file tests the following error that can occur in) p n
+(declarations. ) N
+() N
+([1] Variable declared multiple times within same scope.) N
+() N
+(*}) N
+() N
+( PROGRAM cow;) N
+(VAR ) N
+(    a:INTEGER; {*error-variable is declared globally as well) N
+() S 8 T (         as being assigned as the name of a procedure *}) N
+(    b:FLOAT; {*error-variable declared as global twice-see) N
+() S 8 T (       declaration below *}) N
+(    d:ARRAY[1..2] OF CHARACTER;) N
+(    b:INTEGER;) N
+() N
+() N
+() S 8 T (PROCEDURE a \(b:INTEGER\); {* error-a declared as procedure) N
+() S 8 T () S 16 T () S 24 T (            as well as global *}) N
+() S 8 T (BEGIN) S 16 T () S 24 T () N
+() S 8 T (   b:=1) N
+() S 8 T (END;) S 16 T () N
+() N
+() S 8 T (PROCEDURE A \(a:INTEGER; b:INTEGER\);) N
+() S 8 T (BEGIN) S 16 T () S 24 T () N
+(        a:=b) N
+() S 8 T (END;) S 16 T () N
+() N
+() S 8 T (FUNCTION A:INTEGER; {* error-A declared as function as well) N
+() S 8 T () S 16 T () S 24 T (       as a procedure above *}) N
+() S 8 T (BEGIN) N
+() S 8 T ( b:=200 {*global b is being used here *}) N
+() S 8 T ( ) S 16 T ({* error, no return statement *}) N
+() S 8 T (END;) N
+() N
+() S 8 T (FUNCTION B\(a:INTEGER\):CHARACTER; ) N
+(        VAR  a : INTEGER; {*error-a declared twice in same scope-) N
+() S 8 T () S 16 T () S 24 T (    as a parameter and as a local variable *}) N
+() S 8 T (BEGIN) N
+() S 8 T (RETURN b                                               ) N
+() S 8 T (END;) N
+() N
+() S 8 T (FUNCTION C\(a:INTEGER; a:FLOAT\):CHARACTER;{*error-) N
+() S 8 T () S 16 T ( a declared as parameter twice-two declarations) N
+() S 8 T () S 16 T ( in same scope *}) N
+() S 8 T (BEGIN) N
+() S 8 T (RETURN d[1]) N
+() S 8 T (END;) N
+(BEGIN) N
+(d[2]:=200) N
+(END) N
+(decl2.nl) (Page 1/1) (Mar 22, 02 14:51) title
+border
+grestore
+(Printed by carr) rhead
+(decl2.nl) (8/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 9
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+({*This file tests the following error that can occur in) p n
+(declarations.) N
+() N
+([1] Variable declared but not referenced.) N
+() N
+(Note: There are multiple ways in which each of the ) N
+(above errors is tested in this file *}) N
+() N
+() N
+( PROGRAM cow;) N
+(VAR ) N
+(    c:CHARACTER; {* error-variable declared but never referenced *}) N
+(    b:INTEGER;) N
+() N
+() S 8 T (FUNCTION C\(a:INTEGER\):CHARACTER;) N
+(        VAR  b : CHARACTER;) N
+() S 8 T (BEGIN) N
+() S 8 T (RETURN b {*error-parameter a declared but not used *}) N
+() S 8 T (END; {*I'm not sure the above constitutes an error -- jr*}) N
+() N
+() S 8 T (PROCEDURE E;) N
+() S 8 T (VAR a,b1,c,d,e :ARRAY[1..2] OF INTEGER; {*only e referenced*}) N
+() S 8 T (    f,g,h,i : INTEGER; {*all of these are referenced*}) N
+() S 8 T (BEGIN) N
+() S 8 T (WHILE h<100 DO i:=i+1;) N
+() S 8 T (CASE f OF 1: b:=e[g] END) N
+() S 8 T (END;) N
+() N
+() S 8 T (FUNCTION D\(a:INTEGER\):CHARACTER;) N
+(        VAR  b : CHARACTER;) N
+() S 8 T (BEGIN) N
+() S 8 T (a:=b {*error no return statement *}) N
+() S 8 T (END;) N
+(BEGIN) N
+(b:=100 ) N
+(END) N
+(decl3.nl) (Page 1/1) (Mar 22, 02 14:38) title
+border
+grestore
+(Printed by carr) rhead
+(decl3.nl) (9/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 10
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+({*This file tests the following error:) p n
+() N
+([1] Incorrect number of dimensions in a variable reference) N
+() N
+(Note: There are multiple ways in which the ) N
+(above error is tested in this file *}) N
+() N
+() N
+( PROGRAM cow;) N
+( VAR b:FLOAT;) N
+(     e:ARRAY[1..2] OF INTEGER;) N
+(   ) N
+() S 8 T (FUNCTION B\(a:ARRAY[1..20] OF INTEGER\):INTEGER;) N
+(        VAR ) N
+(            c : INTEGER;) N
+() S 8 T (BEGIN) N
+() S 8 T (a[20] := c[1]; {* error-c is not an array *}) N
+() S 8 T (RETURN B\(a\) ) N
+() S 8 T (END;) N
+() N
+(BEGIN) N
+(b:=e {* error-e is an array *}) N
+() N
+(END) N
+(dim.nl) (Page 1/1) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(dim.nl) (10/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 11
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(PROGRAM dimen;) p n
+() N
+(VAR a : INTEGER;) N
+(    b : ARRAY [1..10] OF INTEGER;) N
+() N
+(BEGIN) N
+(  b := a[1]) N
+(END) N
+(dimen.nl) (Page 1/1) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(dimen.nl) (11/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 12
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+({ ) p n
+(Very bad fibinocci number finder: useful to test a lot of recursion.) N
+(Use small numbers.) N
+() N
+(Eric Johnson,  ejohn) N
+(}) N
+() N
+(PROGRAM fib;) N
+() N
+(VAR globalCount, input, i, loop : INTEGER;) N
+() N
+(FUNCTION fib1 \(x : INTEGER\) : INTEGER;) N
+() N
+(BEGIN) N
+(globalCount := globalCount + 1;) N
+(IF \(\(x = 1\) OR \(x = 0\)\) THEN) N
+() S 8 T (RETURN \(1\)) N
+(ELSE) N
+() S 8 T (RETURN fib1 \(x - 1\) + fib1 \(x - 2\)) N
+(END;) N
+() N
+(BEGIN) N
+(WRITE \('Enter number of fib numbers to find:'\);) N
+(READ \(i\);) N
+(loop := 1;) N
+(WHILE \(loop <= i\) DO) N
+() S 8 T (BEGIN) N
+() S 8 T (globalCount := 0;) N
+() S 8 T (WRITE \(''\);) N
+() S 8 T (WRITE \('Enter fib number to find:'\);) N
+() S 8 T (READ \(input\);) N
+() S 8 T (input := fib1 \(input\);) N
+() S 8 T (WRITE \('Result:'\);) N
+() S 8 T (WRITE \(input\);) N
+() S 8 T (WRITE \('Number of fib1s executed:'\);) N
+() S 8 T (WRITE \(globalCount\);) N
+() S 8 T (loop := loop + 1) N
+() S 8 T (END;) N
+(WRITE \('Bye'\)) N
+(END) N
+(ejohn1.nl) (Page 1/1) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(ejohn1.nl) (12/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 13
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+({) p n
+(Test function calls as parameters) N
+() N
+(Eric Johnson) S 16 T (ejohn) N
+(}) N
+() N
+(PROGRAM e;) N
+() N
+(VAR i : INTEGER;) N
+() N
+(PROCEDURE print \(x : INTEGER\);) N
+(BEGIN) N
+(WRITE \(x\)) N
+(END;) N
+() N
+(FUNCTION inc \(x : INTEGER\) : INTEGER;) N
+(BEGIN) N
+(RETURN x + 1) N
+(END;) N
+() N
+(FUNCTION sqr \(x : INTEGER\) : INTEGER;) N
+(BEGIN) N
+(RETURN x * x) N
+(END;) N
+() N
+(BEGIN) N
+(READ \(i\);) N
+(WHILE \(i\) DO) N
+() S 8 T (BEGIN) N
+() S 8 T (print \(i\);) N
+() S 8 T (print \(inc \(sqr \(inc \(i\)\)\)\);) N
+() S 8 T (READ \(i\)) N
+() S 8 T (END) N
+(END) N
+(ejohn2.nl) (Page 1/1) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(ejohn2.nl) (13/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 14
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(PROGRAM expr;) p n
+() N
+(VAR a:INTEGER;) N
+(    b:CHARACTER;) N
+(    c:FLOAT;) N
+(    d:ARRAY [1..10] OF INTEGER;) N
+() N
+(BEGIN) N
+() N
+(   IF \(b = b\) THEN) N
+(    BEGIN) N
+(     a := a + a;) N
+(     c := c * a;) N
+(     c := a - c) N
+(    END;) N
+() N
+(   IF \(c >= a\) THEN) N
+(     b := b OR b;) N
+() N
+(   a := a AND c) N
+() N
+(END) N
+(expr.nl) (Page 1/1) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(expr.nl) (14/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 15
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(PROGRAM proc;) p n
+() N
+(VAR c :INTEGER;) N
+() N
+(PROCEDURE b\(x:FLOAT\);) N
+() N
+(  BEGIN) N
+(    x:=1.0) N
+(  END;) N
+() N
+(BEGIN) N
+(  b\(1\)) N
+(END) N
+(func.nl) (Page 1/1) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(func.nl) (15/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 16
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(PROGRAM func;) p n
+() N
+(VAR c :INTEGER;) N
+() N
+(FUNCTION b\(x,y:INTEGER;z:FLOAT\) : INTEGER;) N
+() N
+(  BEGIN) N
+(    RETURN x+y) N
+(  END;) N
+() N
+(BEGIN) N
+(  c := b\(1,1,2.0\)) N
+(END) N
+(func2.nl) (Page 1/1) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(func2.nl) (16/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 17
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(PROGRAM func;) p n
+() N
+(VAR c :INTEGER;) N
+() N
+(FUNCTION b : INTEGER;) N
+() N
+(  BEGIN) N
+(    RETURN 4) N
+(  END;) N
+() N
+(BEGIN) N
+(  c := b\(\)) N
+(END) N
+(func_no.nl) (Page 1/1) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(func_no.nl) (17/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 18
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(PROGRAM procfunc;) p n
+() N
+(PROCEDURE x\(y:INTEGER\);) N
+() N
+(BEGIN) N
+(   y := y) N
+(END;) N
+() N
+(BEGIN) N
+(  WRITE\(x\(1\)\)) N
+(END) N
+(funcproc.nl) (Page 1/1) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(funcproc.nl) (18/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 19
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+({ The sample program from the Oard document }) p n
+() N
+(PROGRAM example;) N
+(   VAR x, y : INTEGER;) N
+(   FUNCTION gcd \(a,b: INTEGER\):INTEGER;) N
+(      BEGIN) N
+(         IF b=0) N
+(            THEN RETURN a) N
+(            ELSE RETURN gcd\(b, a MOD b\)) N
+(         END;) N
+(      BEGIN) N
+(         READ \(x\);) N
+(         READ \(y\);) N
+(         WHILE \(x <> 0\) OR \(y <> 0\) DO) N
+(            BEGIN) N
+(               WRITE \(gcd \(x,y\)\);) N
+(               READ \(x\);) N
+(               READ \(y\)) N
+(               END) N
+(         END) N
+(gcd.nl) (Page 1/1) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(gcd.nl) (19/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 20
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+({ **** the canonical C program, redone in a brain-dead language **** }) p n
+({ **** contributed by the labbies \(again, in past years\)        **** }) N
+() N
+(PROGRAM hello;) N
+() N
+(BEGIN) N
+() S 8 T (WRITE\('Hello world!'\)) N
+(END) N
+(hello.nl) (Page 1/1) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(hello.nl) (20/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 21
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(PROGRAM if;) p n
+() N
+(VAR a,b,c : INTEGER;) N
+() N
+(BEGIN) N
+(  IF \(a < b AND c > a\) THEN) N
+(    WRITE\(c\)) N
+(  ELSE) N
+(    WRITE\(a\)) N
+(END) N
+(if.nl) (Page 1/1) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(if.nl) (21/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 22
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(PROGRAM if2;) p n
+() N
+(VAR a,b,c : INTEGER;) N
+() N
+(BEGIN) N
+(  IF \(a <= b OR c >= a\) THEN) N
+(    IF \(b <> a\) THEN) N
+(      WRITE\(c\)) N
+(  ELSE) S 8 T () N
+(    IF \(c <> a\) THEN) N
+(      WRITE\(a\)) S 16 T () N
+(END) N
+(if2.nl) (Page 1/1) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(if2.nl) (22/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 23
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(PROGRAM inv;) p n
+() N
+(FUNCTION a\(x,y:INTEGER\) : INTEGER;) N
+() N
+( BEGIN) N
+(   RETURN x*y) N
+( END;) N
+() N
+(PROCEDURE b\(x:FLOAT;y:CHARACTER\);) N
+() N
+(  BEGIN) N
+(    WRITE\(y\);) N
+(    WRITE\(x\)) N
+(  END;) N
+() N
+() N
+(BEGIN) N
+(  b\(\);) N
+(  b\(1\);) N
+(  b\(1,1,1\);) N
+(  b\(1.0,1\);) N
+(  b\(1,'a'\);) N
+(  WRITE\(a\(\)\);) N
+(  WRITE\(a\(1\)\);) N
+(  WRITE\(a\(1,'a',3\)\);) N
+(  WRITE\(a\(1.0,'a'\)\);) N
+(  WRITE\(a\(1,1\)\)) N
+(END) N
+(inv.nl) (Page 1/1) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(inv.nl) (23/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 24
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(PROGRAM muldecl;) p n
+() N
+(  VAR a : INTEGER;) N
+(      a : CHARACTER;) N
+() N
+(PROCEDURE X;) N
+() N
+(   VAR a : INTEGER;) N
+() N
+(   BEGIN) N
+(     WRITE\(1\)) N
+(   END;) N
+() N
+(BEGIN) N
+(  X\(\);) N
+(  Y\(\)) N
+(END) N
+(muldecl.nl) (Page 1/1) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(muldecl.nl) (24/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 25
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(PROGRAM nodecl;) p n
+() N
+(BEGIN) N
+(  x := 1 + y;) N
+(  WRITE\(x\)) N
+(END) N
+(nodecl.nl) (Page 1/1) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(nodecl.nl) (25/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 26
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+({ a sample Oard program. }) p n
+() N
+() N
+(PROGRAM Test1;) N
+() S 8 T (VAR ) N
+() S 8 T () S 16 T (x, y : INTEGER;) N
+() S 8 T () S 16 T (a : ARRAY[10..1] OF FLOAT;) N
+() N
+() N
+() S 8 T (FUNCTION junk\(a,b:INTEGER\) :INTEGER ;) N
+() S 8 T () S 16 T (BEGIN) N
+() S 8 T () S 16 T () S 24 T (a:=b;) N
+() S 8 T () S 16 T () S 24 T (IF a THEN READ\(a\) ELSE READ\(a\);) N
+() S 8 T () S 16 T () S 24 T (WHILE b DO WRITE\(a\);) N
+() S 8 T () S 16 T () S 24 T (RETURN b) N
+() S 8 T () S 16 T (END;) N
+() N
+() S 8 T (PROCEDURE stuff \(a:INTEGER; b:CHARACTER\);) N
+() S 8 T () S 16 T (VAR temp : INTEGER;) N
+() S 8 T () S 16 T (BEGIN) N
+() S 8 T () S 16 T () S 24 T (temp := a;) N
+() S 8 T () S 16 T () S 24 T (a := b;) N
+() S 8 T () S 16 T () S 24 T (b := temp { error, cannot assign a char an int value}) N
+() S 8 T () S 16 T (END;) N
+() N
+() N
+() S 8 T (BEGIN) N
+() S 8 T () S 16 T (READ\(x\);) N
+() S 8 T () S 16 T (WRITE\('HELLO_comp412'\);) N
+() S 8 T () S 16 T (BEGIN) N
+() S 8 T () S 16 T () S 24 T (y := 1+2+3*4) N
+() S 8 T () S 16 T (END;) N
+() S 8 T () S 16 T ({ I hope you're still with me }) N
+() S 8 T () S 16 T (stuff\(junk\(x,y\),'Q'\)) N
+() S 8 T (END) N
+(nomeaning.nl) (Page 1/1) (Mar 22, 02 14:47) title
+border
+grestore
+(Printed by carr) rhead
+(nomeaning.nl) (26/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 27
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(PROGRAM proc;) p n
+() N
+(VAR c :INTEGER;) N
+() N
+(PROCEDURE b\(x,y:INTEGER;z:FLOAT\);) N
+() N
+(  BEGIN) N
+(    z := x+y) N
+(  END;) N
+() N
+(BEGIN) N
+(  b\(1,1,2.0\)) N
+(END) N
+(proc2.nl) (Page 1/1) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(proc2.nl) (27/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 28
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(PROGRAM proc;) p n
+() N
+(VAR c :INTEGER;) N
+() N
+(PROCEDURE b;) N
+() N
+(  BEGIN) N
+(    WRITE\(4\)) N
+(  END;) N
+() N
+(BEGIN) N
+(  b\(\)) N
+(END) N
+(proc_no.nl) (Page 1/1) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(proc_no.nl) (28/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 29
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(PROGRAM procfunc;) p n
+() N
+(FUNCTION x\(y:INTEGER\) : INTEGER;) N
+() N
+(BEGIN) N
+(  RETURN y) N
+(END;) N
+() N
+(BEGIN) N
+(  x\(1\)) N
+(END) N
+(procfunc.nl) (Page 1/1) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(procfunc.nl) (29/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1-2) 30
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+({** $awkdoc$ ********************************************************) p n
+() N
+(A version of quicksort for testing recursion: reads and sorts) N
+(19 CHARACTERs.) N
+() N
+(** $endawk$ ********************************************************}) N
+() N
+(PROGRAM qs;) N
+(  VAR  A:  ARRAY [0..20] OF CHARACTER;) N
+(PROCEDURE  readarray;) N
+(  VAR  i:  INTEGER;) N
+(BEGIN) N
+(  WRITE \('A?'\);) N
+(  i := 1;) N
+(  WHILE i < 20 DO) N
+(    BEGIN) N
+(      WRITE \(i\);) N
+(      READ \(A[i]\);) N
+(      i := i + 1) N
+(    END) N
+(END;) N
+(PROCEDURE  writearray;) N
+(  VAR  i:  INTEGER;) N
+(BEGIN) N
+(  WRITE \('A:'\);) N
+(  i := 0;) N
+(  WHILE i <= 20 DO) N
+(    BEGIN) N
+(      WRITE \(A[i]\);) N
+(      i := i + 1) N
+(    END) N
+(END;) N
+(FUNCTION partition\() N
+(        B:  ARRAY [0..20] OF CHARACTER;) N
+(      p,r:  INTEGER) N
+(\) : INTEGER;) N
+(  VAR i, j: INTEGER;) N
+(      x, t: CHARACTER;) N
+(BEGIN) N
+({  WRITE \('P'\); }) N
+({  WRITE \(p\);   }) N
+(  x := B[p];) N
+(  i := p - 1;) N
+(  j := r + 1;) N
+(  WHILE 1.7 DO) N
+(    BEGIN) N
+({      WRITE \('j'\); }) N
+(      j := j-1;) N
+(      WHILE A[j] > x DO) N
+(        BEGIN) N
+(          j := j-1) N
+({;          WRITE \(j\) }) N
+(        END;) N
+({      WRITE \('i'\);  }) N
+(      i := i+1;) N
+(      WHILE A[i] < x DO) N
+(        BEGIN) N
+(          i := i+1) N
+({;          WRITE \(i\)  }) N
+(        END;) N
+(      IF i < j) N
+(        THEN) N
+(qs.nl) (Page 1/2) (Mar 22, 02 14:33) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(          BEGIN) p n
+(            t := A[i];) N
+(            A[i] := A[j];) N
+(            A[j] := t) N
+(          END) N
+(        ELSE) N
+(          RETURN j) N
+(    END) N
+(END;) N
+(PROCEDURE quicksort\() N
+(     Z: ARRAY [0..20] OF CHARACTER;) N
+(     p,r: INTEGER) N
+(\);) N
+(  VAR q:  INTEGER;) N
+(BEGIN) N
+(  IF p < r) N
+(    THEN) N
+(      BEGIN) N
+(        q := partition\(Z,p,r\);) N
+({        WRITE \('Q'\);              }) N
+({        WRITE \(q\);                }) N
+(        quicksort\(Z,p,q\);) N
+(        quicksort\(Z,q+1,r\)) N
+(      END) N
+(END;) N
+(BEGIN) N
+(  A[0] := ' '; A[20] := '~';  { book does this; don't know why }) N
+(  readarray\(\);) N
+(  quicksort\(A,1,19\);) N
+(  writearray\(\)) N
+(END) N
+(qs.nl) (Page 2/2) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(qs.nl) (30/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 31
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+({ An uninteresting case of recursion, by Dan Kirkpatrick }) p n
+() N
+({ Note that since the procedure's call to decls\(\) passes a }) N
+({ constant, the final assignment \(a := 0\) should NOT change the }) N
+({global value of a }) N
+() N
+() N
+(PROGRAM foo;) N
+(  VAR a:INTEGER;) N
+() N
+(PROCEDURE decls\(a:INTEGER\);) N
+(BEGIN) N
+(  WRITE\(a\);) N
+(  IF \(a > 0\) THEN) N
+(    decls\(a - 1\)) N
+(  ELSE) N
+(    a := 0) N
+(END;) N
+() N
+(PROCEDURE foo\(a, b:INTEGER\);) N
+(BEGIN) N
+(  WRITE\(a\);) N
+(  WRITE\(b\)) N
+(END;) N
+() N
+(BEGIN) N
+(  READ\(a\);) N
+(  decls\(a\);) N
+(  foo\(a, 10\)) N
+(END) N
+(recurs.nl) (Page 1/1) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(recurs.nl) (31/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 32
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+({*This file tests the following error:) p n
+() N
+([1] Procedure call invoking a function) N
+() N
+([2] A function call that invokes a procedure) N
+() N
+(Note: There are multiple ways in which the ) N
+(above error is tested in this file *}) N
+() N
+() N
+( PROGRAM cow;) N
+( VAR b:FLOAT;) N
+() N
+() N
+() S 8 T (PROCEDURE A \(b:INTEGER\);) N
+() S 8 T (BEGIN) S 16 T () S 24 T () N
+() S 8 T (   RETURN 1  {* error-A is assigned a value like) N
+() S 8 T () S 16 T (    a function but its been declared) S 56 T () N
+() S 8 T () S 16 T (    as a procedure *}) N
+() S 8 T (END;) S 16 T () N
+(   ) N
+() S 8 T (FUNCTION B\(a:ARRAY[1..20] OF INTEGER\):INTEGER;) N
+(        VAR ) N
+(            c : INTEGER;) N
+() S 8 T (BEGIN) N
+() S 8 T (a[A\(1\)] := c; {* error-A is not a function and hence, does) N
+() S 8 T () S 16 T () S 24 T ( not return a value *}) N
+() S 8 T (B\(a\)  {* error-B is declared as function but) N
+() S 8 T () S 16 T (      used as a procedure *}) N
+() S 8 T (      {* error, no return statment *}) N
+() S 8 T (END;) N
+() N
+(BEGIN) N
+(b:=200;) N
+(A\(100\)) N
+() N
+(END) N
+(retn.nl) (Page 1/1) (Mar 22, 02 14:48) title
+border
+grestore
+(Printed by carr) rhead
+(retn.nl) (32/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 33
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+({ Extremely simple Oard program }) p n
+() N
+(PROGRAM Simple;) N
+() S 8 T (BEGIN) N
+() S 8 T () S 16 T (WRITE\(1\)) N
+() S 8 T (END) N
+(simple.nl) (Page 1/1) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(simple.nl) (33/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 34
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+({ Pseudo-code for the swap routine }) p n
+() N
+(PROGRAM swapper;) N
+() N
+(VAR x:INTEGER;) N
+() N
+(BEGIN) N
+(  READ\(x\);) N
+(  WRITE\(x\)) N
+(END) N
+(skeleton.nl) (Page 1/1) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(skeleton.nl) (34/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 35
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+({ Pseudo-code for the swap routine }) p n
+() N
+(PROGRAM swapper;) N
+(VAR i,j:INTEGER;) N
+() N
+(PROCEDURE swap\(x,y:INTEGER\);) N
+(VAR temp:INTEGER;) N
+() N
+(BEGIN) N
+(        temp:=x;) N
+(        x:=y;) N
+(        y:=temp;) N
+(        WRITE\(y\);) N
+(        WRITE\(x\)) N
+(END;) N
+() N
+(BEGIN) N
+(        READ\(i\);) N
+(        READ\(j\);) N
+(        swap\(i,j\);) N
+(        WRITE\(i\)) N
+(END) N
+(swapper.nl) (Page 1/1) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(swapper.nl) (35/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 36
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p n
+() N
+(PROGRAM foo;) N
+(  VAR a:INTEGER;) N
+() N
+(PROCEDURE decls\(a:INTEGER\);) N
+(VAR x:INTEGER;) N
+(BEGIN) N
+(    a := 0) N
+(END;) N
+() N
+(PROCEDURE foo\(a, b:INTEGER\);) N
+(VAR y:INTEGER;) N
+(BEGIN) N
+() S 8 T (a := y + b) N
+(END;) N
+() N
+(BEGIN) N
+(   read\(a\)) N
+(END) N
+(sym.nl) (Page 1/1) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(sym.nl) (36/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 37
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+({*********************************************************) p n
+(This file test all types of expressions.) N
+(*********************************************************}) N
+() N
+(PROGRAM Expr;) N
+( VAR i,j,k,l,m:INTEGER;) N
+(     a,b,c,d:FLOAT;) N
+(     C1,C2:CHARACTER;) N
+() N
+() N
+() N
+(BEGIN) N
+() N
+(     i := C1 + j;) N
+(     a := C1 + b;) N
+(     a := b + C1;) N
+(     i := j + C1;) N
+(     j := C1 + C2;) N
+(     i := C1 OR i;) N
+(     j := C2 OR b;) N
+(     i := i OR C1;) N
+(     j := b OR C2;) N
+(     i := i < C1;) N
+(     i := b < C2;) N
+(     i := C1 < i;) N
+(     i := C1 < b;) N
+(     C1 := i;) N
+(     C2 := b) N
+(END) N
+(typ2.nl) (Page 1/1) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(typ2.nl) (37/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1-2) 38
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+({*This file tests the following error:) p n
+() N
+([1] Illegal mixed type expressions) N
+() N
+(Note: There are multiple ways in which the ) N
+(above error is tested in this file *}) N
+() N
+() N
+( PROGRAM cow;) N
+(  VAR b: ARRAY[1..2] OF CHARACTER;) N
+(   ) N
+() S 8 T (FUNCTION B\(a:INTEGER;e:CHARACTER\):CHARACTER;) N
+(        VAR ) N
+(            c : INTEGER;) N
+() S 8 T (    d : FLOAT;) N
+() S 8 T () N
+() S 8 T (BEGIN) N
+() S 8 T () S 16 T (a:= a + \(c*d\)*e; {*error-character used in right) N
+() S 8 T () S 16 T () S 24 T () S 32 T (   hand side of assignment *}) N
+() S 8 T () S 16 T (B:=c +c*d; {* error-character is being assigned) N
+() S 8 T () S 16 T () S 24 T (       a float value *}) N
+(                e:= c<d ; {* character being assigned an integer*}) N
+() S 8 T () S 16 T (c:= NOT d; {*NOT only valid for integers*}) N
+() S 8 T () S 16 T (c:= NOT e; {*NOT only valid for integers*}) N
+() S 8 T () S 16 T (c:= a AND d; {*AND&OR only defined for ints*}) N
+() S 8 T () S 16 T (c:= e AND e; {*AND&OR only defined for ints*}) N
+() S 8 T () S 16 T (c:= e < B\(a,e\); {*okay*}) N
+() S 8 T () S 16 T (c:= c <> d; {*okay*}) N
+() S 8 T () S 16 T (c:= c >= e; {*cannot mix char type with float|int*}) N
+() S 8 T () S 16 T (c:= B\(a,e\) = d; {*cannot mix char type with float|int*}) N
+() S 8 T () S 16 T (e:= NOT c;  {*error as NOT returns an integer *}) N
+() S 8 T () S 16 T (e:= a OR a; {* error- character being  assigned an ) N
+() S 8 T () S 16 T () S 24 T () S 32 T (integer *}) N
+() S 8 T () S 16 T (RETURN e) N
+() S 8 T (END;) N
+() N
+() S 8 T (PROCEDURE complex;) N
+() S 8 T ( VAR a,b,c,d,e,f,g:FLOAT;) N
+() S 8 T (     i,j,k,l,m,n: INTEGER;) N
+() S 8 T (     w,x,y,z: ARRAY[1..5] OF FLOAT;) N
+() S 8 T (     C1,C2,C3 : CHARACTER;) N
+() S 8 T (BEGIN) N
+() S 8 T ({* a bunch of complex but correct expressions *}) N
+() S 8 T () S 16 T (a:=a+b+c+d+e;  ) N
+() S 8 T () S 16 T (i:=i*j*k+l*m; ) N
+() S 8 T () S 16 T (C1:=B\(i,C2\);   ) N
+() S 8 T () S 16 T (a:=a*i+b*j+c*k;) N
+() S 8 T () S 16 T (i:=a*b*c*i*j*k*e*f*l+m*a+d*n; ) N
+() S 8 T () S 16 T (a:=B\(i+j+k*l,C2\) <> C3; ) N
+() S 8 T () S 16 T (a:=w[B\(i,C1\)>C2]; ) N
+() S 8 T () S 16 T (a:=1;  ) N
+() S 8 T () S 16 T (i:=1.2e5; ) N
+() S 8 T () S 16 T (C1:='Q'; ) N
+() S 8 T () S 16 T (C2:=B\(i,B\(j,B\(k,C1\)\)\) ) N
+() S 8 T (END;) N
+() N
+() N
+() S 8 T (PROCEDURE complex2;) N
+() S 8 T ( VAR a,b,c,d,e,f,g:FLOAT;) N
+() S 8 T (     i,j,k,l,m,n: INTEGER;) N
+() S 8 T (     w,x,y,z: ARRAY[1..5] OF FLOAT;) N
+() S 8 T (     C1,C2,C3 : CHARACTER;) N
+(type1.nl) (Page 1/2) (Mar 22, 02 14:48) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p 8 T (BEGIN) N
+() S 8 T ({* complex and incorrect expressions *}) N
+() S 8 T () S 16 T (C1:=B\(i+j+k*l,C2\)+C3; {*cannot add chars*}) N
+() S 8 T () S 16 T (a:=b*c+d*C1+e+f;  {*char type in arith expr*}) N
+() S 8 T () S 16 T (C2 := a*b*c+j+i+k; {* char type on lhs *}) N
+() S 8 T () S 16 T (i:= \(B\(i,C2\)>B\(j,C2\)\) + \(B\(l,C3\)>j\) {*compare w/ j is bad*}) N
+() S 8 T (END;) N
+() N
+(BEGIN) N
+(complex\(\);) N
+(complex2\(\);) N
+(b[1]:=100 {*b declared as character array and assigned an integer *}) N
+() N
+(END) N
+(type1.nl) (Page 2/2) (Mar 22, 02 14:48) title
+border
+grestore
+(Printed by carr) rhead
+(type1.nl) (38/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 39
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(PROGRAM vararray;) p n
+() N
+(VAR a: ARRAY [1..10] OF INTEGER;) N
+(    b: ARRAY [4..11] OF CHARACTER;) N
+(    c: ARRAY [1..6] OF FLOAT;) N
+() N
+(BEGIN) N
+() N
+(   READ\(a['a']\);) N
+(   READ\(a[1]\)) N
+() N
+(END) N
+(var_array.nl) (Page 1/1) (Feb 23, 06 13:04) title
+border
+grestore
+(Printed by carr) rhead
+(var_array.nl) (39/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 40
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(PROGRAM vararray2;) p n
+() N
+(VAR a: ARRAY ['a'..'z'] OF INTEGER;) N
+(    b: ARRAY ['d'..'g'] OF CHARACTER;) N
+(    c: ARRAY ['H'..'K'] OF FLOAT;) N
+() N
+(BEGIN) N
+() N
+(   READ\(a['v']\);) N
+(   READ\(a[1]\)) N
+() N
+(END) N
+(var_array2.nl) (Page 1/1) (Feb 23, 06 13:05) title
+border
+grestore
+(Printed by carr) rhead
+(var_array2.nl) (40/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 41
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(PROGRAM varmultiple;) p n
+() N
+(VAR a,b,c,d : INTEGER;) N
+(    d,e : CHARACTER;) N
+() N
+(BEGIN) N
+(  READ\(a\)) N
+(END) N
+(var_multiple.nl) (Page 1/1) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(var_multiple.nl) (41/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 42
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(PROGRAM varmultiple2;) p n
+() N
+(VAR a,b,c,d : ARRAY [1..10] OF INTEGER;) N
+() N
+(BEGIN) N
+(  READ\(a[1]\)) N
+(END) N
+(var_multiple2.nl) (Page 1/1) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(var_multiple2.nl) (42/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 43
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(PROGRAM varsimple;) p n
+() N
+(VAR   a : INTEGER;) N
+(      c : CHARACTER;) N
+(      f : FLOAT;) N
+() N
+(BEGIN) N
+(  READ\(a\)) N
+(END) N
+(var_simple.nl) (Page 1/1) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(var_simple.nl) (43/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 44
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(PROGRAM while;) p n
+() N
+(VAR a,b : ARRAY [1..10] OF INTEGER;) N
+(    i : INTEGER;) N
+() N
+(BEGIN) N
+(  i := 2;) N
+(  WHILE \(i < 11\) DO) N
+(     BEGIN) N
+(       a[i] := a[i-1] + 1;) N
+(       i := i + 1) N
+(     END) N
+(END) N
+(while.nl) (Page 1/1) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(while.nl) (44/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 45
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(PROGRAM while;) p n
+() N
+(VAR a,b : ARRAY [1..10] OF INTEGER;) N
+(    i : INTEGER;) N
+() N
+(BEGIN) N
+(  i := 1;) N
+(  WHILE \(i < 11\) DO) N
+(     BEGIN) N
+(       j := 10;) N
+(       WHILE \(j > 0\) DO) N
+(         BEGIN) N
+(           a[i] := a[j] + 1;) N
+() S 8 T (   j := j - 1) N
+(         END;) N
+(       i := i + 1) N
+(     END) N
+(END) N
+(while2.nl) (Page 1/1) (Mar 22, 02 14:33) title
+border
+grestore
+(Printed by carr) rhead
+(while2.nl) (45/45) (Wednesday March 22, 2006) footer
+end % of iso1dict
+pagesave restore
+showpage
+
+%%Trailer
+end
+%%EOF

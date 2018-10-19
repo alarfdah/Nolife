@@ -1,0 +1,396 @@
+/**
+ * JavaCC file
+ */
+ 
+options {
+  JDK_VERSION = "1.8";
+}
+PARSER_BEGIN(NolifeParser)
+package parser;
+
+public class NolifeParser {
+}
+
+PARSER_END(NolifeParser)
+
+SKIP :
+{
+ 	" "
+|	"\r"
+|	"\t"
+|	"\n"
+|   <"{"(~["}"])*"}">
+} 
+
+TOKEN : /* keywords */
+{
+    < O_MOD: "MOD">
+    | <O_AND: "AND">
+    | <O_ARRAY: "ARRAY">
+    | <O_BEGIN: "BEGIN">
+    | <O_CHARACTER: "CHARACTER">
+    | <O_DO: "DO">
+    | <O_ELSE: "ELSE">
+    | <O_END: "END">
+    | <O_FLOAT: "FLOAT">
+    | <O_FUNCTION: "FUNCTION">
+    | <O_IF: "IF">
+    | <O_INTEGER: "INTEGER">
+    | <O_NOT: "NOT">
+    | <O_OF: "OF">
+    | <O_OR: "OR">
+    | <O_PROCEDURE: "PROCEDURE">
+    | <O_PROGRAM: "PROGRAM">
+    | <O_READ: "READ">
+    | <O_RETURN: "RETURN">
+    | <O_THEN: "THEN">
+    | <O_VAR: "VAR">
+    | <O_WHILE: "WHILE">
+    | <O_WRITE: "WRITE">
+    | <O_CASE: "CASE">
+}
+
+TOKEN : /* other lexical tokens */
+{
+  <O_LE: "<=">
+| <O_LT: "<">
+| <O_GE: ">=">
+| <O_GT: ">">
+| <O_EQ: "=">
+| <O_NE: "<>">
+| <O_ASSIGN: ":=">
+| <O_COLON: ":">
+| <O_SEMICOLON: ";">
+| <O_COMMA: ",">
+| <O_LBRACKET: "[">
+| <O_RBRACKET: "]">
+| <O_LPAREN: "(">
+| <O_RPAREN: ")">
+| < O_DOT: "." >
+| <O_PLUS: "+">
+| <O_MINUS: "-">
+| <O_TIMES: "*">
+| <O_CHAR: "'"~["'"]"'">
+| <O_STRING: "'"~["'"](~["'"])+"'">
+| <#DIGIT: ["0" - "9"] >
+| <#ALPHA: ["a" - "z"] | ["A" - "Z"] >
+| <O_IDENTIFIER: <ALPHA> (<ALPHA> | <DIGIT>)*>
+| <#EXPONENT: ("e" | "E") ("+" | "-")? (<DIGIT>)+ >
+| <O_FLOATCON: <O_INT> (< O_DOT > (<DIGIT>)+ (<EXPONENT>)? | <EXPONENT>) >
+| <O_INT: "0" | ["1" - "9"](<DIGIT>)* >
+}
+
+void program(): 
+{
+}
+{
+   <O_PROGRAM> <O_IDENTIFIER> <O_SEMICOLON>
+   ( decls() )?
+   ( subprogram_decls() )? 
+   compound_stmt()
+}
+    
+void decls(): 
+{
+}
+{
+	<O_VAR> decl_list()
+}
+
+void decl_list() : 
+{
+}
+{
+  ( identifier_list() <O_COLON> type() <O_SEMICOLON> )+
+}
+
+void identifier_list() : 
+{
+}
+{
+	<O_IDENTIFIER>
+  	( <O_COMMA> <O_IDENTIFIER>	)*
+}
+
+void type() : 
+{
+}
+{
+  ( standard_type()
+  | array_type()
+  )
+}
+
+void standard_type() : 
+{
+}
+{
+	( <O_INTEGER>
+	| <O_FLOAT>
+	| <O_CHARACTER> )
+}
+
+void array_type() : 
+{
+}
+{
+    <O_ARRAY> <O_LBRACKET> dim() <O_RBRACKET> <O_OF> standard_type() 
+}
+
+void dim() : 
+{
+}
+{
+	( <O_INT> <O_DOT> <O_DOT > <O_INT>
+	| <O_CHAR> <O_DOT> <O_DOT > <O_CHAR> )
+}
+
+void subprogram_decls() : 
+{
+}
+{
+	( subprogram_decl() <O_SEMICOLON> )+
+}
+
+void subprogram_decl() : 
+{
+}
+{
+  subprogram_head() (decls())? compound_stmt()
+}
+
+void subprogram_head() : 
+{
+}
+{
+	( <O_FUNCTION> <O_IDENTIFIER> (arguments())? <O_COLON> standard_type() <O_SEMICOLON>
+	| <O_PROCEDURE> <O_IDENTIFIER> (arguments())? <O_SEMICOLON> )
+}
+
+void arguments() : 
+{
+}
+{
+  <O_LPAREN> parameter_list() <O_RPAREN>
+}
+
+void parameter_list() : 
+{
+}
+{
+	identifier_list() <O_COLON> type()
+    ( <O_SEMICOLON> identifier_list() <O_COLON> type() )*
+}
+
+void compound_stmt() : 
+{
+}
+{
+	<O_BEGIN> stmt_list() <O_END>
+}
+
+void stmt_list() : 
+{
+}
+{
+	stmt() ( <O_SEMICOLON> stmt() )*
+}
+
+void stmt() :
+{
+}
+
+{
+	( LOOKAHEAD(2)
+		 assignment()
+  		| if_stmt()
+  		| while_stmt()
+  		| procedure_invocation()
+  		| i_o_stmt()
+  		| compound_stmt()
+  		| return_stmt()
+  		| case_stmt()
+	)
+}
+
+void assignment() :
+{
+}
+{
+	variable() <O_ASSIGN> expr()
+}
+
+void if_stmt() :
+{
+}
+{
+	<O_IF> expr() <O_THEN> stmt() 
+	[LOOKAHEAD(<O_ELSE>) <O_ELSE> stmt()]
+}
+
+void while_stmt() :
+{
+}
+{
+	<O_WHILE> expr() <O_DO> stmt()
+}
+
+void procedure_invocation() :
+{
+}
+{
+	<O_IDENTIFIER> <O_LPAREN> (expr_list())? <O_RPAREN>
+} 
+
+void i_o_stmt() :
+{
+}
+{
+	( <O_READ> <O_LPAREN> variable() <O_RPAREN>
+	| <O_WRITE> <O_LPAREN> ( expr() | string()) <O_RPAREN> )
+}
+
+void return_stmt() :
+{
+}
+{
+	<O_RETURN> expr()
+}
+
+void case_stmt() :
+{
+}
+{
+	<O_CASE> expr() <O_OF> (cases())? <O_END>
+} 
+
+void cases() :
+{
+}
+{
+	case_element() ( <O_SEMICOLON> case_element() )*
+}
+
+void case_element() :
+{
+}
+{
+  case_labels() <O_COLON> stmt()
+}
+
+void case_labels() : 
+{
+}
+{
+	( < O_INT > | < O_FLOATCON >) ( <O_COMMA> ( <O_INT> | < O_FLOATCON > ))*
+}
+
+void expr_list() : 
+{
+}
+{
+	expr() ( <O_COMMA> expr() )*
+}
+
+void expr() :
+{
+}
+{
+	term1() exprPrime()
+}
+
+void exprPrime() : 
+{
+}
+{
+	( <O_OR> term1() exprPrime()
+  	| <O_AND> term1() exprPrime()
+  	|
+  	{ }
+  	)
+}
+
+void term1() :
+{
+}
+{
+	term2() term1Prime()
+}
+
+void term1Prime() :
+{
+}
+{
+	( <O_LT> term2() term1Prime()
+	| <O_LE> term2() term1Prime()
+	| <O_GT> term2() term1Prime()
+	| <O_GE> term2() term1Prime()
+	| <O_NE> term2() term1Prime()
+	| <O_EQ> term2() term1Prime()
+	|
+	{}
+	)
+}
+
+void term2() :
+{
+}
+{
+	term3() term2Prime()
+}
+
+void term2Prime() :
+{
+}
+{
+	( <O_PLUS> term3() term2Prime()
+	| <O_MINUS> term3() term2Prime()
+	|
+	{ }
+	)
+}
+
+void term3() :
+{
+}
+{
+	factor() term3Prime()
+}  
+
+void term3Prime() :
+{
+}
+{
+	( <O_TIMES> factor() term3Prime()
+	| <O_MOD> factor() term3Prime()
+	|
+	{ }
+	)
+}
+
+void factor() :
+{
+}
+{
+	(  <O_IDENTIFIER> ( <O_LBRACKET> expr() <O_RBRACKET>
+						| <O_LPAREN> (expr_list())? <O_RPAREN> )?
+	| <O_INT>
+	| <O_FLOATCON>
+	| <O_CHAR>
+	| <O_LPAREN> expr() <O_RPAREN>
+	| <O_NOT> factor() )
+}
+
+void variable() : 
+{
+}
+{
+	<O_IDENTIFIER> ( <O_LBRACKET> expr() <O_RBRACKET> )?
+}
+
+void string() :
+{
+}
+{
+	 <O_STRING>
+}
