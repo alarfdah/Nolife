@@ -6,8 +6,8 @@ import visitor.Visitor;
 
 public class CallFunction extends Expression {
 
-	public String getFunctionName() {
-		return getChild(0).getLabel();
+	public IdRef getFunctionVariable() {
+		return (IdRef)getChild(0);
 	}
 	
 	// params

@@ -2,9 +2,11 @@ package ast;
 
 import visitor.Visitor;
 
-public class Return extends Statement {
+public class Output extends Statement {
 
-	public IdRef getReturn() {
+	
+	public IdRef getOutput() {
+		// TODO check the constant outputs like WRITE('hello')
 		return (IdRef)getChild(0);
 	}
 	
@@ -12,5 +14,5 @@ public class Return extends Statement {
 	public Object accept(Visitor visitor) {
 		return visitor.visit(this);
 	}
-	
+
 }

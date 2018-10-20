@@ -20,7 +20,9 @@ public interface Visitor<T> {
 	public T visit(If n);
 	public T visit(While n);
 	public T visit(Case n);
-	public T visit(InputOutput n);
+	public T visit(Input n);
+	public T visit(Output n);
+	public T visit(Return n);
 	public T visit(Assignment n);
 	public T visit(Program n);
 	// public T visit();
