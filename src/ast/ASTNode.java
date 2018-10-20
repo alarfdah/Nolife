@@ -26,6 +26,9 @@ public abstract class ASTNode {
 		return children.get(i);
 	}
 	
+	public List<ASTNode> getChildren() {
+		return children;
+	}
 	
 	public abstract Object accept(Visitor visitor);
 }

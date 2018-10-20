@@ -2,12 +2,7 @@ package ast;
 
 import visitor.Visitor;
 
-public class TypeFloat extends Type {
-
-	@Override
-	public String getTypeName() {
-		return "FLOAT";
-	}
+public class If extends Statement {
 
 	@Override
 	public Object accept(Visitor visitor) {

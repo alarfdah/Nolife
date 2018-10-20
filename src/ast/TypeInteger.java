@@ -2,16 +2,16 @@ package ast;
 
 import visitor.Visitor;
 
-public class TypeFloat extends Type {
+public class TypeInteger extends Type {
 
 	@Override
 	public String getTypeName() {
-		return "FLOAT";
+		return "INTEGER";
 	}
 
 	@Override
 	public Object accept(Visitor visitor) {
 		return visitor.visit(this);
 	}
-
+	
 }

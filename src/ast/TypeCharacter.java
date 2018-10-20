@@ -2,11 +2,11 @@ package ast;
 
 import visitor.Visitor;
 
-public class TypeFloat extends Type {
+public class TypeCharacter extends Type {
 
 	@Override
 	public String getTypeName() {
-		return "FLOAT";
+		return "CHARACTER";
 	}
 
 	@Override

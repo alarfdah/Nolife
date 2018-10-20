@@ -5,11 +5,11 @@ import visitor.Visitor;
 public abstract class BinaryExpression extends Expression {
 	
 	
-	public ASTNode getLeftOperand() { 
+	public Expression getLeftOperand() { 
 		return (Expression)getChild(0); 
 	}
 	
-	public ASTNode getRightOperand() {
+	public Expression getRightOperand() {
 		return (Expression)getChild(1);
 	}
 	
