@@ -7,7 +7,7 @@ import visitor.Visitor;
 public class VariableDeclarations extends Statement {
 
 	public String getVarKeyword() {
-		return getLabel();
+		return "VAR ";
 	}
 	
 	public List<ASTNode> getDecls() {

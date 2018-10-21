@@ -144,13 +144,11 @@ ASTNode program():
     
 ASTNode decls():
 {
-  	Token var = null;
   	ASTNode varDeclsNode = null;
 }
 {
-	var = <O_VAR> varDeclsNode = decl_list()
+	<O_VAR> varDeclsNode = decl_list()
 	{
-	  	varDeclsNode.setLabel(var.image);
 	  	return varDeclsNode;
 	}
 }
@@ -424,6 +422,7 @@ ASTNode i_o_stmt() :
   	IdDef idDefNode = null;
   	Read readNode = null;
   	Write writeNode = null;
+  	ASTNode varNode = null;
 }
 {
 	( <O_READ> <O_LPAREN> {  idDefNode = (IdDef)variable(); } <O_RPAREN>
@@ -432,11 +431,25 @@ ASTNode i_o_stmt() :
 		exprNode.setLabel(idDefNode.getId());
 		readNode = (Read)factory.makeASTNode("Read");
 		readNode.addChild(exprNode);
-	}
-	| <O_WRITE> <O_LPAREN> ( expr() | string()) <O_RPAREN> )
-	{
 	  	return readNode;
 	}
+	| <O_WRITE> <O_LPAREN>
+		( { exprNode = (Expression)expr(); }
+		{
+	  	  	writeNode = (Write)factory.makeASTNode("Write");
+		  	writeNode.addChild(exprNode);
+	  	}
+		| { exprNode = (Expression)string(); }
+		{
+	  	  	writeNode = (Write)factory.makeASTNode("Write");
+		  	writeNode.addChild(exprNode);
+	  	}
+		) <O_RPAREN>
+	  	{
+	  	  	return writeNode;
+	  	}
+	)
+	
 }
 
 ASTNode return_stmt() :
@@ -606,24 +619,35 @@ ASTNode term3Prime() :
 
 ASTNode factor() :
 {
-  	ASTNode varNode = null;
+  	Expression exprNode = null;
   	Token var = null;
   	
 }
 {
 	(  var = <O_IDENTIFIER>
 		{
-	  	varNode = (IdRef)factory.makeASTNode("IdRef");
-	  	varNode.setLabel(var.image);
-	  	return varNode;
+	  	exprNode = (IdRef)factory.makeASTNode("IdRef");
+	  	exprNode.setLabel(var.image);
 		}
 		( <O_LBRACKET> expr() <O_RBRACKET> | <O_LPAREN> (expr_list())? <O_RPAREN> )?
 	| <O_INT>
+	{
+	  	exprNode = (ConstantInteger)factory.makeASTNode("ConstantInteger");
+	}
 	| <O_FLOATCON>
+	{
+	  	exprNode = (ConstantInteger)factory.makeASTNode("ConstantFloat");
+	}
 	| <O_CHAR>
+	{
+	  	exprNode = (ConstantInteger)factory.makeASTNode("ConstantCharacter");
+	}
 	| <O_LPAREN> expr() <O_RPAREN>
 	| <O_NOT> factor()
 	)
+	{
+		return exprNode;
+	}
 }
 
 ASTNode variable() : 
@@ -643,10 +667,14 @@ ASTNode variable() :
 
 ASTNode string() :
 {
+  	ConstantString constantString = null;
+  	Token string = null;
 }
 {
-  	<O_STRING>
+  	string = <O_STRING>
 	{
-	  	return null;
+	  	constantString = (ConstantString)factory.makeASTNode("ConstantString");
+	  	constantString.setLabel(string.image);
+	  	return constantString;
 	}
 }

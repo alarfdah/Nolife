@@ -72,11 +72,9 @@ public class NolifeParser implements NolifeParserConstants {
   }
 
   static final public ASTNode decls() throws ParseException {
-        Token var = null;
         ASTNode varDeclsNode = null;
-    var = jj_consume_token(O_VAR);
+    jj_consume_token(O_VAR);
     varDeclsNode = decl_list();
-                varDeclsNode.setLabel(var.image);
                 {if (true) return varDeclsNode;}
     throw new Error("Missing return statement in function");
   }
@@ -454,6 +452,7 @@ public class NolifeParser implements NolifeParserConstants {
         IdDef idDefNode = null;
         Read readNode = null;
         Write writeNode = null;
+        ASTNode varNode = null;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case O_READ:
       jj_consume_token(O_READ);
@@ -464,35 +463,22 @@ public class NolifeParser implements NolifeParserConstants {
                 exprNode.setLabel(idDefNode.getId());
                 readNode = (Read)factory.makeASTNode("Read");
                 readNode.addChild(exprNode);
+                {if (true) return readNode;}
       break;
     case O_WRITE:
       jj_consume_token(O_WRITE);
       jj_consume_token(O_LPAREN);
-      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case O_NOT:
-      case O_LPAREN:
-      case O_CHAR:
-      case O_IDENTIFIER:
-      case O_FLOATCON:
-      case O_INT:
-        expr();
-        break;
-      case O_STRING:
-        string();
-        break;
-      default:
-        jj_la1[16] = jj_gen;
-        jj_consume_token(-1);
-        throw new ParseException();
-      }
+                    exprNode = (Expression)expr();
+                        writeNode = (Write)factory.makeASTNode("Write");
+                        writeNode.addChild(exprNode);
       jj_consume_token(O_RPAREN);
+                        {if (true) return writeNode;}
       break;
     default:
-      jj_la1[17] = jj_gen;
+      jj_la1[16] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
-                {if (true) return readNode;}
     throw new Error("Missing return statement in function");
   }
 
@@ -513,7 +499,7 @@ public class NolifeParser implements NolifeParserConstants {
       cases();
       break;
     default:
-      jj_la1[18] = jj_gen;
+      jj_la1[17] = jj_gen;
       ;
     }
     jj_consume_token(O_END);
@@ -530,7 +516,7 @@ public class NolifeParser implements NolifeParserConstants {
         ;
         break;
       default:
-        jj_la1[19] = jj_gen;
+        jj_la1[18] = jj_gen;
         break label_6;
       }
       jj_consume_token(O_SEMICOLON);
@@ -557,7 +543,7 @@ public class NolifeParser implements NolifeParserConstants {
       jj_consume_token(O_FLOATCON);
       break;
     default:
-      jj_la1[20] = jj_gen;
+      jj_la1[19] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -568,7 +554,7 @@ public class NolifeParser implements NolifeParserConstants {
         ;
         break;
       default:
-        jj_la1[21] = jj_gen;
+        jj_la1[20] = jj_gen;
         break label_7;
       }
       jj_consume_token(O_COMMA);
@@ -580,7 +566,7 @@ public class NolifeParser implements NolifeParserConstants {
         jj_consume_token(O_FLOATCON);
         break;
       default:
-        jj_la1[22] = jj_gen;
+        jj_la1[21] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -598,7 +584,7 @@ public class NolifeParser implements NolifeParserConstants {
         ;
         break;
       default:
-        jj_la1[23] = jj_gen;
+        jj_la1[22] = jj_gen;
         break label_8;
       }
       jj_consume_token(O_COMMA);
@@ -629,7 +615,7 @@ public class NolifeParser implements NolifeParserConstants {
       exprPrime();
       break;
     default:
-      jj_la1[24] = jj_gen;
+      jj_la1[23] = jj_gen;
 
     }
                 {if (true) return null;}
@@ -677,7 +663,7 @@ public class NolifeParser implements NolifeParserConstants {
       term1Prime();
       break;
     default:
-      jj_la1[25] = jj_gen;
+      jj_la1[24] = jj_gen;
 
     }
                 {if (true) return null;}
@@ -705,7 +691,7 @@ public class NolifeParser implements NolifeParserConstants {
       term2Prime();
       break;
     default:
-      jj_la1[26] = jj_gen;
+      jj_la1[25] = jj_gen;
 
     }
                 {if (true) return null;}
@@ -733,7 +719,7 @@ public class NolifeParser implements NolifeParserConstants {
       term3Prime();
       break;
     default:
-      jj_la1[27] = jj_gen;
+      jj_la1[26] = jj_gen;
 
     }
                 {if (true) return null;}
@@ -741,14 +727,13 @@ public class NolifeParser implements NolifeParserConstants {
   }
 
   static final public ASTNode factor() throws ParseException {
-        ASTNode varNode = null;
+        Expression exprNode = null;
         Token var = null;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case O_IDENTIFIER:
       var = jj_consume_token(O_IDENTIFIER);
-                varNode = (IdRef)factory.makeASTNode("IdRef");
-                varNode.setLabel(var.image);
-                {if (true) return varNode;}
+                exprNode = (IdRef)factory.makeASTNode("IdRef");
+                exprNode.setLabel(var.image);
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case O_LBRACKET:
       case O_LPAREN:
@@ -770,30 +755,33 @@ public class NolifeParser implements NolifeParserConstants {
             expr_list();
             break;
           default:
-            jj_la1[28] = jj_gen;
+            jj_la1[27] = jj_gen;
             ;
           }
           jj_consume_token(O_RPAREN);
           break;
         default:
-          jj_la1[29] = jj_gen;
+          jj_la1[28] = jj_gen;
           jj_consume_token(-1);
           throw new ParseException();
         }
         break;
       default:
-        jj_la1[30] = jj_gen;
+        jj_la1[29] = jj_gen;
         ;
       }
       break;
     case O_INT:
       jj_consume_token(O_INT);
+                exprNode = (ConstantInteger)factory.makeASTNode("ConstantInteger");
       break;
     case O_FLOATCON:
       jj_consume_token(O_FLOATCON);
+                exprNode = (ConstantInteger)factory.makeASTNode("ConstantFloat");
       break;
     case O_CHAR:
       jj_consume_token(O_CHAR);
+                exprNode = (ConstantInteger)factory.makeASTNode("ConstantCharacter");
       break;
     case O_LPAREN:
       jj_consume_token(O_LPAREN);
@@ -805,10 +793,11 @@ public class NolifeParser implements NolifeParserConstants {
       factor();
       break;
     default:
-      jj_la1[31] = jj_gen;
+      jj_la1[30] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
+                {if (true) return exprNode;}
     throw new Error("Missing return statement in function");
   }
 
@@ -823,7 +812,7 @@ public class NolifeParser implements NolifeParserConstants {
       jj_consume_token(O_RBRACKET);
       break;
     default:
-      jj_la1[32] = jj_gen;
+      jj_la1[31] = jj_gen;
       ;
     }
                 idDefNode = (IdDef) factory.makeASTNode("IdDef");
@@ -834,8 +823,12 @@ public class NolifeParser implements NolifeParserConstants {
   }
 
   static final public ASTNode string() throws ParseException {
-    jj_consume_token(O_STRING);
-                {if (true) return null;}
+        ConstantString constantString = null;
+        Token string = null;
+    string = jj_consume_token(O_STRING);
+                constantString = (ConstantString)factory.makeASTNode("ConstantString");
+                constantString.setLabel(string.image);
+                {if (true) return constantString;}
     throw new Error("Missing return statement in function");
   }
 
@@ -853,16 +846,6 @@ public class NolifeParser implements NolifeParserConstants {
     finally { jj_save(1, xla); }
   }
 
-  static private boolean jj_3_2() {
-    if (jj_scan_token(O_ELSE)) return true;
-    return false;
-  }
-
-  static private boolean jj_3_1() {
-    if (jj_3R_9()) return true;
-    return false;
-  }
-
   static private boolean jj_3R_11() {
     if (jj_scan_token(O_LBRACKET)) return true;
     return false;
@@ -873,6 +856,16 @@ public class NolifeParser implements NolifeParserConstants {
     Token xsp;
     xsp = jj_scanpos;
     if (jj_3R_11()) jj_scanpos = xsp;
+    return false;
+  }
+
+  static private boolean jj_3_2() {
+    if (jj_scan_token(O_ELSE)) return true;
+    return false;
+  }
+
+  static private boolean jj_3_1() {
+    if (jj_3R_9()) return true;
     return false;
   }
 
@@ -894,7 +887,7 @@ public class NolifeParser implements NolifeParserConstants {
   static private Token jj_scanpos, jj_lastpos;
   static private int jj_la;
   static private int jj_gen;
-  static final private int[] jj_la1 = new int[33];
+  static final private int[] jj_la1 = new int[32];
   static private int[] jj_la1_0;
   static private int[] jj_la1_1;
   static {
@@ -902,10 +895,10 @@ public class NolifeParser implements NolifeParserConstants {
       jj_la1_init_1();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0x4000000,0x208000,0x0,0x0,0x24500,0x24400,0x0,0x208000,0x4000000,0x0,0x0,0x208000,0x0,0x0,0x39810200,0x40000,0x40000,0x10800000,0x0,0x0,0x0,0x0,0x0,0x0,0x100080,0xc0000000,0x0,0x40,0x40000,0x0,0x0,0x40000,0x0,};
+      jj_la1_0 = new int[] {0x4000000,0x208000,0x0,0x0,0x24500,0x24400,0x0,0x208000,0x4000000,0x0,0x0,0x208000,0x0,0x0,0x39810200,0x40000,0x10800000,0x0,0x0,0x0,0x0,0x0,0x0,0x100080,0xc0000000,0x0,0x40,0x40000,0x0,0x0,0x40000,0x0,};
    }
    private static void jj_la1_init_1() {
-      jj_la1_1 = new int[] {0x0,0x0,0x100000,0x80,0x0,0x0,0x810000,0x0,0x0,0x400,0x400,0x0,0x40,0x40,0x100000,0xd10400,0xd30400,0x0,0xc00000,0x40,0xc00000,0x80,0xc00000,0x80,0x0,0xf,0x6000,0x8000,0xd10400,0x500,0x500,0xd10400,0x100,};
+      jj_la1_1 = new int[] {0x0,0x0,0x100000,0x80,0x0,0x0,0x810000,0x0,0x0,0x400,0x400,0x0,0x40,0x40,0x100000,0xd10400,0x0,0xc00000,0x40,0xc00000,0x80,0xc00000,0x80,0x0,0xf,0x6000,0x8000,0xd10400,0x500,0x500,0xd10400,0x100,};
    }
   static final private JJCalls[] jj_2_rtns = new JJCalls[2];
   static private boolean jj_rescan = false;
@@ -929,7 +922,7 @@ public class NolifeParser implements NolifeParserConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 33; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 32; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -944,7 +937,7 @@ public class NolifeParser implements NolifeParserConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 33; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 32; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -962,7 +955,7 @@ public class NolifeParser implements NolifeParserConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 33; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 32; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -973,7 +966,7 @@ public class NolifeParser implements NolifeParserConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 33; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 32; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -990,7 +983,7 @@ public class NolifeParser implements NolifeParserConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 33; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 32; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -1000,7 +993,7 @@ public class NolifeParser implements NolifeParserConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 33; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 32; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -1117,7 +1110,7 @@ public class NolifeParser implements NolifeParserConstants {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
     }
-    for (int i = 0; i < 33; i++) {
+    for (int i = 0; i < 32; i++) {
       if (jj_la1[i] == jj_gen) {
         for (int j = 0; j < 32; j++) {
           if ((jj_la1_0[i] & (1<<j)) != 0) {

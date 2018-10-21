@@ -40,6 +40,7 @@ public class SourceVisitor<T> implements Visitor<T> {
 	public T visit(CompoundStatement n) {
 		src += n.getBegin();
 		for (ASTNode node : n.getChildren()) {
+			src += "\t";
 			node.accept(this);
 		}
 		src += n.getEnd();
@@ -48,22 +49,28 @@ public class SourceVisitor<T> implements Visitor<T> {
 	
 	@Override
 	public T visit(ConstantCharacter n) {
-		src += n.getLabel();
+		src += n.getCharacter();
 		return null;
 	}
 	
 	@Override
 	public T visit(ConstantFloat n) {
-		src += n.getLabel();
+		src += n.getFloat();
 		return null;
 	}
 	
 	@Override
 	public T visit(ConstantInteger n) {
-		src += n.getLabel();
+		src += n.getInteger();
 		return null;
 	}
 
+	@Override
+	public T visit(ConstantString n) {
+		src += n.getString();
+		return null;
+	}
+	
 	@Override
 	public T visit(IdDecl n) {
 		src += n.getId();
@@ -137,6 +144,7 @@ public class SourceVisitor<T> implements Visitor<T> {
 		src += "(";
 		n.getInput().accept(this);
 		src += ")";
+		src += "\n";
 		return null;
 	}
 	
@@ -186,8 +194,9 @@ public class SourceVisitor<T> implements Visitor<T> {
 
 	@Override
 	public T visit(VariableDeclarations n) {
-		src += n.getVarKeyword() + " ";
+		src += n.getVarKeyword();
 		for (ASTNode node : n.getDecls()) {
+			src += "\t";
 			node.accept(this);
 			src += "\n";
 		}
@@ -206,6 +215,7 @@ public class SourceVisitor<T> implements Visitor<T> {
 		src += "(";
 		n.getOutput().accept(this);
 		src += ")";
+		src += "\n";
 		return null;
 	}
 

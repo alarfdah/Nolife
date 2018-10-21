@@ -11,6 +11,7 @@ public interface Visitor<T> {
 	public T visit(ConstantCharacter n);
 	public T visit(ConstantFloat n);
 	public T visit(ConstantInteger n);
+	public T visit(ConstantString n);
 	public T visit(IdDecl n);
 	public T visit(IdDef n);
 	public T visit(IdRef n);

@@ -5,5 +5,6 @@ VAR a, b: INTEGER;
 
 BEGIN
   a := b;
-  READ(a)
+  READ(a);
+  WRITE(a)
 END

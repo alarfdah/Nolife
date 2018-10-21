@@ -2,9 +2,9 @@ package ast;
 
 import visitor.Visitor;
 
-public class ConstantFloat extends Expression {
+public class ConstantString extends Expression {
 
-	public String getFloat() {
+	public String getString() {
 		return getLabel();
 	}
 	
@@ -13,4 +13,5 @@ public class ConstantFloat extends Expression {
 		return visitor.visit(this);
 	}
 
+	
 }

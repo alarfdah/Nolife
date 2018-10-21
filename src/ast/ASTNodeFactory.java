@@ -39,6 +39,14 @@ public class ASTNodeFactory {
 			return new Read();
 		else if (nodeType == "Write")
 			return new Write();
+		else if (nodeType == "ConstantInteger")
+			return new ConstantInteger();
+		else if (nodeType == "ConstantFloat")
+			return new ConstantFloat();
+		else if (nodeType == "ConstantCharacter")
+			return new ConstantCharacter();
+		else if (nodeType == "ConstantString")
+			return new ConstantString();
 		else
 			return null;
 	}
