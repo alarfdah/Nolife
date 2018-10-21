@@ -483,9 +483,13 @@ public class NolifeParser implements NolifeParserConstants {
   }
 
   static final public ASTNode return_stmt() throws ParseException {
+        Expression exprNode = null;
+        Return returnNode = null;
     jj_consume_token(O_RETURN);
-    expr();
-                {if (true) return null;}
+                     exprNode = (Expression)expr();
+                returnNode = (Return)factory.makeASTNode("Return");
+                returnNode.addChild(exprNode);
+                {if (true) return returnNode;}
     throw new Error("Missing return statement in function");
   }
 
@@ -672,57 +676,76 @@ public class NolifeParser implements NolifeParserConstants {
 
   static final public ASTNode term2() throws ParseException {
         ASTNode term3 = null;
+        ASTNode term2Prime = null;
+        Add addNode = null;
     term3 = term3();
-    term2Prime();
-                {if (true) return term3;}
+    term2Prime = term2Prime(term3);
+            {if (true) return term2Prime;}
     throw new Error("Missing return statement in function");
   }
 
-  static final public ASTNode term2Prime() throws ParseException {
+  static final public ASTNode term2Prime(ASTNode exprNode) throws ParseException {
+        Add addNode = null;
+        Subtract subtractNode = null;
+        ASTNode term3Node = null;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case O_PLUS:
       jj_consume_token(O_PLUS);
-      term3();
-      term2Prime();
+      term3Node = term3();
+                        addNode = (Add)factory.makeASTNode("Add");
+                        addNode.addChild(exprNode);
+                        addNode.addChild(term2Prime(term3Node));
+                        {if (true) return addNode;}
       break;
     case O_MINUS:
       jj_consume_token(O_MINUS);
-      term3();
-      term2Prime();
+      term3Node = term3();
+                        subtractNode = (Subtract)factory.makeASTNode("Subtract");
+                        subtractNode.addChild(exprNode);
+                        subtractNode.addChild(term2Prime(term3Node));
+                        {if (true) return subtractNode;}
       break;
     default:
       jj_la1[25] = jj_gen;
-
+          {if (true) return exprNode;}
     }
-                {if (true) return null;}
     throw new Error("Missing return statement in function");
   }
 
   static final public ASTNode term3() throws ParseException {
         ASTNode factor = null;
+        ASTNode term3Prime = null;
     factor = factor();
-    term3Prime();
-                {if (true) return factor;}
+    term3Prime = term3Prime(factor);
+                {if (true) return term3Prime;}
     throw new Error("Missing return statement in function");
   }
 
-  static final public ASTNode term3Prime() throws ParseException {
+  static final public ASTNode term3Prime(ASTNode exprNode) throws ParseException {
+        Multiply multiplyNode = null;
+        Modulo moduloNode = null;
+        ASTNode factorNode = null;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case O_TIMES:
       jj_consume_token(O_TIMES);
-      factor();
-      term3Prime();
+      factorNode = factor();
+                        multiplyNode = (Multiply)factory.makeASTNode("Multiply");
+                        multiplyNode.addChild(exprNode);
+                        multiplyNode.addChild(term3Prime(factorNode));
+                        {if (true) return multiplyNode;}
       break;
     case O_MOD:
       jj_consume_token(O_MOD);
-      factor();
-      term3Prime();
+      factorNode = factor();
+                        moduloNode = (Modulo)factory.makeASTNode("Modulo");
+                        moduloNode.addChild(exprNode);
+                        moduloNode.addChild(term3Prime(factorNode));
+                        {if (true) return moduloNode;}
       break;
     default:
       jj_la1[26] = jj_gen;
-
+          {if (true) return exprNode;}
     }
-                {if (true) return null;}
     throw new Error("Missing return statement in function");
   }
 
@@ -732,8 +755,8 @@ public class NolifeParser implements NolifeParserConstants {
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case O_IDENTIFIER:
       var = jj_consume_token(O_IDENTIFIER);
-                exprNode = (IdRef)factory.makeASTNode("IdRef");
-                exprNode.setLabel(var.image);
+                        exprNode = (IdRef)factory.makeASTNode("IdRef");
+                        exprNode.setLabel(var.image);
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case O_LBRACKET:
       case O_LPAREN:
@@ -846,6 +869,16 @@ public class NolifeParser implements NolifeParserConstants {
     finally { jj_save(1, xla); }
   }
 
+  static private boolean jj_3_2() {
+    if (jj_scan_token(O_ELSE)) return true;
+    return false;
+  }
+
+  static private boolean jj_3_1() {
+    if (jj_3R_9()) return true;
+    return false;
+  }
+
   static private boolean jj_3R_11() {
     if (jj_scan_token(O_LBRACKET)) return true;
     return false;
@@ -856,16 +889,6 @@ public class NolifeParser implements NolifeParserConstants {
     Token xsp;
     xsp = jj_scanpos;
     if (jj_3R_11()) jj_scanpos = xsp;
-    return false;
-  }
-
-  static private boolean jj_3_2() {
-    if (jj_scan_token(O_ELSE)) return true;
-    return false;
-  }
-
-  static private boolean jj_3_1() {
-    if (jj_3R_9()) return true;
     return false;
   }
 

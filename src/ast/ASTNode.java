@@ -31,5 +31,9 @@ public abstract class ASTNode {
 		return children;
 	}
 	
+	public boolean isEmpty() {
+		return children == null;
+	}
+	
 	public abstract Object accept(Visitor visitor);
 }

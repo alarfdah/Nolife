@@ -7,7 +7,7 @@ public class Modulo extends BinaryExpression {
 	
 	@Override
 	public String getOperator() {
-		return " % ";
+		return " MOD ";
 	}
 	
 	@Override

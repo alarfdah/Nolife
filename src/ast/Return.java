@@ -4,8 +4,12 @@ import visitor.Visitor;
 
 public class Return extends Statement {
 
-	public IdRef getReturn() {
-		return (IdRef)getChild(0);
+	public String getReturnKeyword() {
+		return "RETURN";
+	}
+	
+	public Expression getReturn() {
+		return (Expression)getChild(0);
 	}
 	
 	@Override

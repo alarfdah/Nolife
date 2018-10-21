@@ -355,7 +355,7 @@ ASTNode stmt() :
 
 {
 	( LOOKAHEAD(2)
-		 statement = assignment()
+		  statement = assignment()
   		| statement = if_stmt()
   		| statement = while_stmt()
   		| statement = procedure_invocation()
@@ -454,11 +454,15 @@ ASTNode i_o_stmt() :
 
 ASTNode return_stmt() :
 {
+  	Expression exprNode = null;
+  	Return returnNode = null;
 }
 {
-	<O_RETURN> expr()
+	<O_RETURN> { exprNode = (Expression)expr(); }
 	{
-	  	return null;
+	  	returnNode = (Return)factory.makeASTNode("Return");
+	  	returnNode.addChild(exprNode);
+	  	return returnNode;
 	}
 }
 
@@ -551,6 +555,7 @@ ASTNode term1() :
 
 ASTNode term1Prime() :
 {
+  	
 }
 {
 	( <O_LT> term2() term1Prime()
@@ -570,51 +575,86 @@ ASTNode term1Prime() :
 ASTNode term2() :
 {
   	ASTNode term3 = null;
+	ASTNode term2Prime = null;
+	Add addNode = null;
 }
-{
-	term3 = term3() term2Prime()
+{  	
+	term3 = term3()
+	term2Prime = term2Prime(term3)
 	{
-	  	return term3;
+	    return term2Prime;
 	}
 }
 
-ASTNode term2Prime() :
+ASTNode term2Prime(ASTNode exprNode) :
 {
+  	Add addNode = null;
+  	Subtract subtractNode = null;
+	ASTNode term3Node = null;
 }
 {
-	( <O_PLUS> term3() term2Prime()
-	| <O_MINUS> term3() term2Prime()
+	( <O_PLUS>
+		term3Node = term3()
+		{
+		  	addNode = (Add)factory.makeASTNode("Add");
+		  	addNode.addChild(exprNode);
+			addNode.addChild(term2Prime(term3Node));
+			return addNode;
+		}
+	| <O_MINUS>
+		term3Node = term3()
+		{
+			subtractNode = (Subtract)factory.makeASTNode("Subtract");
+			subtractNode.addChild(exprNode);
+			subtractNode.addChild(term2Prime(term3Node));
+			return subtractNode;
+		}
+	
 	|
-	{ }
+	{ return exprNode; }
 	)
-	{
-	  	return null;
-	}
 }
 
 ASTNode term3() :
 {
   	ASTNode factor = null;
+  	ASTNode term3Prime = null;
 }
 {
-	factor = factor() term3Prime()
+	factor = factor()
+	term3Prime = term3Prime(factor)
 	{
-		return factor;
+		return term3Prime;
 	}
 }  
 
-ASTNode term3Prime() :
+ASTNode term3Prime(ASTNode exprNode) :
 {
+  	Multiply multiplyNode = null;
+  	Modulo moduloNode = null;
+  	ASTNode factorNode = null;
 }
 {
-	( <O_TIMES> factor() term3Prime()
-	| <O_MOD> factor() term3Prime()
+	( <O_TIMES>
+		factorNode = factor()
+		{
+			multiplyNode = (Multiply)factory.makeASTNode("Multiply");
+			multiplyNode.addChild(exprNode);
+			multiplyNode.addChild(term3Prime(factorNode));
+			return multiplyNode;
+		}
+	
+	| <O_MOD>
+		factorNode = factor()
+		{
+			moduloNode = (Modulo)factory.makeASTNode("Modulo");
+			moduloNode.addChild(exprNode);
+			moduloNode.addChild(term3Prime(factorNode));
+			return moduloNode;
+		}
 	|
-	{ }
+	{ return exprNode; }
 	)
-	{
-		return null;
-	}
 }
 
 ASTNode factor() :
@@ -626,8 +666,8 @@ ASTNode factor() :
 {
 	(  var = <O_IDENTIFIER>
 		{
-	  	exprNode = (IdRef)factory.makeASTNode("IdRef");
-	  	exprNode.setLabel(var.image);
+			exprNode = (IdRef)factory.makeASTNode("IdRef");
+	  		exprNode.setLabel(var.image);
 		}
 		( <O_LBRACKET> expr() <O_RBRACKET> | <O_LPAREN> (expr_list())? <O_RPAREN> )?
 	| <O_INT>

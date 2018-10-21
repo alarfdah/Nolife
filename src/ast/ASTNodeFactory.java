@@ -47,6 +47,8 @@ public class ASTNodeFactory {
 			return new ConstantCharacter();
 		else if (nodeType == "ConstantString")
 			return new ConstantString();
+		else if (nodeType == "Return")
+			return new Return();
 		else
 			return null;
 	}

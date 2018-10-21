@@ -1,10 +1,8 @@
 PROGRAM test;
 
 VAR a, b: INTEGER;
-	x, y: FLOAT;
+	x, y: INTEGER;
 
 BEGIN
-  a := b;
-  READ(a);
-  WRITE(a)
+  a := b + x - y * b MOD y
 END

@@ -20,7 +20,6 @@ public class SourceVisitor<T> implements Visitor<T> {
 		n.getLhs().accept(this);
 		src += " := ";
 		n.getRhs().accept(this);
-		src += "\n";
 		return null;
 	}
 
@@ -42,7 +41,12 @@ public class SourceVisitor<T> implements Visitor<T> {
 		for (ASTNode node : n.getChildren()) {
 			src += "\t";
 			node.accept(this);
+			src += ";";
+			src += "\n";
 		}
+		if (src != null && src.length() > 0 && src.charAt(src.length() - 2) == ';') {
+	        src = src.substring(0, src.length() - 2);
+	    }
 		src += n.getEnd();
 		return null;
 	}
@@ -100,12 +104,12 @@ public class SourceVisitor<T> implements Visitor<T> {
 			node.accept(this);
 			src += ", ";
 		}
-		if (src != null && src.length() > 0 && src.charAt(src.length() - 1) == ' ') {
-	        src = src.substring(0, src.length() - 1);
+		
+		// Removes the last ", "
+		if (src != null && src.length() > 0 && src.charAt(src.length() - 2) == ',') {
+	        src = src.substring(0, src.length() - 2);
 	    }
-		if (src != null && src.length() > 0 && src.charAt(src.length() - 1) == ',') {
-	        src = src.substring(0, src.length() - 1);
-	    }
+		
 		src += ": ";
 		n.getDeclaredType().accept(this);
 		src += ";";
@@ -144,13 +148,15 @@ public class SourceVisitor<T> implements Visitor<T> {
 		src += "(";
 		n.getInput().accept(this);
 		src += ")";
-		src += "\n";
 		return null;
 	}
 	
 	@Override
 	public T visit(Return n) {
-		// TODO Auto-generated method stub
+		src += n.getReturnKeyword();
+		src += "(";
+//		n.getReturn().accept(this);
+		src += ")";
 		return null;
 	}
 
@@ -215,7 +221,6 @@ public class SourceVisitor<T> implements Visitor<T> {
 		src += "(";
 		n.getOutput().accept(this);
 		src += ")";
-		src += "\n";
 		return null;
 	}
 
