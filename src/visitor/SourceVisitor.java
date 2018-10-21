@@ -20,6 +20,7 @@ public class SourceVisitor<T> implements Visitor<T> {
 		n.getLhs().accept(this);
 		src += " := ";
 		n.getRhs().accept(this);
+		src += "\n";
 		return null;
 	}
 
@@ -88,13 +89,19 @@ public class SourceVisitor<T> implements Visitor<T> {
 
 	@Override
 	public T visit(Declare n) {
+		for (ASTNode node : n.getChildren().subList(0, n.getChildren().size() - 1)) {
+			node.accept(this);
+			src += ", ";
+		}
+		if (src != null && src.length() > 0 && src.charAt(src.length() - 1) == ' ') {
+	        src = src.substring(0, src.length() - 1);
+	    }
+		if (src != null && src.length() > 0 && src.charAt(src.length() - 1) == ',') {
+	        src = src.substring(0, src.length() - 1);
+	    }
+		src += ": ";
 		n.getDeclaredType().accept(this);
-		return null;
-	}
-	
-	@Override
-	public T visit(Input n) {
-		// TODO Auto-generated method stub
+		src += ";";
 		return null;
 	}
 
@@ -115,11 +122,6 @@ public class SourceVisitor<T> implements Visitor<T> {
 	}
 
 	@Override
-	public T visit(Output n) {
-		return null;
-	}
-
-	@Override
 	public T visit(Program n) {
 		src += n.getProgramType();
 		src += n.getProgramName();
@@ -129,6 +131,15 @@ public class SourceVisitor<T> implements Visitor<T> {
 		return null;
 	}
 
+	@Override
+	public T visit(Read n) {
+		src += n.getReadKeyword();
+		src += "(";
+		n.getInput().accept(this);
+		src += ")";
+		return null;
+	}
+	
 	@Override
 	public T visit(Return n) {
 		// TODO Auto-generated method stub
@@ -155,26 +166,27 @@ public class SourceVisitor<T> implements Visitor<T> {
 	@Override
 	public T visit(TypeCharacter n) {
 		src += n.getTypeName();
-		n.getChild().accept(this);
+//		n.getChild().accept(this);
 		return null;
 	}
 
 	@Override
 	public T visit(TypeFloat n) {
 		src += n.getTypeName();
-		n.getChild().accept(this);
+//		n.getChild().accept(this);
 		return null;
 	}
 
 	@Override
 	public T visit(TypeInteger n) {
 		src += n.getTypeName();
-		n.getChild().accept(this);
+//		n.getChild().accept(this);
 		return null;
 	}
 
 	@Override
 	public T visit(VariableDeclarations n) {
+		src += n.getVarKeyword() + " ";
 		for (ASTNode node : n.getDecls()) {
 			node.accept(this);
 			src += "\n";
@@ -185,6 +197,15 @@ public class SourceVisitor<T> implements Visitor<T> {
 	@Override
 	public T visit(While n) {
 		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
+	public T visit(Write n) {
+		src += n.getWriteKeyword();
+		src += "(";
+		n.getOutput().accept(this);
+		src += ")";
 		return null;
 	}
 

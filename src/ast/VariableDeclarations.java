@@ -6,6 +6,10 @@ import visitor.Visitor;
 
 public class VariableDeclarations extends Statement {
 
+	public String getVarKeyword() {
+		return getLabel();
+	}
+	
 	public List<ASTNode> getDecls() {
 		return getChildren();
 	}

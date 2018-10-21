@@ -2,8 +2,12 @@ package ast;
 
 import visitor.Visitor;
 
-public class Output extends Statement {
+public class Write extends Statement {
 
+	
+	public String getWriteKeyword() {
+		return "WRITE";
+	}
 	
 	public Expression getOutput() {
 		return (Expression)getChild(0);

@@ -16,11 +16,10 @@ public interface Visitor<T> {
 	public T visit(IdRef n);
 	public T visit(If n);
 	public T visit(Declare n);
-	public T visit(Input n);
 	public T visit(Modulo n);
 	public T visit(Multiply n);
-	public T visit(Output n);
 	public T visit(Program n);
+	public T visit(Read n);
 	public T visit(Return n);
 	public T visit(Subscript n);
 	public T visit(Subtract n);
@@ -29,6 +28,7 @@ public interface Visitor<T> {
 	public T visit(TypeInteger n);
 	public T visit(VariableDeclarations n);
 	public T visit(While n);
+	public T visit(Write n);
 	public String getSource();
 	// public T visit();
 }

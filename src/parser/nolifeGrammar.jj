@@ -118,12 +118,20 @@ ASTNode program():
 {
   	ASTNode programNode = (Program)factory.makeASTNode("Program");
   	ASTNode compoundStatement = null;
+  	ASTNode varDeclsNode = null;
   	Token progName = null;
 }
 {
    <O_PROGRAM> progName = <O_IDENTIFIER> <O_SEMICOLON>
-   ( decls() )?
-   ( subprogram_decls() )? 
+   (
+     	varDeclsNode = decls()
+		{
+		 	programNode.addChild(varDeclsNode);
+		}
+   )?
+   (
+     	subprogram_decls()
+   )? 
    compoundStatement = compound_stmt()
    {
      	programNode.setLabel(progName.image);
@@ -136,42 +144,65 @@ ASTNode program():
     
 ASTNode decls():
 {
+  	Token var = null;
+  	ASTNode varDeclsNode = null;
 }
 {
-	<O_VAR> decl_list()
+	var = <O_VAR> varDeclsNode = decl_list()
 	{
-	  	return null;
+	  	varDeclsNode.setLabel(var.image);
+	  	return varDeclsNode;
 	}
 }
 
 ASTNode decl_list() : 
 {
   	ASTNode typeNode = null;
-  	
+  	ASTNode declareNode = null;
+  	VariableDeclarations varDeclsNode = null;
 }
 {
- 	( identifier_list() <O_COLON> typeNode = type() <O_SEMICOLON> )+
   	{
-	  	return null;
+  	  	varDeclsNode = (VariableDeclarations)factory.makeASTNode("VariableDeclarations");
+  	}
+ 	(
+ 	  	declareNode = identifier_list()
+ 		<O_COLON>
+ 		typeNode = type()
+ 		<O_SEMICOLON>
+ 		{
+ 		  	declareNode.addChild(typeNode);
+ 		  	varDeclsNode.addChild(declareNode);
+ 		}
+ 	)+
+  	{
+	  	return varDeclsNode;
 	}
 }
 
 ASTNode identifier_list() : 
 {
-  	//VariableDeclarations varDeclsNode = null;
+	Declare declareNode = null;
   	IdDecl idDeclNode = null;
   	Token id = null;
 }
 {
 	id = <O_IDENTIFIER>
 	{
-	  	//varDeclsNode = (VariableDeclarations)factory.makeASTNode("VariableDeclarations");
+		declareNode = (Declare)factory.makeASTNode("Declare");
 	  	idDeclNode = (IdDecl)factory.makeASTNode("IdDecl");
-	  	idDeclNode.addChild();
+	  	idDeclNode.setLabel(id.image);
+	  	declareNode.addChild(idDeclNode);
 	}
-  	( <O_COMMA> id = <O_IDENTIFIER>	)*
+  	( <O_COMMA> id = <O_IDENTIFIER>
   	{
-	  	return null;
+  	  	idDeclNode = (IdDecl)factory.makeASTNode("IdDecl");
+  	  	idDeclNode.setLabel(id.image);
+  	  	declareNode.addChild(idDeclNode);
+  	}
+  	)*
+  	{
+	  	return declareNode;
 	}
 }
 
@@ -321,25 +352,22 @@ ASTNode stmt_list() :
 
 ASTNode stmt() :
 {
-	ASTNode assignment = null;
+	ASTNode statement = null;
 }
 
 {
 	( LOOKAHEAD(2)
-		 assignment = assignment()
-		 {
-		   	return assignment;
-		 }
-  		| if_stmt()
-  		| while_stmt()
-  		| procedure_invocation()
-  		| i_o_stmt()
-  		| compound_stmt()
-  		| return_stmt()
-  		| case_stmt()
+		 statement = assignment()
+  		| statement = if_stmt()
+  		| statement = while_stmt()
+  		| statement = procedure_invocation()
+  		| statement = i_o_stmt()
+  		| statement = compound_stmt()
+  		| statement = return_stmt()
+  		| statement = case_stmt()
 	)
 	{
-	  	return null;
+	  	return statement;
 	}
 }
 
@@ -392,12 +420,22 @@ ASTNode procedure_invocation() :
 
 ASTNode i_o_stmt() :
 {
+  	Expression exprNode = null;
+  	IdDef idDefNode = null;
+  	Read readNode = null;
+  	Write writeNode = null;
 }
 {
-	( <O_READ> <O_LPAREN> variable() <O_RPAREN>
+	( <O_READ> <O_LPAREN> {  idDefNode = (IdDef)variable(); } <O_RPAREN>
+	{
+		exprNode = (IdRef)factory.makeASTNode("IdRef");
+		exprNode.setLabel(idDefNode.getId());
+		readNode = (Read)factory.makeASTNode("Read");
+		readNode.addChild(exprNode);
+	}
 	| <O_WRITE> <O_LPAREN> ( expr() | string()) <O_RPAREN> )
 	{
-	  	return null;
+	  	return readNode;
 	}
 }
 

@@ -2,13 +2,15 @@ package ast;
 
 import visitor.Visitor;
 
-public class Input extends Statement {
+public class Read extends Statement {
 
-	public Expression getInput() {
-		// TODO check the constant inputs like READ('hello')
-		return (Expression)getChild(0);
+	public String getReadKeyword() {
+		return "READ";
 	}
 	
+	public Expression getInput() {
+		return (Expression)getChild(0);
+	}
 	
 	@Override
 	public Object accept(Visitor visitor) {

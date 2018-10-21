@@ -5,7 +5,7 @@ import visitor.Visitor;
 public class Declare extends Declaration {
 
 	public Type getDeclaredType() {
-		return (Type)getChild(0);
+		return (Type)getChild(getChildren().size() - 1);
 	}
 	
 	@Override

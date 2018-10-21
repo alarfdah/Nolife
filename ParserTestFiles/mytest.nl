@@ -1,7 +1,9 @@
 PROGRAM test;
 
 VAR a, b: INTEGER;
+	x, y: FLOAT;
 
 BEGIN
-  a := b
+  a := b;
+  READ(a)
 END

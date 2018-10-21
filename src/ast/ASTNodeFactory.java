@@ -19,9 +19,9 @@ public class ASTNodeFactory {
 			return new IdDecl();
 		else if (nodeType == "IdRef")
 			return new IdRef();
-		else if (nodeType == "Declaration")
+		else if (nodeType == "Declare")
 			return new Declare();
-		else if (nodeType == "VariableDeclaration")
+		else if (nodeType == "VariableDeclarations")
 			return new VariableDeclarations();
 		else if (nodeType == "TypeInteger")
 			return new TypeInteger();
@@ -35,6 +35,10 @@ public class ASTNodeFactory {
 			return new Assignment();
 		else if (nodeType == "CompoundStatement")
 			return new CompoundStatement();
+		else if (nodeType == "Read")
+			return new Read();
+		else if (nodeType == "Write")
+			return new Write();
 		else
 			return null;
 	}
