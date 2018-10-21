@@ -169,7 +169,7 @@ ASTNode decl_list() :
  		typeNode = type()
  		<O_SEMICOLON>
  		{
- 		  	declareNode.addChild(typeNode);
+			declareNode.addChild(typeNode);
  		  	varDeclsNode.addChild(declareNode);
  		}
  	)+
@@ -359,12 +359,12 @@ ASTNode stmt() :
 	( LOOKAHEAD(2)
 		  statement = assignment()
   		| statement = if_stmt()
-  		| statement = while_stmt()
-  		| statement = procedure_invocation()
+  		| statement = while_stmt() 				// Do
+  		| statement = procedure_invocation()	// Do
   		| statement = i_o_stmt()
   		| statement = compound_stmt()
   		| statement = return_stmt()
-  		| statement = case_stmt()
+  		| statement = case_stmt()				// Do
 	)
 	{
 	  	return statement;

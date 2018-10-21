@@ -7,3 +7,6 @@ Questions:
 5. Do we eliminate parenthesis?
 6. Separate if, then, and else?
 7. How to handle else statement?
+
+Notes:
+1. Take the declarations and pass them to type. Make each type have a child.
