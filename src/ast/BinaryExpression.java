@@ -5,6 +5,8 @@ import visitor.Visitor;
 public abstract class BinaryExpression extends Expression {
 	
 	
+	public abstract String getOperator();
+	
 	public Expression getLeftOperand() { 
 		return (Expression)getChild(0); 
 	}

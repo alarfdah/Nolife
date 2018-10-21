@@ -1,5 +1,6 @@
 package ast;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import visitor.Visitor;
@@ -7,7 +8,7 @@ import visitor.Visitor;
 public abstract class ASTNode {
 	
 	protected String label;
-	protected List<ASTNode> children;
+	protected List<ASTNode> children = new LinkedList<ASTNode>();
 	
 	public void setLabel(String l) {
 		label = l;

@@ -8,7 +8,41 @@ options {
 PARSER_BEGIN(NolifeParser)
 package parser;
 
+import ast.*;
+import visitor.*;
+import java.io.*;
+
 public class NolifeParser {
+  
+  	private static ASTNodeFactory factory;
+
+  	public static void main(String args[]) {
+  	  	NolifeParser parser;
+  	  	java.io.InputStream input;
+
+  	  	if (args.length == 1) {
+			try {
+			  	input = new java.io.FileInputStream(args[args.length - 1]);
+			} catch (java.io.FileNotFoundException e) {
+			  	System.out.println("Filen not found.");
+			  	return;
+			} 
+  	  	} else {
+  	  	  	System.out.println("Usage: nsc <inputfile>");
+  	  	  	return;
+  	  	}
+
+  	  	try {
+  	  	  	factory = new ASTNodeFactory();
+  	  	  	parser = new NolifeParser(input);
+  	  	  	ASTNode node = parser.program();
+  	  	  	SourceVisitor sv = new SourceVisitor();
+  	  	  	node.accept(sv);
+  	  	  	System.out.println(sv.getSource());
+  	  	} catch (ParseException e) {
+  	  	  	System.err.println("Syntax Error: " + e.getMessage());
+  	  	}
+  	} 
 }
 
 PARSER_END(NolifeParser)
@@ -80,129 +114,222 @@ TOKEN : /* other lexical tokens */
 | <O_INT: "0" | ["1" - "9"](<DIGIT>)* >
 }
 
-void program(): 
+ASTNode program(): 
 {
+  	ASTNode programNode = (Program)factory.makeASTNode("Program");
+  	ASTNode compoundStatement = null;
+  	Token progName = null;
 }
 {
-   <O_PROGRAM> <O_IDENTIFIER> <O_SEMICOLON>
+   <O_PROGRAM> progName = <O_IDENTIFIER> <O_SEMICOLON>
    ( decls() )?
    ( subprogram_decls() )? 
-   compound_stmt()
+   compoundStatement = compound_stmt()
+   {
+     	programNode.setLabel(progName.image);
+     	programNode.addChild(compoundStatement);
+
+     	return programNode;
+   }
+   
 }
     
-void decls(): 
+ASTNode decls():
 {
 }
 {
 	<O_VAR> decl_list()
+	{
+	  	return null;
+	}
 }
 
-void decl_list() : 
+ASTNode decl_list() : 
 {
+  	ASTNode typeNode = null;
+  	
 }
 {
-  ( identifier_list() <O_COLON> type() <O_SEMICOLON> )+
-}
-
-void identifier_list() : 
-{
-}
-{
-	<O_IDENTIFIER>
-  	( <O_COMMA> <O_IDENTIFIER>	)*
+ 	( identifier_list() <O_COLON> typeNode = type() <O_SEMICOLON> )+
+  	{
+	  	return null;
+	}
 }
 
-void type() : 
+ASTNode identifier_list() : 
 {
+  	//VariableDeclarations varDeclsNode = null;
+  	IdDecl idDeclNode = null;
+  	Token id = null;
 }
 {
-  ( standard_type()
-  | array_type()
-  )
-}
-
-void standard_type() : 
-{
-}
-{
-	( <O_INTEGER>
-	| <O_FLOAT>
-	| <O_CHARACTER> )
-}
-
-void array_type() : 
-{
-}
-{
-    <O_ARRAY> <O_LBRACKET> dim() <O_RBRACKET> <O_OF> standard_type() 
+	id = <O_IDENTIFIER>
+	{
+	  	//varDeclsNode = (VariableDeclarations)factory.makeASTNode("VariableDeclarations");
+	  	idDeclNode = (IdDecl)factory.makeASTNode("IdDecl");
+	  	idDeclNode.addChild();
+	}
+  	( <O_COMMA> id = <O_IDENTIFIER>	)*
+  	{
+	  	return null;
+	}
 }
 
-void dim() : 
+ASTNode type() : 
+{
+  	ASTNode typeNode = null;
+}
+{
+  	( typeNode = standard_type()
+  	| typeNode = array_type()
+  	)
+  	{
+	  	return typeNode;
+	}
+}
+
+ASTNode standard_type() : 
+{
+  	Type typeNode = null;
+  	Token type = null;
+}
+{
+	( type = <O_INTEGER>
+	{
+	  	typeNode = (TypeInteger)factory.makeASTNode("TypeInteger");
+	}
+	| type = <O_FLOAT>
+	{
+	  	typeNode = (TypeFloat)factory.makeASTNode("TypeFloat");
+	}
+	| type = <O_CHARACTER>
+	{
+	  	typeNode = (TypeCharacter)factory.makeASTNode("TypeCharacter");
+	}
+	)
+	{
+	  	return typeNode;
+	}
+}
+
+ASTNode array_type() : 
+{
+}
+{
+    <O_ARRAY> <O_LBRACKET> dim() <O_RBRACKET> <O_OF> standard_type()
+    {
+	  	return null;
+	}
+}
+
+ASTNode dim() : 
 {
 }
 {
 	( <O_INT> <O_DOT> <O_DOT > <O_INT>
 	| <O_CHAR> <O_DOT> <O_DOT > <O_CHAR> )
+	{
+	  	return null;
+	}
 }
 
-void subprogram_decls() : 
+ASTNode subprogram_decls() : 
 {
 }
 {
 	( subprogram_decl() <O_SEMICOLON> )+
+	{
+	  	return null;
+	}
 }
 
-void subprogram_decl() : 
+ASTNode subprogram_decl() : 
 {
 }
 {
-  subprogram_head() (decls())? compound_stmt()
+  	subprogram_head() (decls())? compound_stmt()
+  	{
+	  	return null;
+	}
 }
 
-void subprogram_head() : 
+ASTNode subprogram_head() : 
 {
 }
 {
 	( <O_FUNCTION> <O_IDENTIFIER> (arguments())? <O_COLON> standard_type() <O_SEMICOLON>
 	| <O_PROCEDURE> <O_IDENTIFIER> (arguments())? <O_SEMICOLON> )
+	{
+	  	return null;
+	}
 }
 
-void arguments() : 
+ASTNode arguments() : 
 {
 }
 {
-  <O_LPAREN> parameter_list() <O_RPAREN>
+  	<O_LPAREN> parameter_list() <O_RPAREN>
+  	{
+	  	return null;
+	}
 }
 
-void parameter_list() : 
+ASTNode parameter_list() : 
 {
 }
 {
 	identifier_list() <O_COLON> type()
     ( <O_SEMICOLON> identifier_list() <O_COLON> type() )*
+    {
+	  	return null;
+	}
 }
 
-void compound_stmt() : 
+ASTNode compound_stmt() : 
 {
+  	ASTNode statementList = null;
+  	
 }
 {
-	<O_BEGIN> stmt_list() <O_END>
-}
-
-void stmt_list() : 
-{
-}
-{
-	stmt() ( <O_SEMICOLON> stmt() )*
+	<O_BEGIN> statementList = stmt_list() <O_END>
+	{
+	  	return statementList;
+	}
 }
 
-void stmt() :
+ASTNode stmt_list() : 
 {
+  	ASTNode statement = null;
+  	ASTNode compoundStatement = null;
+}
+{
+	statement = stmt()
+	{
+	  	compoundStatement = (CompoundStatement)factory.makeASTNode("CompoundStatement");
+	  	compoundStatement.addChild(statement);
+	
+	}
+	( <O_SEMICOLON> statement = stmt()
+	{
+	  	compoundStatement.addChild(statement);
+	}
+	)*
+	{
+	  	return compoundStatement;
+	}
+}
+
+ASTNode stmt() :
+{
+	ASTNode assignment = null;
 }
 
 {
 	( LOOKAHEAD(2)
-		 assignment()
+		 assignment = assignment()
+		 {
+		   	return assignment;
+		 }
   		| if_stmt()
   		| while_stmt()
   		| procedure_invocation()
@@ -211,95 +338,142 @@ void stmt() :
   		| return_stmt()
   		| case_stmt()
 	)
+	{
+	  	return null;
+	}
 }
 
-void assignment() :
+ASTNode assignment() :
 {
+  	ASTNode varNode = null;
+  	ASTNode exprNode = null;
+  	Assignment assignNode = null;
 }
 {
-	variable() <O_ASSIGN> expr()
+	varNode = variable() <O_ASSIGN> exprNode = expr()
+	{
+	  	assignNode = (Assignment)factory.makeASTNode("Assignment");
+	  	assignNode.addChild(varNode);
+	  	assignNode.addChild(exprNode);
+	  	return assignNode;
+	}
 }
 
-void if_stmt() :
+ASTNode if_stmt() :
 {
 }
 {
 	<O_IF> expr() <O_THEN> stmt() 
 	[LOOKAHEAD(<O_ELSE>) <O_ELSE> stmt()]
+	{
+	  	return null;
+	}
 }
 
-void while_stmt() :
+ASTNode while_stmt() :
 {
 }
 {
 	<O_WHILE> expr() <O_DO> stmt()
+	{
+	  	return null;
+	}
 }
 
-void procedure_invocation() :
+ASTNode procedure_invocation() :
 {
 }
 {
 	<O_IDENTIFIER> <O_LPAREN> (expr_list())? <O_RPAREN>
+	{
+	  	return null;
+	}
 } 
 
-void i_o_stmt() :
+ASTNode i_o_stmt() :
 {
 }
 {
 	( <O_READ> <O_LPAREN> variable() <O_RPAREN>
 	| <O_WRITE> <O_LPAREN> ( expr() | string()) <O_RPAREN> )
+	{
+	  	return null;
+	}
 }
 
-void return_stmt() :
+ASTNode return_stmt() :
 {
 }
 {
 	<O_RETURN> expr()
+	{
+	  	return null;
+	}
 }
 
-void case_stmt() :
+ASTNode case_stmt() :
 {
 }
 {
 	<O_CASE> expr() <O_OF> (cases())? <O_END>
+	{
+	  	return null;
+	}
 } 
 
-void cases() :
+ASTNode cases() :
 {
 }
 {
 	case_element() ( <O_SEMICOLON> case_element() )*
+	{
+	  	return null;
+	}
 }
 
-void case_element() :
+ASTNode case_element() :
 {
 }
 {
-  case_labels() <O_COLON> stmt()
+  	case_labels() <O_COLON> stmt()
+  	{
+	  	return null;
+	}
 }
 
-void case_labels() : 
+ASTNode case_labels() : 
 {
 }
 {
 	( < O_INT > | < O_FLOATCON >) ( <O_COMMA> ( <O_INT> | < O_FLOATCON > ))*
+	{
+	  	return null;
+	}
 }
 
-void expr_list() : 
+ASTNode expr_list() : 
 {
 }
 {
 	expr() ( <O_COMMA> expr() )*
+	{
+	  	return null;
+	}
+	
 }
 
-void expr() :
+ASTNode expr() :
 {
+  	ASTNode term1 = null;
 }
 {
-	term1() exprPrime()
+	term1 = term1() exprPrime()
+	{
+	  	return term1;
+	}
 }
 
-void exprPrime() : 
+ASTNode exprPrime() : 
 {
 }
 {
@@ -308,16 +482,23 @@ void exprPrime() :
   	|
   	{ }
   	)
+  	{
+	  	return null;
+	}
 }
 
-void term1() :
+ASTNode term1() :
 {
+  	ASTNode term2 = null;
 }
 {
-	term2() term1Prime()
+	term2 = term2() term1Prime()
+	{
+	  	return term2;
+	}
 }
 
-void term1Prime() :
+ASTNode term1Prime() :
 {
 }
 {
@@ -330,16 +511,23 @@ void term1Prime() :
 	|
 	{}
 	)
+	{
+	  	return null;
+	}
 }
 
-void term2() :
+ASTNode term2() :
 {
+  	ASTNode term3 = null;
 }
 {
-	term3() term2Prime()
+	term3 = term3() term2Prime()
+	{
+	  	return term3;
+	}
 }
 
-void term2Prime() :
+ASTNode term2Prime() :
 {
 }
 {
@@ -348,16 +536,23 @@ void term2Prime() :
 	|
 	{ }
 	)
+	{
+	  	return null;
+	}
 }
 
-void term3() :
+ASTNode term3() :
 {
+  	ASTNode factor = null;
 }
 {
-	factor() term3Prime()
+	factor = factor() term3Prime()
+	{
+		return factor;
+	}
 }  
 
-void term3Prime() :
+ASTNode term3Prime() :
 {
 }
 {
@@ -366,31 +561,54 @@ void term3Prime() :
 	|
 	{ }
 	)
+	{
+		return null;
+	}
 }
 
-void factor() :
+ASTNode factor() :
 {
+  	ASTNode varNode = null;
+  	Token var = null;
+  	
 }
 {
-	(  <O_IDENTIFIER> ( <O_LBRACKET> expr() <O_RBRACKET>
-						| <O_LPAREN> (expr_list())? <O_RPAREN> )?
+	(  var = <O_IDENTIFIER>
+		{
+	  	varNode = (IdRef)factory.makeASTNode("IdRef");
+	  	varNode.setLabel(var.image);
+	  	return varNode;
+		}
+		( <O_LBRACKET> expr() <O_RBRACKET> | <O_LPAREN> (expr_list())? <O_RPAREN> )?
 	| <O_INT>
 	| <O_FLOATCON>
 	| <O_CHAR>
 	| <O_LPAREN> expr() <O_RPAREN>
-	| <O_NOT> factor() )
+	| <O_NOT> factor()
+	)
 }
 
-void variable() : 
+ASTNode variable() : 
 {
+  	IdDef idDefNode = null;
+  	Token id = null;
 }
 {
-	<O_IDENTIFIER> ( <O_LBRACKET> expr() <O_RBRACKET> )?
+	id = <O_IDENTIFIER> ( <O_LBRACKET> expr() <O_RBRACKET> )?
+	{
+	  	idDefNode = (IdDef) factory.makeASTNode("IdDef");
+	  	idDefNode.setLabel(id.image);
+
+	  	return idDefNode;
+	}
 }
 
-void string() :
+ASTNode string() :
 {
 }
 {
-	 <O_STRING>
+  	<O_STRING>
+	{
+	  	return null;
+	}
 }

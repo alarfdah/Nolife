@@ -4,9 +4,9 @@ import visitor.Visitor;
 
 public class Input extends Statement {
 
-	public IdRef getInput() {
+	public Expression getInput() {
 		// TODO check the constant inputs like READ('hello')
-		return (IdRef)getChild(0);
+		return (Expression)getChild(0);
 	}
 	
 	

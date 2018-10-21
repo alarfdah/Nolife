@@ -9,6 +9,14 @@ public class Program extends ASTNode {
 
 	private List<Statement> statements = null;
 	
+	public String getProgramType() {
+		return "PROGRAM ";
+	}
+	
+	public String getProgramName() {
+		return getLabel() + ";\n";
+	}
+	
 	public List<Statement> getStatements() {
 		if (null == statements) {
 			computeStatements();

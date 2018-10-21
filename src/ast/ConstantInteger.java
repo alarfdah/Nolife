@@ -2,18 +2,11 @@ package ast;
 
 import visitor.Visitor;
 
-public class Subtract extends BinaryExpression {
+public class ConstantInteger extends Expression {
 
-	
-	@Override
-	public String getOperator() {
-		return " - ";
-	}
-	
 	@Override
 	public Object accept(Visitor visitor) {
 		return visitor.visit(this);
 	}
 
-	
 }

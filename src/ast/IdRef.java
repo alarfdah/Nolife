@@ -4,7 +4,6 @@ import visitor.Visitor;
 
 public class IdRef extends Expression {
 
-	
 	public String getId() {
 		return getLabel();
 	}

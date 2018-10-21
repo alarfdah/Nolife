@@ -2,12 +2,10 @@ package ast;
 
 import visitor.Visitor;
 
-public class Subtract extends BinaryExpression {
+public class Declare extends Declaration {
 
-	
-	@Override
-	public String getOperator() {
-		return " - ";
+	public Type getDeclaredType() {
+		return (Type)getChild(0);
 	}
 	
 	@Override
@@ -15,5 +13,4 @@ public class Subtract extends BinaryExpression {
 		return visitor.visit(this);
 	}
 
-	
 }

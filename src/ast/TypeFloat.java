@@ -8,7 +8,9 @@ public class TypeFloat extends Type {
 	public String getTypeName() {
 		return "FLOAT";
 	}
-
+	
+	
+	
 	@Override
 	public Object accept(Visitor visitor) {
 		return visitor.visit(this);

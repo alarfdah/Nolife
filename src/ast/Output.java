@@ -5,9 +5,8 @@ import visitor.Visitor;
 public class Output extends Statement {
 
 	
-	public IdRef getOutput() {
-		// TODO check the constant outputs like WRITE('hello')
-		return (IdRef)getChild(0);
+	public Expression getOutput() {
+		return (Expression)getChild(0);
 	}
 	
 	@Override

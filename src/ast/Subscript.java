@@ -5,8 +5,8 @@ import visitor.Visitor;
 public class Subscript extends Expression {
 	
 	
-	public String getId() {
-		return getChild(0).getLabel();
+	public IdRef getId() {
+		return (IdRef)getChild(0);
 	}
 	
 	// May not be an expression(?)
