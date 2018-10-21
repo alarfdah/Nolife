@@ -1,5 +1,5 @@
 package ast;
 
-public abstract class Comparison extends Expression {
+public abstract class Comparison extends BinaryExpression {
 
 }

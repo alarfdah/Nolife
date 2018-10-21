@@ -16,6 +16,14 @@ public class SourceVisitor<T> implements Visitor<T> {
 	}
 
 	@Override
+	public T visit(AND n) {
+		n.getLeftOperand().accept(this);
+		src += n.getOperator();
+		n.getRightOperand().accept(this);
+		return null;
+	}
+	
+	@Override
 	public T visit(Assignment n) {
 		n.getLhs().accept(this);
 		src += " := ";
@@ -76,6 +84,48 @@ public class SourceVisitor<T> implements Visitor<T> {
 	}
 	
 	@Override
+	public T visit(Declare n) {
+		for (ASTNode node : n.getChildren().subList(0, n.getChildren().size() - 1)) {
+			node.accept(this);
+			src += ", ";
+		}
+		
+		// Removes the last ", "
+		if (src != null && src.length() > 0 && src.charAt(src.length() - 2) == ',') {
+	        src = src.substring(0, src.length() - 2);
+	    }
+		
+		src += ": ";
+		n.getDeclaredType().accept(this);
+		src += ";";
+		return null;
+	}
+	
+	@Override
+	public T visit(Equal n) {
+		n.getLeftOperand().accept(this);
+		src += n.getOperator();
+		n.getRightOperand().accept(this);
+		return null;
+	}
+	
+	@Override
+	public T visit(GreaterThan n) {
+		n.getLeftOperand().accept(this);
+		src += n.getOperator();
+		n.getRightOperand().accept(this);
+		return null;
+	}
+	
+	@Override
+	public T visit(GreaterThanEqual n) {
+		n.getLeftOperand().accept(this);
+		src += n.getOperator();
+		n.getRightOperand().accept(this);
+		return null;
+	}
+	
+	@Override
 	public T visit(IdDecl n) {
 		src += n.getId();
 		return null;
@@ -95,27 +145,31 @@ public class SourceVisitor<T> implements Visitor<T> {
 
 	@Override
 	public T visit(If n) {
+		src += n.getIfKeyword();
+		src += "(";
+		n.getIfExpression().accept(this);
+		src += ")";
+		src += n.getThenKeyword();
+		
+		return null;
+	}
+	
+	@Override
+	public T visit(LessThan n) {
+		n.getLeftOperand().accept(this);
+		src += n.getOperator();
+		n.getRightOperand().accept(this);
 		return null;
 	}
 
 	@Override
-	public T visit(Declare n) {
-		for (ASTNode node : n.getChildren().subList(0, n.getChildren().size() - 1)) {
-			node.accept(this);
-			src += ", ";
-		}
-		
-		// Removes the last ", "
-		if (src != null && src.length() > 0 && src.charAt(src.length() - 2) == ',') {
-	        src = src.substring(0, src.length() - 2);
-	    }
-		
-		src += ": ";
-		n.getDeclaredType().accept(this);
-		src += ";";
+	public T visit(LessThanEqual n) {
+		n.getLeftOperand().accept(this);
+		src += n.getOperator();
+		n.getRightOperand().accept(this);
 		return null;
 	}
-
+	
 	@Override
 	public T visit(Modulo n) {
 		n.getLeftOperand().accept(this);
@@ -132,6 +186,22 @@ public class SourceVisitor<T> implements Visitor<T> {
 		return null;
 	}
 
+	@Override
+	public T visit(NotEqual n) {
+		n.getLeftOperand().accept(this);
+		src += n.getOperator();
+		n.getRightOperand().accept(this);
+		return null;
+	}
+	
+	@Override
+	public T visit(OR n) {
+		n.getLeftOperand().accept(this);
+		src += n.getOperator();
+		n.getRightOperand().accept(this);
+		return null;
+	}
+	
 	@Override
 	public T visit(Program n) {
 		src += n.getProgramType();

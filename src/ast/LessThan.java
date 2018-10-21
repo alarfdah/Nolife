@@ -1,5 +1,17 @@
 package ast;
 
-public class LessThan {
+import visitor.Visitor;
+
+public class LessThan extends Comparison {
+
+	@Override
+	public String getOperator() {
+		return " < ";
+	}
+
+	@Override
+	public Object accept(Visitor visitor) {
+		return visitor.visit(this);
+	}
 
 }

@@ -192,12 +192,14 @@ ASTNode identifier_list() :
 	  	idDeclNode.setLabel(id.image);
 	  	declareNode.addChild(idDeclNode);
 	}
-  	( <O_COMMA> id = <O_IDENTIFIER>
-  	{
-  	  	idDeclNode = (IdDecl)factory.makeASTNode("IdDecl");
-  	  	idDeclNode.setLabel(id.image);
-  	  	declareNode.addChild(idDeclNode);
-  	}
+  	(
+  	  	<O_COMMA>
+	  	id = <O_IDENTIFIER>
+	  	{
+	  	  	idDeclNode = (IdDecl)factory.makeASTNode("IdDecl");
+	  	  	idDeclNode.setLabel(id.image);
+	  	  	declareNode.addChild(idDeclNode);
+	  	}
   	)*
   	{
 	  	return declareNode;
@@ -387,10 +389,17 @@ ASTNode assignment() :
 
 ASTNode if_stmt() :
 {
+  	ASTNode exprNode = null;
+  	ASTNode statement = null;
 }
 {
-	<O_IF> expr() <O_THEN> stmt() 
-	[LOOKAHEAD(<O_ELSE>) <O_ELSE> stmt()]
+	<O_IF> exprNode = expr()
+		
+	<O_THEN> statement = stmt() 
+	[
+		LOOKAHEAD(<O_ELSE>)
+		<O_ELSE> statement = stmt()
+	]
 	{
 	  	return null;
 	}
@@ -520,56 +529,119 @@ ASTNode expr_list() :
 ASTNode expr() :
 {
   	ASTNode term1 = null;
+  	ASTNode exprPrime = null;
 }
 {
-	term1 = term1() exprPrime()
+	term1 = term1()
+	exprPrime = exprPrime(term1)
 	{
-	  	return term1;
+	  	return exprPrime;
 	}
 }
 
-ASTNode exprPrime() : 
+ASTNode exprPrime(ASTNode exprNode) : 
 {
+  	OR orNode = null;
+  	AND andNode = null;
+  	ASTNode term1Node = null;
 }
 {
-	( <O_OR> term1() exprPrime()
-  	| <O_AND> term1() exprPrime()
+	( <O_OR>
+		term1Node = term1()
+		{
+			orNode = (OR)factory.makeASTNode("OR");
+			orNode.addChild(exprNode);
+			orNode.addChild(exprPrime(term1Node));
+			return orNode;
+		}
+  	| <O_AND>
+  		term1Node = term1()
+  		{
+			andNode = (AND)factory.makeASTNode("AND");
+			andNode.addChild(exprNode);
+			andNode.addChild(exprPrime(term1Node));
+			return andNode;
+		}
   	|
-  	{ }
+  	{ return exprNode; }
   	)
-  	{
-	  	return null;
-	}
 }
 
 ASTNode term1() :
 {
   	ASTNode term2 = null;
+  	ASTNode term1Prime = null;
 }
 {
-	term2 = term2() term1Prime()
+	term2 = term2()
+	term1Prime = term1Prime(term2)
 	{
-	  	return term2;
+	  	return term1Prime;
 	}
 }
 
-ASTNode term1Prime() :
+ASTNode term1Prime(ASTNode exprNode) :
 {
-  	
+  	Equal equalNode = null;
+  	NotEqual notEqualNode = null;
+  	LessThan lessThanNode = null;
+  	LessThanEqual lessThanEqualNode = null;
+  	GreaterThan greaterThanNode = null;
+  	GreaterThanEqual greaterThanEqualNode = null;
+  	ASTNode term2Node = null;
 }
 {
-	( <O_LT> term2() term1Prime()
-	| <O_LE> term2() term1Prime()
-	| <O_GT> term2() term1Prime()
-	| <O_GE> term2() term1Prime()
-	| <O_NE> term2() term1Prime()
-	| <O_EQ> term2() term1Prime()
+	( <O_LT>
+		term2Node = term2()
+		{
+		  	lessThanNode = (LessThan)factory.makeASTNode("LessThan");
+		  	lessThanNode.addChild(exprNode);
+		  	lessThanNode.addChild(term1Prime(term2Node));
+		  	return lessThanNode;
+		}
+	| <O_LE>
+		term2Node = term2() term1Prime()
+		{
+		  	lessThanEqualNode = (LessThanEqual)factory.makeASTNode("LessThanEqual");
+		  	lessThanEqualNode.addChild(exprNode);
+		  	lessThanEqualNode.addChild(term1Prime(term2Node));
+		  	return lessThanEqualNode;
+		}
+	| <O_GT>
+		term2Node = term2() term1Prime()
+		{
+		  	greaterThanNode = (GreaterThan)factory.makeASTNode("GreaterThan");
+		  	greaterThanNode.addChild(exprNode);
+		  	greaterThanNode.addChild(term1Prime(term2Node));
+		  	return greaterThanNode;
+		}
+	| <O_GE>
+		term2Node = term2() term1Prime()
+		{
+		  	greaterThanEqualNode = (GreaterThanEqual)factory.makeASTNode("GreaterThanEqual");
+		  	greaterThanEqualNode.addChild(exprNode);
+		  	greaterThanEqualNode.addChild(term1Prime(term2Node));
+		  	return greaterThanEqualNode;
+		}
+	| <O_NE>
+		term2Node = term2() term1Prime()
+		{
+		  	notNotEqualNode = (NotEqual)factory.makeASTNode("NotEqual");
+		  	notNotEqualNode.addChild(exprNode);
+		  	notNotEqualNode.addChild(term1Prime(term2Node));
+		  	return notNotEqualNode;
+		}
+	| <O_EQ>
+		term2Node = term2() term1Prime()
+		{
+		  	equalNode = (Equal)factory.makeASTNode("Equal");
+		  	equalNode.addChild(exprNode);
+		  	equalNode.addChild(term1Prime(term2Node));
+		  	return equalNode;
+		}
 	|
-	{}
+	{ return exprNode; }
 	)
-	{
-	  	return null;
-	}
 }
 
 ASTNode term2() :

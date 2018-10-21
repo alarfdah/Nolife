@@ -4,8 +4,21 @@ import visitor.Visitor;
 
 public class If extends Statement {
 
-	public Expression getIfExpression() {
-		return (Expression)getChild(0);
+	public String getIfKeyword() {
+		return "IF ";
+	}
+	
+	public String getThenKeyword() {
+		return "THEN ";
+	}
+	
+	public String getElseKeyword() {
+		return "ELSE ";
+	}
+	
+	
+	public Comparison getIfExpression() {
+		return (Comparison)getChild(0);
 	}
 	
 	/**
@@ -13,7 +26,6 @@ public class If extends Statement {
 	 * @return Statement
 	 */
 	public Statement getThenStatement() {
-		// TODO check if has to be a list
 		return (Statement)getChild(1);
 	}
 	
