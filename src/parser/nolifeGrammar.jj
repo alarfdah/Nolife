@@ -391,17 +391,27 @@ ASTNode if_stmt() :
 {
   	ASTNode exprNode = null;
   	ASTNode statement = null;
+  	IF ifNode = null;
 }
 {
 	<O_IF> exprNode = expr()
-		
-	<O_THEN> statement = stmt() 
+	{
+		ifNode = (IF)factory.makeASTNode("IF");
+		ifNode.addChild(exprNode);
+	}
+	<O_THEN> statement = stmt()
+	{
+		ifNode.addChild(statement);
+	}
 	[
 		LOOKAHEAD(<O_ELSE>)
 		<O_ELSE> statement = stmt()
+		{
+		  	ifNode.addChild(statement);
+		}
 	]
 	{
-	  	return null;
+	  	return ifNode;
 	}
 }
 
@@ -626,10 +636,10 @@ ASTNode term1Prime(ASTNode exprNode) :
 	| <O_NE>
 		term2Node = term2()
 		{
-		  	notNotEqualNode = (NotEqual)factory.makeASTNode("NotEqual");
-		  	notNotEqualNode.addChild(exprNode);
-		  	notNotEqualNode.addChild(term1Prime(term2Node));
-		  	return notNotEqualNode;
+		  	notEqualNode = (NotEqual)factory.makeASTNode("NotEqual");
+		  	notEqualNode.addChild(exprNode);
+		  	notEqualNode.addChild(term1Prime(term2Node));
+		  	return notEqualNode;
 		}
 	| <O_EQ>
 		term2Node = term2()
@@ -733,7 +743,7 @@ ASTNode factor() :
 {
   	Expression exprNode = null;
   	Token var = null;
-  	
+  	NOT notNode = null;
 }
 {
 	(  var = <O_IDENTIFIER>
@@ -742,20 +752,29 @@ ASTNode factor() :
 	  		exprNode.setLabel(var.image);
 		}
 		( <O_LBRACKET> expr() <O_RBRACKET> | <O_LPAREN> (expr_list())? <O_RPAREN> )?
-	| <O_INT>
+	| var = <O_INT>
 	{
 	  	exprNode = (ConstantInteger)factory.makeASTNode("ConstantInteger");
+	  	exprNode.setLabel(var.image);
 	}
-	| <O_FLOATCON>
+	| var = <O_FLOATCON>
 	{
-	  	exprNode = (ConstantInteger)factory.makeASTNode("ConstantFloat");
+	  	exprNode = (ConstantFloat)factory.makeASTNode("ConstantFloat");
+	  	exprNode.setLabel(var.image);
 	}
-	| <O_CHAR>
+	| var = <O_CHAR>
 	{
-	  	exprNode = (ConstantInteger)factory.makeASTNode("ConstantCharacter");
+	  	exprNode = (ConstantCharacter)factory.makeASTNode("ConstantCharacter");
+	  	exprNode.setLabel(var.image);
 	}
-	| <O_LPAREN> expr() <O_RPAREN>
-	| <O_NOT> factor()
+	| <O_LPAREN> { exprNode = (Expression)expr(); } <O_RPAREN>
+	| <O_NOT>
+		{ exprNode = (Expression)factor(); }
+		{
+			notNode = (NOT)factory.makeASTNode("NOT");
+			notNode.addChild(exprNode);
+			return notNode;
+		}
 	)
 	{
 		return exprNode;

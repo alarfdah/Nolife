@@ -39,8 +39,8 @@ public class ASTNodeFactory {
 			return new IdDef();
 		else if (nodeType == "IdRef")
 			return new IdRef();
-		else if (nodeType == "If")
-			return new If();
+		else if (nodeType == "IF")
+			return new IF();
 		else if (nodeType == "LessThan")
 			return new LessThan();
 		else if (nodeType == "LessThanEqual")
@@ -49,6 +49,8 @@ public class ASTNodeFactory {
 			return new Modulo();
 		else if (nodeType == "Multiply")
 			return new Multiply();
+		else if (nodeType == "NOT")
+			return new NOT();
 		else if (nodeType == "NotEqual")
 			return new NotEqual();
 		else if (nodeType == "OR")

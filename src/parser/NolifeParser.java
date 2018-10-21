@@ -126,9 +126,9 @@ public class NolifeParser implements NolifeParserConstants {
       }
       jj_consume_token(O_COMMA);
       id = jj_consume_token(O_IDENTIFIER);
-                idDeclNode = (IdDecl)factory.makeASTNode("IdDecl");
-                idDeclNode.setLabel(id.image);
-                declareNode.addChild(idDeclNode);
+                        idDeclNode = (IdDecl)factory.makeASTNode("IdDecl");
+                        idDeclNode.setLabel(id.image);
+                        declareNode.addChild(idDeclNode);
     }
                 {if (true) return declareNode;}
     throw new Error("Missing return statement in function");
@@ -403,17 +403,24 @@ public class NolifeParser implements NolifeParserConstants {
   }
 
   static final public ASTNode if_stmt() throws ParseException {
+        ASTNode exprNode = null;
+        ASTNode statement = null;
+        IF ifNode = null;
     jj_consume_token(O_IF);
-    expr();
+    exprNode = expr();
+                ifNode = (IF)factory.makeASTNode("IF");
+                ifNode.addChild(exprNode);
     jj_consume_token(O_THEN);
-    stmt();
+    statement = stmt();
+                ifNode.addChild(statement);
     if (jj_2_2(2147483647)) {
       jj_consume_token(O_ELSE);
-      stmt();
+      statement = stmt();
+                        ifNode.addChild(statement);
     } else {
       ;
     }
-                {if (true) return null;}
+                {if (true) return ifNode;}
     throw new Error("Missing return statement in function");
   }
 
@@ -600,77 +607,111 @@ public class NolifeParser implements NolifeParserConstants {
 
   static final public ASTNode expr() throws ParseException {
         ASTNode term1 = null;
+        ASTNode exprPrime = null;
     term1 = term1();
-    exprPrime();
-                {if (true) return term1;}
+    exprPrime = exprPrime(term1);
+                {if (true) return exprPrime;}
     throw new Error("Missing return statement in function");
   }
 
-  static final public ASTNode exprPrime() throws ParseException {
+  static final public ASTNode exprPrime(ASTNode exprNode) throws ParseException {
+        OR orNode = null;
+        AND andNode = null;
+        ASTNode term1Node = null;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case O_OR:
       jj_consume_token(O_OR);
-      term1();
-      exprPrime();
+      term1Node = term1();
+                        orNode = (OR)factory.makeASTNode("OR");
+                        orNode.addChild(exprNode);
+                        orNode.addChild(exprPrime(term1Node));
+                        {if (true) return orNode;}
       break;
     case O_AND:
       jj_consume_token(O_AND);
-      term1();
-      exprPrime();
+      term1Node = term1();
+                        andNode = (AND)factory.makeASTNode("AND");
+                        andNode.addChild(exprNode);
+                        andNode.addChild(exprPrime(term1Node));
+                        {if (true) return andNode;}
       break;
     default:
       jj_la1[23] = jj_gen;
-
+          {if (true) return exprNode;}
     }
-                {if (true) return null;}
     throw new Error("Missing return statement in function");
   }
 
   static final public ASTNode term1() throws ParseException {
         ASTNode term2 = null;
+        ASTNode term1Prime = null;
     term2 = term2();
-    term1Prime();
-                {if (true) return term2;}
+    term1Prime = term1Prime(term2);
+                {if (true) return term1Prime;}
     throw new Error("Missing return statement in function");
   }
 
-  static final public ASTNode term1Prime() throws ParseException {
+  static final public ASTNode term1Prime(ASTNode exprNode) throws ParseException {
+        Equal equalNode = null;
+        NotEqual notEqualNode = null;
+        LessThan lessThanNode = null;
+        LessThanEqual lessThanEqualNode = null;
+        GreaterThan greaterThanNode = null;
+        GreaterThanEqual greaterThanEqualNode = null;
+        ASTNode term2Node = null;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case O_LT:
       jj_consume_token(O_LT);
-      term2();
-      term1Prime();
+      term2Node = term2();
+                        lessThanNode = (LessThan)factory.makeASTNode("LessThan");
+                        lessThanNode.addChild(exprNode);
+                        lessThanNode.addChild(term1Prime(term2Node));
+                        {if (true) return lessThanNode;}
       break;
     case O_LE:
       jj_consume_token(O_LE);
-      term2();
-      term1Prime();
+      term2Node = term2();
+                        lessThanEqualNode = (LessThanEqual)factory.makeASTNode("LessThanEqual");
+                        lessThanEqualNode.addChild(exprNode);
+                        lessThanEqualNode.addChild(term1Prime(term2Node));
+                        {if (true) return lessThanEqualNode;}
       break;
     case O_GT:
       jj_consume_token(O_GT);
-      term2();
-      term1Prime();
+      term2Node = term2();
+                        greaterThanNode = (GreaterThan)factory.makeASTNode("GreaterThan");
+                        greaterThanNode.addChild(exprNode);
+                        greaterThanNode.addChild(term1Prime(term2Node));
+                        {if (true) return greaterThanNode;}
       break;
     case O_GE:
       jj_consume_token(O_GE);
-      term2();
-      term1Prime();
+      term2Node = term2();
+                        greaterThanEqualNode = (GreaterThanEqual)factory.makeASTNode("GreaterThanEqual");
+                        greaterThanEqualNode.addChild(exprNode);
+                        greaterThanEqualNode.addChild(term1Prime(term2Node));
+                        {if (true) return greaterThanEqualNode;}
       break;
     case O_NE:
       jj_consume_token(O_NE);
-      term2();
-      term1Prime();
+      term2Node = term2();
+                        notEqualNode = (NotEqual)factory.makeASTNode("NotEqual");
+                        notEqualNode.addChild(exprNode);
+                        notEqualNode.addChild(term1Prime(term2Node));
+                        {if (true) return notEqualNode;}
       break;
     case O_EQ:
       jj_consume_token(O_EQ);
-      term2();
-      term1Prime();
+      term2Node = term2();
+                        equalNode = (Equal)factory.makeASTNode("Equal");
+                        equalNode.addChild(exprNode);
+                        equalNode.addChild(term1Prime(term2Node));
+                        {if (true) return equalNode;}
       break;
     default:
       jj_la1[24] = jj_gen;
-
+          {if (true) return exprNode;}
     }
-                {if (true) return null;}
     throw new Error("Missing return statement in function");
   }
 
@@ -752,6 +793,7 @@ public class NolifeParser implements NolifeParserConstants {
   static final public ASTNode factor() throws ParseException {
         Expression exprNode = null;
         Token var = null;
+        NOT notNode = null;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case O_IDENTIFIER:
       var = jj_consume_token(O_IDENTIFIER);
@@ -795,25 +837,31 @@ public class NolifeParser implements NolifeParserConstants {
       }
       break;
     case O_INT:
-      jj_consume_token(O_INT);
+      var = jj_consume_token(O_INT);
                 exprNode = (ConstantInteger)factory.makeASTNode("ConstantInteger");
+                exprNode.setLabel(var.image);
       break;
     case O_FLOATCON:
-      jj_consume_token(O_FLOATCON);
-                exprNode = (ConstantInteger)factory.makeASTNode("ConstantFloat");
+      var = jj_consume_token(O_FLOATCON);
+                exprNode = (ConstantFloat)factory.makeASTNode("ConstantFloat");
+                exprNode.setLabel(var.image);
       break;
     case O_CHAR:
-      jj_consume_token(O_CHAR);
-                exprNode = (ConstantInteger)factory.makeASTNode("ConstantCharacter");
+      var = jj_consume_token(O_CHAR);
+                exprNode = (ConstantCharacter)factory.makeASTNode("ConstantCharacter");
+                exprNode.setLabel(var.image);
       break;
     case O_LPAREN:
       jj_consume_token(O_LPAREN);
-      expr();
+                       exprNode = (Expression)expr();
       jj_consume_token(O_RPAREN);
       break;
     case O_NOT:
       jj_consume_token(O_NOT);
-      factor();
+                  exprNode = (Expression)factor();
+                        notNode = (NOT)factory.makeASTNode("NOT");
+                        notNode.addChild(exprNode);
+                        {if (true) return notNode;}
       break;
     default:
       jj_la1[30] = jj_gen;
@@ -869,16 +917,6 @@ public class NolifeParser implements NolifeParserConstants {
     finally { jj_save(1, xla); }
   }
 
-  static private boolean jj_3_2() {
-    if (jj_scan_token(O_ELSE)) return true;
-    return false;
-  }
-
-  static private boolean jj_3_1() {
-    if (jj_3R_9()) return true;
-    return false;
-  }
-
   static private boolean jj_3R_11() {
     if (jj_scan_token(O_LBRACKET)) return true;
     return false;
@@ -892,9 +930,19 @@ public class NolifeParser implements NolifeParserConstants {
     return false;
   }
 
+  static private boolean jj_3_1() {
+    if (jj_3R_9()) return true;
+    return false;
+  }
+
   static private boolean jj_3R_9() {
     if (jj_3R_10()) return true;
     if (jj_scan_token(O_ASSIGN)) return true;
+    return false;
+  }
+
+  static private boolean jj_3_2() {
+    if (jj_scan_token(O_ELSE)) return true;
     return false;
   }
 

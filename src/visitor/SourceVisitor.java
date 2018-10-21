@@ -144,12 +144,26 @@ public class SourceVisitor<T> implements Visitor<T> {
 	}
 
 	@Override
-	public T visit(If n) {
+	public T visit(IF n) {
 		src += n.getIfKeyword();
 		src += "(";
 		n.getIfExpression().accept(this);
-		src += ")";
+		src += ")\n";
+		src += "\t";
 		src += n.getThenKeyword();
+		src += "\n";
+		src += "\t\t";
+		n.getThenStatement().accept(this);
+		src += "\n";
+		src += "\t";
+		try {
+			src += n.getElseKeyword();
+			src += "\n";
+			src += "\t\t";
+			n.getElseStatement().accept(this);
+		} catch (Exception e) {
+			src = src.substring(0, src.length() - 10);
+		}
 		
 		return null;
 	}
@@ -186,6 +200,15 @@ public class SourceVisitor<T> implements Visitor<T> {
 		return null;
 	}
 
+	@Override
+	public T visit(NOT n) {
+		src += n.getNotKeyword();
+		src += "(";
+		n.getNotChild().accept(this);
+		src += ")";
+		return null;
+	}
+	
 	@Override
 	public T visit(NotEqual n) {
 		n.getLeftOperand().accept(this);
@@ -225,7 +248,7 @@ public class SourceVisitor<T> implements Visitor<T> {
 	public T visit(Return n) {
 		src += n.getReturnKeyword();
 		src += "(";
-//		n.getReturn().accept(this);
+		n.getReturn().accept(this);
 		src += ")";
 		return null;
 	}

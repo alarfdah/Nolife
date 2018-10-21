@@ -1,8 +1,11 @@
 PROGRAM test;
 
-VAR a, b: INTEGER;
+VAR	a, b: INTEGER;
 	x, y: INTEGER;
 
 BEGIN
-  a := x
+	IF a = 3.4
+	THEN RETURN b
+	ELSE RETURN x
+
 END
