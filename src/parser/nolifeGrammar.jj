@@ -600,7 +600,7 @@ ASTNode term1Prime(ASTNode exprNode) :
 		  	return lessThanNode;
 		}
 	| <O_LE>
-		term2Node = term2() term1Prime()
+		term2Node = term2()
 		{
 		  	lessThanEqualNode = (LessThanEqual)factory.makeASTNode("LessThanEqual");
 		  	lessThanEqualNode.addChild(exprNode);
@@ -608,7 +608,7 @@ ASTNode term1Prime(ASTNode exprNode) :
 		  	return lessThanEqualNode;
 		}
 	| <O_GT>
-		term2Node = term2() term1Prime()
+		term2Node = term2()
 		{
 		  	greaterThanNode = (GreaterThan)factory.makeASTNode("GreaterThan");
 		  	greaterThanNode.addChild(exprNode);
@@ -616,7 +616,7 @@ ASTNode term1Prime(ASTNode exprNode) :
 		  	return greaterThanNode;
 		}
 	| <O_GE>
-		term2Node = term2() term1Prime()
+		term2Node = term2()
 		{
 		  	greaterThanEqualNode = (GreaterThanEqual)factory.makeASTNode("GreaterThanEqual");
 		  	greaterThanEqualNode.addChild(exprNode);
@@ -624,7 +624,7 @@ ASTNode term1Prime(ASTNode exprNode) :
 		  	return greaterThanEqualNode;
 		}
 	| <O_NE>
-		term2Node = term2() term1Prime()
+		term2Node = term2()
 		{
 		  	notNotEqualNode = (NotEqual)factory.makeASTNode("NotEqual");
 		  	notNotEqualNode.addChild(exprNode);
@@ -632,7 +632,7 @@ ASTNode term1Prime(ASTNode exprNode) :
 		  	return notNotEqualNode;
 		}
 	| <O_EQ>
-		term2Node = term2() term1Prime()
+		term2Node = term2()
 		{
 		  	equalNode = (Equal)factory.makeASTNode("Equal");
 		  	equalNode.addChild(exprNode);
