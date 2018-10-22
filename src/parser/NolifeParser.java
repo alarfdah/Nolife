@@ -110,9 +110,9 @@ public class NolifeParser implements NolifeParserConstants {
         IdDecl idDeclNode = null;
         Token id = null;
     id = jj_consume_token(O_IDENTIFIER);
-                declareNode = (Declare)factory.makeASTNode("Declare");
                 idDeclNode = (IdDecl)factory.makeASTNode("IdDecl");
                 idDeclNode.setLabel(id.image);
+                declareNode = (Declare)factory.makeASTNode("Declare");
                 declareNode.addChild(idDeclNode);
     label_2:
     while (true) {
@@ -404,19 +404,19 @@ public class NolifeParser implements NolifeParserConstants {
 
   static final public ASTNode if_stmt() throws ParseException {
         ASTNode exprNode = null;
-        ASTNode statement = null;
+        ASTNode statementNode = null;
         IF ifNode = null;
     jj_consume_token(O_IF);
     exprNode = expr();
                 ifNode = (IF)factory.makeASTNode("IF");
                 ifNode.addChild(exprNode);
     jj_consume_token(O_THEN);
-    statement = stmt();
-                ifNode.addChild(statement);
+    statementNode = stmt();
+                ifNode.addChild(statementNode);
     if (jj_2_2(2147483647)) {
       jj_consume_token(O_ELSE);
-      statement = stmt();
-                        ifNode.addChild(statement);
+      statementNode = stmt();
+                        ifNode.addChild(statementNode);
     } else {
       ;
     }
@@ -425,11 +425,17 @@ public class NolifeParser implements NolifeParserConstants {
   }
 
   static final public ASTNode while_stmt() throws ParseException {
+        ASTNode exprNode = null;
+        ASTNode statementNode = null;
+        While whileNode = null;
     jj_consume_token(O_WHILE);
-    expr();
+    exprNode = expr();
+                whileNode = (While)factory.makeASTNode("While");
+                whileNode.addChild(exprNode);
     jj_consume_token(O_DO);
-    stmt();
-                {if (true) return null;}
+    statementNode = stmt();
+                whileNode.addChild(statementNode);
+                {if (true) return whileNode;}
     throw new Error("Missing return statement in function");
   }
 
@@ -917,6 +923,11 @@ public class NolifeParser implements NolifeParserConstants {
     finally { jj_save(1, xla); }
   }
 
+  static private boolean jj_3_1() {
+    if (jj_3R_9()) return true;
+    return false;
+  }
+
   static private boolean jj_3R_11() {
     if (jj_scan_token(O_LBRACKET)) return true;
     return false;
@@ -927,11 +938,6 @@ public class NolifeParser implements NolifeParserConstants {
     Token xsp;
     xsp = jj_scanpos;
     if (jj_3R_11()) jj_scanpos = xsp;
-    return false;
-  }
-
-  static private boolean jj_3_1() {
-    if (jj_3R_9()) return true;
     return false;
   }
 

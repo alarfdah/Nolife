@@ -1,11 +1,8 @@
 PROGRAM test;
 
 VAR	a, b: INTEGER;
-	x, y: INTEGER;
+	i, y: INTEGER;
 
 BEGIN
-	IF a = 3.4
-	THEN RETURN b
-	ELSE RETURN x
-
+	WHILE i <= 20 DO WRITE(A)
 END

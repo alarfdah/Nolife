@@ -187,9 +187,9 @@ ASTNode identifier_list() :
 {
 	id = <O_IDENTIFIER>
 	{
-		declareNode = (Declare)factory.makeASTNode("Declare");
 	  	idDeclNode = (IdDecl)factory.makeASTNode("IdDecl");
 	  	idDeclNode.setLabel(id.image);
+		declareNode = (Declare)factory.makeASTNode("Declare");
 	  	declareNode.addChild(idDeclNode);
 	}
   	(
@@ -359,7 +359,7 @@ ASTNode stmt() :
 	( LOOKAHEAD(2)
 		  statement = assignment()
   		| statement = if_stmt()
-  		| statement = while_stmt() 				// Do
+  		| statement = while_stmt()
   		| statement = procedure_invocation()	// Do
   		| statement = i_o_stmt()
   		| statement = compound_stmt()
@@ -390,7 +390,7 @@ ASTNode assignment() :
 ASTNode if_stmt() :
 {
   	ASTNode exprNode = null;
-  	ASTNode statement = null;
+  	ASTNode statementNode = null;
   	IF ifNode = null;
 }
 {
@@ -399,15 +399,15 @@ ASTNode if_stmt() :
 		ifNode = (IF)factory.makeASTNode("IF");
 		ifNode.addChild(exprNode);
 	}
-	<O_THEN> statement = stmt()
+	<O_THEN> statementNode = stmt()
 	{
-		ifNode.addChild(statement);
+		ifNode.addChild(statementNode);
 	}
 	[
 		LOOKAHEAD(<O_ELSE>)
-		<O_ELSE> statement = stmt()
+		<O_ELSE> statementNode = stmt()
 		{
-		  	ifNode.addChild(statement);
+		  	ifNode.addChild(statementNode);
 		}
 	]
 	{
@@ -417,11 +417,20 @@ ASTNode if_stmt() :
 
 ASTNode while_stmt() :
 {
+  	ASTNode exprNode = null;
+  	ASTNode statementNode = null;
+  	While whileNode = null;
 }
 {
-	<O_WHILE> expr() <O_DO> stmt()
+	<O_WHILE> exprNode = expr()
 	{
-	  	return null;
+	  	whileNode = (While)factory.makeASTNode("While");
+	  	whileNode.addChild(exprNode);
+	}
+	<O_DO> statementNode = stmt()
+	{
+	  	whileNode.addChild(statementNode);
+	  	return whileNode;
 	}
 }
 
@@ -487,6 +496,8 @@ ASTNode return_stmt() :
 
 ASTNode case_stmt() :
 {
+  	ASTNode exprNode = null;
+  	ASTNode 
 }
 {
 	<O_CASE> expr() <O_OF> (cases())? <O_END>

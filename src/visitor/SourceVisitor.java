@@ -304,7 +304,15 @@ public class SourceVisitor<T> implements Visitor<T> {
 	
 	@Override
 	public T visit(While n) {
-		// TODO Auto-generated method stub
+		src += n.getWhileKeyword();
+		src += "(";
+		n.getWhileExpression().accept(this);
+		src += ")";
+		src += n.getDoKeyword();
+		src += "\n";
+		src += "\t";
+		n.getDoStatement().accept(this);
+		
 		return null;
 	}
 	
