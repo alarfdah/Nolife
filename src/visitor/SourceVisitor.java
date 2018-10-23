@@ -147,6 +147,12 @@ public class SourceVisitor implements Visitor {
 	}
 	
 	@Override
+	public Object visit(Function n) {
+		
+		return null;
+	}
+	
+	@Override
 	public Object visit(GreaterThan n) {
 		n.getLeftOperand().accept(this);
 		//src n.getOperator();
@@ -269,6 +275,12 @@ public class SourceVisitor implements Visitor {
 	}
 	
 	@Override
+	public Object visit(Procedure n) {
+		
+		return null;
+	}
+	
+	@Override
 	public Object visit(Program n) {
 		//src n.getProgramKeyword();
 		//src n.getProgramName();
@@ -296,6 +308,12 @@ public class SourceVisitor implements Visitor {
 		return null;
 	}
 
+	@Override
+	public Object visit(SubroutineDeclarations n) {
+	
+		return null;
+	}
+	
 	@Override
 	public Object visit(Subscript n) {
 		n.getId().accept(this);

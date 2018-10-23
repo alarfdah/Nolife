@@ -6,6 +6,7 @@ public class TreeVisitor implements Visitor {
 
 	private String prefix = "";
 	private String src = "";
+	
 	@Override
 	public Object visit(Add n) {
 		src += "ADD";
@@ -57,7 +58,8 @@ public class TreeVisitor implements Visitor {
 	
 	@Override
 	public Object visit(ArrayRef n) {
-		// TODO
+		src += "ARRAY REF";
+		src += "\n";
 		return null;
 	}
 
@@ -88,19 +90,40 @@ public class TreeVisitor implements Visitor {
 
 	@Override
 	public Object visit(Cases n) {
-		// TODO Auto-generated method stub
+		src += "CASES";
+		src += "\n";
+		for (ASTNode node : n.getClauseList()) {
+			addSpace();
+			node.accept(this);
+			removeSpace();
+		}
 		return null;
 	}
 	
 	@Override
 	public Object visit(CaseStatement n) {
-		// TODO Auto-generated method stub
+		src += "CASE STATEMENT";
+		src += "\n";
+		addSpace();
+		n.getCaseExpression().accept(this);
+		removeSpace();
+		addSpace();
+		n.getCases().accept(this);
+		removeSpace();
 		return null;
 	}
 	
 	@Override
 	public Object visit(Clause n) {
-		// TODO Auto-generated method stub
+		src += "CLAUSE";
+		src += "\n";
+		addSpace();
+		src += n.getLabel();
+		src += "\n";
+		removeSpace();
+		addSpace();
+		n.getStatement().accept(this);
+		removeSpace();
 		return null;
 	}
 
@@ -167,6 +190,18 @@ public class TreeVisitor implements Visitor {
 		addSpace();
 		n.getRightOperand().accept(this);
 		removeSpace();
+		return null;
+	}
+	
+	@Override
+	public Object visit(Function n) {
+		src += n.getFunctionKeyword();
+		src += "\n";
+		for (ASTNode node : n.getStatements()) {
+			addSpace();
+			node.accept(this);
+			removeSpace();
+		}
 		return null;
 	}
 
@@ -271,13 +306,27 @@ public class TreeVisitor implements Visitor {
 
 	@Override
 	public Object visit(Modulo n) {
-		// TODO Auto-generated method stub
+		src += "MODULO";
+		src += "\n";
+		addSpace();
+		n.getLeftOperand().accept(this);
+		removeSpace();
+		addSpace();
+		n.getRightOperand().accept(this);
+		removeSpace();
 		return null;
 	}
 
 	@Override
 	public Object visit(Multiply n) {
-		// TODO Auto-generated method stub
+		src += "MULTIPLY";
+		src += "\n";
+		addSpace();
+		n.getLeftOperand().accept(this);
+		removeSpace();
+		addSpace();
+		n.getRightOperand().accept(this);
+		removeSpace();
 		return null;
 	}
 
@@ -325,6 +374,18 @@ public class TreeVisitor implements Visitor {
 		}
 		return null;
 	}
+
+	@Override
+	public Object visit(Procedure n) {
+		src += n.getProcedureKeyword();
+		src += "\n";
+		for (ASTNode node : n.getStatements()) {
+			addSpace();
+			node.accept(this);
+			removeSpace();
+		}
+		return null;
+	}
 	
 	@Override
 	public Object visit(Program n) {
@@ -359,14 +420,37 @@ public class TreeVisitor implements Visitor {
 	}
 
 	@Override
+	public Object visit(SubroutineDeclarations n) {
+		src += "SUBROUTINE DECLS";
+		src += "\n";
+		for (ASTNode node : n.getSubroutines()) {
+			addSpace();
+			node.accept(this);
+			removeSpace();
+		}
+		return null;
+	}
+	
+	@Override
 	public Object visit(Subscript n) {
-		// TODO Auto-generated method stub
+		src += "SUBSCRIPT label(" + n.getId() + ")";
+		src += "\n";
+		addSpace();
+		n.getSubscriptExpression().accept(this);
+		removeSpace();
 		return null;
 	}
 
 	@Override
 	public Object visit(Subtract n) {
-		// TODO Auto-generated method stub
+		src += "SUBTRACT";
+		src += "\n";
+		addSpace();
+		n.getLeftOperand().accept(this);
+		removeSpace();
+		addSpace();
+		n.getRightOperand().accept(this);
+		removeSpace();
 		return null;
 	}
 

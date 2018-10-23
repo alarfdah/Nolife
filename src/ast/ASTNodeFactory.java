@@ -19,8 +19,12 @@ public class ASTNodeFactory {
 			return new Assignment();
 		else if (nodeType == "Call")
 			return new Call();
+		else if (nodeType == "Cases")
+			return new Cases();
 		else if (nodeType == "CaseStatement")
 			return new CaseStatement();
+		else if (nodeType == "Clause")
+			return new Clause();
 		else if (nodeType == "CompoundStatement")
 			return new CompoundStatement();
 		else if (nodeType == "ConstantCharacter")
@@ -35,6 +39,8 @@ public class ASTNodeFactory {
 			return new Declare();
 		else if (nodeType == "Equal")
 			return new Equal();
+		else if (nodeType == "Function")
+			return new Function();
 		else if (nodeType == "GreaterThan")
 			return new GreaterThan();
 		else if (nodeType == "GreaterThanEqual")
@@ -63,12 +69,16 @@ public class ASTNodeFactory {
 			return new OR();
 		else if (nodeType == "Parameters")
 			return new Parameters();
+		else if (nodeType == "Procedure")
+			return new Procedure();
 		else if (nodeType == "Program")
 			return new Program();
 		else if (nodeType == "Read")
 			return new Read();
 		else if (nodeType == "Return")
 			return new Return();
+		else if (nodeType == "SubroutineDeclarations")
+			return new SubroutineDeclarations();
 		else if (nodeType == "Subscript")
 			return new Subscript();
 		else if (nodeType == "Subtract")

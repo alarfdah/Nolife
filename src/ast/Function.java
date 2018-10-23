@@ -5,15 +5,15 @@ import java.util.List;
 
 import visitor.Visitor;
 
-public class Procedure extends Subroutine {
+public class Function extends Subroutine {
 
 	private List<Statement> statements = null;
 	
-	public String getProcedureKeyword() {
-		return "PROCEDURE ";
+	public String getFunctionKeyword() {
+		return "FUNCTION ";
 	}
 	
-	public String getProcedureName() {
+	public String getFunctionName() {
 		return getLabel();
 	}
 	

@@ -20,6 +20,7 @@ public interface Visitor {
 	public Object visit(ConstantString n);
 	public Object visit(Declare n);
 	public Object visit(Equal n);
+	public Object visit(Function n);
 	public Object visit(GreaterThan n);
 	public Object visit(GreaterThanEqual n);
 	public Object visit(IdDecl n);
@@ -34,9 +35,11 @@ public interface Visitor {
 	public Object visit(NotEqual n);
 	public Object visit(OR n);
 	public Object visit(Parameters n);
+	public Object visit(Procedure n);
 	public Object visit(Program n);
 	public Object visit(Read n);
 	public Object visit(Return n);
+	public Object visit(SubroutineDeclarations n);
 	public Object visit(Subscript n);
 	public Object visit(Subtract n);
 	public Object visit(TypeCharacter n);

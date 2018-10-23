@@ -17,8 +17,8 @@ public class IfStatement extends Statement {
 	}
 	
 	
-	public Comparison getIfExpression() {
-		return (Comparison)getChild(0);
+	public Expression getIfExpression() {
+		return (Expression)getChild(0);
 	}
 	
 	/**

@@ -4,9 +4,10 @@ import java.util.List;
 
 import visitor.Visitor;
 
-public class Cases extends ASTNode {
+public class SubroutineDeclarations extends Statement {
 
-	public List<ASTNode> getClauseList() {
+	
+	public List<ASTNode> getSubroutines() {
 		return getChildren();
 	}
 	

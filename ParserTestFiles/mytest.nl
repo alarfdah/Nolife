@@ -1,7 +1,13 @@
-PROGRAM test;
+PROGRAM fib;
 
-VAR	a:ARRAY[1..10] OF INTEGER;
-	b:ARRAY['a'..'q'] OF INTEGER;
+VAR globalCount, input, i, loop : INTEGER;
+
+FUNCTION fib1 (x : INTEGER) : INTEGER;
+
 BEGIN
-	WRITE(a)
+	globalCount := fib1(x - 1) + fib1(x - 2)
+END;
+
+BEGIN
+	fib1(x)
 END
