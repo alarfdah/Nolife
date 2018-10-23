@@ -2,12 +2,7 @@ package ast;
 
 import visitor.Visitor;
 
-public class TypeCharacter extends Type {
-
-	@Override
-	public String getTypeKeyword() {
-		return "CHARACTER";
-	}
+public class ArrayRef extends Expression {
 
 	@Override
 	public Object accept(Visitor visitor) {

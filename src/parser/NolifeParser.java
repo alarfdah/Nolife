@@ -29,9 +29,9 @@ public class NolifeParser implements NolifeParserConstants {
                         factory = new ASTNodeFactory();
                         parser = new NolifeParser(input);
                         ASTNode node = parser.program();
-                        SourceVisitor sv = new SourceVisitor();
-                        node.accept(sv);
-                        System.out.println(sv.getSource());
+                        TreeVisitor tv = new TreeVisitor();
+                        node.accept(tv);
+                        System.out.println(tv.getSource());
                 } catch (ParseException e) {
                         System.err.println("Syntax Error: " + e.getMessage());
                 }
@@ -80,7 +80,6 @@ public class NolifeParser implements NolifeParserConstants {
   }
 
   static final public ASTNode decl_list() throws ParseException {
-        ASTNode typeNode = null;
         ASTNode declareNode = null;
         VariableDeclarations varDeclsNode = null;
                 varDeclsNode = (VariableDeclarations)factory.makeASTNode("VariableDeclarations");
@@ -88,9 +87,8 @@ public class NolifeParser implements NolifeParserConstants {
     while (true) {
       declareNode = identifier_list();
       jj_consume_token(O_COLON);
-      typeNode = type();
+      declareNode = type(declareNode);
       jj_consume_token(O_SEMICOLON);
-                        declareNode.addChild(typeNode);
                         varDeclsNode.addChild(declareNode);
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case O_IDENTIFIER:
@@ -134,23 +132,52 @@ public class NolifeParser implements NolifeParserConstants {
     throw new Error("Missing return statement in function");
   }
 
-  static final public ASTNode type() throws ParseException {
+  static final public ASTNode type(ASTNode declareNode) throws ParseException {
         ASTNode typeNode = null;
+        ASTNode newTypeNode = null;
+        Declare newDeclareNode = null;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case O_CHARACTER:
     case O_FLOAT:
     case O_INTEGER:
       typeNode = standard_type();
+                newDeclareNode = (Declare)factory.makeASTNode("Declare");
+
+                if (typeNode instanceof TypeInteger) {
+                        for (ASTNode n : declareNode.getChildren()) {
+                                newTypeNode = (TypeInteger)factory.makeASTNode("TypeInteger");
+                                newTypeNode.addChild(n);
+                                newDeclareNode.addChild(newTypeNode);
+                        }
+                } else if (typeNode instanceof TypeFloat) {
+                        for (ASTNode n : declareNode.getChildren()) {
+                                newTypeNode = (TypeFloat)factory.makeASTNode("TypeFloat");
+                                newTypeNode.addChild(n);
+                                newDeclareNode.addChild(newTypeNode);
+                         }
+                } else if (typeNode instanceof TypeCharacter) {
+                        for (ASTNode n : declareNode.getChildren()) {
+                                newTypeNode = (TypeInteger)factory.makeASTNode("TypeCharacter");
+                                newTypeNode.addChild(n);
+                                newDeclareNode.addChild(newTypeNode);
+                        }
+                }
+
+                {if (true) return newDeclareNode;}
       break;
     case O_ARRAY:
       typeNode = array_type();
+                typeNode.getChild(0).addChild(0, declareNode.getChild(0));
+                declareNode.removeChild(0);
+                declareNode.addChild(typeNode);
+
+                {if (true) return declareNode;}
       break;
     default:
       jj_la1[4] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
-                {if (true) return typeNode;}
     throw new Error("Missing return statement in function");
   }
 
@@ -180,36 +207,59 @@ public class NolifeParser implements NolifeParserConstants {
   }
 
   static final public ASTNode array_type() throws ParseException {
+        ASTNode dimNode = null;
+        ASTNode typeNode = null;
+        ArrayDecl arrayDeclNode = null;
     jj_consume_token(O_ARRAY);
     jj_consume_token(O_LBRACKET);
-    dim();
+    dimNode = dim();
     jj_consume_token(O_RBRACKET);
     jj_consume_token(O_OF);
-    standard_type();
-                {if (true) return null;}
+    typeNode = standard_type();
+        arrayDeclNode = (ArrayDecl)factory.makeASTNode("ArrayDecl");
+        arrayDeclNode.addChild(dimNode.getChild(0));
+        arrayDeclNode.addChild(dimNode.getChild(1));
+        typeNode.addChild(arrayDeclNode);
+                {if (true) return typeNode;}
     throw new Error("Missing return statement in function");
   }
 
   static final public ASTNode dim() throws ParseException {
+        Token minBound = null;
+        Token maxBound = null;
+        ASTNode dimNode = null;
+        Expression minNode = null;
+        Expression maxNode = null;
+                dimNode = factory.makeASTNode("Subscript");
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case O_INT:
-      jj_consume_token(O_INT);
+      minBound = jj_consume_token(O_INT);
       jj_consume_token(O_DOT);
       jj_consume_token(O_DOT);
-      jj_consume_token(O_INT);
+      maxBound = jj_consume_token(O_INT);
+                minNode = (ConstantInteger)factory.makeASTNode("ConstantInteger");
+                minNode.setLabel(minBound.image);
+                maxNode = (ConstantInteger)factory.makeASTNode("ConstantInteger");
+                maxNode.setLabel(maxBound.image);
       break;
     case O_CHAR:
-      jj_consume_token(O_CHAR);
+      minBound = jj_consume_token(O_CHAR);
       jj_consume_token(O_DOT);
       jj_consume_token(O_DOT);
-      jj_consume_token(O_CHAR);
+      maxBound = jj_consume_token(O_CHAR);
+                minNode = (ConstantCharacter)factory.makeASTNode("ConstantCharacter");
+                minNode.setLabel(minBound.image);
+                maxNode = (ConstantCharacter)factory.makeASTNode("ConstantCharacter");
+                maxNode.setLabel(maxBound.image);
       break;
     default:
       jj_la1[6] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
-                {if (true) return null;}
+                dimNode.addChild(minNode);
+                dimNode.addChild(maxNode);
+                {if (true) return dimNode;}
     throw new Error("Missing return statement in function");
   }
 
@@ -295,9 +345,10 @@ public class NolifeParser implements NolifeParserConstants {
   }
 
   static final public ASTNode parameter_list() throws ParseException {
-    identifier_list();
+        ASTNode declareNode = null;
+    declareNode = identifier_list();
     jj_consume_token(O_COLON);
-    type();
+    declareNode = type(declareNode);
     label_4:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -309,9 +360,9 @@ public class NolifeParser implements NolifeParserConstants {
         break label_4;
       }
       jj_consume_token(O_SEMICOLON);
-      identifier_list();
+      declareNode = identifier_list();
       jj_consume_token(O_COLON);
-      type();
+      declareNode = type(declareNode);
     }
                 {if (true) return null;}
     throw new Error("Missing return statement in function");
@@ -405,21 +456,22 @@ public class NolifeParser implements NolifeParserConstants {
   static final public ASTNode if_stmt() throws ParseException {
         ASTNode exprNode = null;
         ASTNode statementNode = null;
-        IF ifNode = null;
+        ASTNode elseNode = null;
+        IfStatement ifNode = null;
     jj_consume_token(O_IF);
     exprNode = expr();
-                ifNode = (IF)factory.makeASTNode("IF");
+                ifNode = (IfStatement)factory.makeASTNode("IfStatement");
                 ifNode.addChild(exprNode);
     jj_consume_token(O_THEN);
     statementNode = stmt();
                 ifNode.addChild(statementNode);
     if (jj_2_2(2147483647)) {
       jj_consume_token(O_ELSE);
-      statementNode = stmt();
-                        ifNode.addChild(statementNode);
+      elseNode = stmt();
     } else {
       ;
     }
+                ifNode.addChild(elseNode);
                 {if (true) return ifNode;}
     throw new Error("Missing return statement in function");
   }
@@ -427,10 +479,10 @@ public class NolifeParser implements NolifeParserConstants {
   static final public ASTNode while_stmt() throws ParseException {
         ASTNode exprNode = null;
         ASTNode statementNode = null;
-        While whileNode = null;
+        WhileStatement whileNode = null;
     jj_consume_token(O_WHILE);
     exprNode = expr();
-                whileNode = (While)factory.makeASTNode("While");
+                whileNode = (WhileStatement)factory.makeASTNode("WhileStatement");
                 whileNode.addChild(exprNode);
     jj_consume_token(O_DO);
     statementNode = stmt();
@@ -440,7 +492,10 @@ public class NolifeParser implements NolifeParserConstants {
   }
 
   static final public ASTNode procedure_invocation() throws ParseException {
-    jj_consume_token(O_IDENTIFIER);
+        Token id = null;
+        ASTNode exprListNode = null;
+        Call callNode = null;
+    id = jj_consume_token(O_IDENTIFIER);
     jj_consume_token(O_LPAREN);
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case O_NOT:
@@ -449,14 +504,17 @@ public class NolifeParser implements NolifeParserConstants {
     case O_IDENTIFIER:
     case O_FLOATCON:
     case O_INT:
-      expr_list();
+      exprListNode = expr_list();
       break;
     default:
       jj_la1[15] = jj_gen;
       ;
     }
     jj_consume_token(O_RPAREN);
-                {if (true) return null;}
+                callNode = (Call)factory.makeASTNode("Call");
+                callNode.setLabel(id.image);
+                callNode.addChild(exprListNode);
+                {if (true) return callNode;}
     throw new Error("Missing return statement in function");
   }
 
@@ -507,8 +565,9 @@ public class NolifeParser implements NolifeParserConstants {
   }
 
   static final public ASTNode case_stmt() throws ParseException {
+        ASTNode exprNode = null;
     jj_consume_token(O_CASE);
-    expr();
+    exprNode = expr();
     jj_consume_token(O_OF);
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case O_FLOATCON:
@@ -593,7 +652,11 @@ public class NolifeParser implements NolifeParserConstants {
   }
 
   static final public ASTNode expr_list() throws ParseException {
-    expr();
+        Parameters parametersNode = null;
+        ASTNode exprNode = null;
+    exprNode = expr();
+                parametersNode = (Parameters)factory.makeASTNode("Parameters");
+                parametersNode.addChild(exprNode);
     label_8:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -605,9 +668,10 @@ public class NolifeParser implements NolifeParserConstants {
         break label_8;
       }
       jj_consume_token(O_COMMA);
-      expr();
+      exprNode = expr();
+                                        parametersNode.addChild(exprNode);
     }
-                {if (true) return null;}
+                {if (true) return parametersNode;}
     throw new Error("Missing return statement in function");
   }
 
@@ -923,11 +987,6 @@ public class NolifeParser implements NolifeParserConstants {
     finally { jj_save(1, xla); }
   }
 
-  static private boolean jj_3_1() {
-    if (jj_3R_9()) return true;
-    return false;
-  }
-
   static private boolean jj_3R_11() {
     if (jj_scan_token(O_LBRACKET)) return true;
     return false;
@@ -941,14 +1000,19 @@ public class NolifeParser implements NolifeParserConstants {
     return false;
   }
 
-  static private boolean jj_3R_9() {
-    if (jj_3R_10()) return true;
-    if (jj_scan_token(O_ASSIGN)) return true;
+  static private boolean jj_3_1() {
+    if (jj_3R_9()) return true;
     return false;
   }
 
   static private boolean jj_3_2() {
     if (jj_scan_token(O_ELSE)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_9() {
+    if (jj_3R_10()) return true;
+    if (jj_scan_token(O_ASSIGN)) return true;
     return false;
   }
 

@@ -9,7 +9,7 @@ public class Program extends ASTNode {
 
 	private List<Statement> statements = null;
 	
-	public String getProgramType() {
+	public String getProgramKeyword() {
 		return "PROGRAM ";
 	}
 	

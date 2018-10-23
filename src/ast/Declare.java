@@ -1,11 +1,13 @@
 package ast;
 
+import java.util.List;
+
 import visitor.Visitor;
 
 public class Declare extends Declaration {
 
-	public Type getDeclaredType() {
-		return (Type)getChild(getChildren().size() - 1);
+	public List<ASTNode> getDeclarations() {
+		return getChildren();
 	}
 	
 	@Override

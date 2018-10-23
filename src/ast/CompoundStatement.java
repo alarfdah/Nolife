@@ -1,15 +1,21 @@
 package ast;
 
+import java.util.List;
+
 import visitor.Visitor;
 
 public class CompoundStatement extends Statement {
 
 	public String getBegin() {
-		return "\nBEGIN\n";
+		return "BEGIN\n";
 	}
 	
 	public String getEnd() {
-		return "\nEND\n";
+		return "END\n";
+	}
+	
+	public List<ASTNode> getStatements() {
+		return getChildren();
 	}
 	
 	@Override

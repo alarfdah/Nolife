@@ -1,8 +1,7 @@
 PROGRAM test;
 
-VAR	a, b: INTEGER;
-	i, y: INTEGER;
-
+VAR	a:ARRAY[1..10] OF INTEGER;
+	b:ARRAY['a'..'q'] OF INTEGER;
 BEGIN
-	WHILE i <= 20 DO WRITE(A)
+	WRITE(a)
 END

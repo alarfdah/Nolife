@@ -2,7 +2,7 @@ package ast;
 
 import visitor.Visitor;
 
-public class While extends Statement {
+public class WhileStatement extends Statement {
 
 	public String getWhileKeyword() {
 		return "WHILE ";

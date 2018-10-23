@@ -2,13 +2,8 @@ package ast;
 
 import visitor.Visitor;
 
-public class TypeCharacter extends Type {
-
-	@Override
-	public String getTypeKeyword() {
-		return "CHARACTER";
-	}
-
+public class ArrayDef extends ASTNode {
+	
 	@Override
 	public Object accept(Visitor visitor) {
 		return visitor.visit(this);

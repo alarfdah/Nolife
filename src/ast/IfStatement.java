@@ -2,7 +2,7 @@ package ast;
 
 import visitor.Visitor;
 
-public class IF extends Statement {
+public class IfStatement extends Statement {
 
 	public String getIfKeyword() {
 		return "IF ";
@@ -29,11 +29,15 @@ public class IF extends Statement {
 		return (Statement)getChild(1);
 	}
 	
+	
 	/**
 	 * Can be optional
 	 * @return Statement
 	 */
 	public Statement getElseStatement() {
+		if (getChild(2) == null) {
+			return null;
+		}
 		return (Statement)getChild(2);
 	}
 	

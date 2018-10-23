@@ -23,6 +23,19 @@ public abstract class ASTNode {
 		return this;
 	}
 	
+	public ASTNode addChild(int i, ASTNode c) {
+		children.add(i, c);
+		return this;
+	}
+	
+	public void removeChild(ASTNode c) {
+		children.remove(c);
+	}
+	
+	public void removeChild(int i) {
+		children.remove(i);
+	}
+	
 	public ASTNode getChild(int i) {
 		return children.get(i);
 	}
@@ -31,9 +44,6 @@ public abstract class ASTNode {
 		return children;
 	}
 	
-	public boolean isEmpty() {
-		return children == null;
-	}
 	
 	public abstract Object accept(Visitor visitor);
 }

@@ -5,7 +5,7 @@ import visitor.Visitor;
 public class TypeInteger extends Type {
 
 	@Override
-	public String getTypeName() {
+	public String getTypeKeyword() {
 		return "INTEGER";
 	}
 

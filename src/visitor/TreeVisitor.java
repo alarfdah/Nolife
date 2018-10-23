@@ -2,36 +2,56 @@ package visitor;
 
 import ast.*;
 
-public class SourceVisitor implements Visitor {
+public class TreeVisitor implements Visitor {
 
 	private String prefix = "";
 	private String src = "";
-	
 	@Override
 	public Object visit(Add n) {
+		src += "ADD";
+		src += "\n";
+		addSpace();
 		n.getLeftOperand().accept(this);
-		//src n.getOperator();
+		removeSpace();
+		addSpace();
 		n.getRightOperand().accept(this);
+		removeSpace();
 		return null;
 	}
 
 	@Override
 	public Object visit(AND n) {
+		src += "AND";
+		src += "\n";
+		addSpace();
 		n.getLeftOperand().accept(this);
-		//src n.getOperator();
+		removeSpace();
+		addSpace();
 		n.getRightOperand().accept(this);
+		removeSpace();
 		return null;
 	}
 	
 	@Override
 	public Object visit(ArrayDecl n) {
-		// TODO
+		src += "ARRAY DECL";
+		src += "\n";
+		addSpace();
+		n.getVariableName().accept(this);
+		removeSpace();
+		addSpace();
+		n.getMinBound().accept(this);
+		removeSpace();
+		addSpace();
+		n.getMaxBound().accept(this);
+		removeSpace();
 		return null;
 	}
 	
 	@Override
 	public Object visit(ArrayDef n) {
-		// TODO
+		src += "ARRAY DEF";
+		src += "\n";
 		return null;
 	}
 	
@@ -40,20 +60,28 @@ public class SourceVisitor implements Visitor {
 		// TODO
 		return null;
 	}
-	
+
 	@Override
 	public Object visit(Assignment n) {
+		src += "ASSIGNMENT";
+		src += "\n";
+		addSpace();
 		n.getLhs().accept(this);
-		//src " := ";
+		removeSpace();
+		addSpace();
 		n.getRhs().accept(this);
+		removeSpace();
 		return null;
 	}
 
 	@Override
 	public Object visit(Call n) {
-		//src n.getMethodName();
+		src += "CALL label(" + n.getMethodName() + ")";
+		src += "\n";
 		for (ASTNode node : n.getCallArguments()) {
+			addSpace();
 			node.accept(this);
+			removeSpace();
 		}
 		return null;
 	}
@@ -78,295 +106,332 @@ public class SourceVisitor implements Visitor {
 
 	@Override
 	public Object visit(CompoundStatement n) {
-		//src prefix;
-		//src n.getBegin();
+		src += "COMPOUND STATEMENT";
+		src += "\n";
 		for (ASTNode node : n.getStatements()) {
 			addSpace();
-			//src prefix;
 			node.accept(this);
 			removeSpace();
-			//src ";";
-			//src "\n";
 		}
-		if (src != null && src.length() > 0 && src.charAt(src.length() - 2) == ';') {
-	        src = src.substring(0, src.length() - 2);
-	    }
-		//src "\n";
-		//src prefix;
-		//src n.getEnd();
 		return null;
 	}
-	
+
 	@Override
 	public Object visit(ConstantCharacter n) {
-		//src n.getCharacter();
+		src += n.getCharacter();
+		src += "\n";
 		return null;
 	}
-	
+
 	@Override
 	public Object visit(ConstantFloat n) {
-		//src n.getFloat();
+		src += n.getFloat();
+		src += "\n";
 		return null;
 	}
-	
+
 	@Override
 	public Object visit(ConstantInteger n) {
-		//src n.getInteger();
+		src += n.getInteger();
+		src += "\n";
 		return null;
 	}
 
 	@Override
 	public Object visit(ConstantString n) {
-		//src n.getString();
+		src += n.getString();
+		src += "\n";
 		return null;
 	}
-	
+
 	@Override
 	public Object visit(Declare n) {
-		for (ASTNode node : n.getChildren().subList(0, n.getChildren().size() - 1)) {
+		src += "DECLARATION";
+		src += "\n";
+		for (ASTNode node : n.getChildren()) {
+			addSpace();
 			node.accept(this);
-			//src ", ";
+			removeSpace();
+			
 		}
-		
-		// Removes the last ", "
-		if (src != null && src.length() > 0 && src.charAt(src.length() - 2) == ',') {
-	        src = src.substring(0, src.length() - 2);
-	    }
-		
-		//src ": ";
-		//src ";";
 		return null;
 	}
-	
+
 	@Override
 	public Object visit(Equal n) {
+		src += "EQUAL";
+		src += "\n";
+		addSpace();
 		n.getLeftOperand().accept(this);
-		//src n.getOperator();
+		removeSpace();
+		addSpace();
 		n.getRightOperand().accept(this);
+		removeSpace();
 		return null;
 	}
-	
+
 	@Override
 	public Object visit(GreaterThan n) {
+		src += "GREATER THAN";
+		src += "\n";
+		addSpace();
 		n.getLeftOperand().accept(this);
-		//src n.getOperator();
+		removeSpace();
+		addSpace();
 		n.getRightOperand().accept(this);
+		removeSpace();
 		return null;
 	}
-	
+
 	@Override
 	public Object visit(GreaterThanEqual n) {
+		src += "GREATER THAN EQUAL";
+		src += "\n";
+		addSpace();
 		n.getLeftOperand().accept(this);
-		//src n.getOperator();
+		removeSpace();
+		addSpace();
 		n.getRightOperand().accept(this);
+		removeSpace();
 		return null;
 	}
-	
+
 	@Override
 	public Object visit(IdDecl n) {
-		//src n.getId();
+		src += "ID DECL label(" + n.getId() + ")";
+		src += "\n";
 		return null;
 	}
 
 	@Override
 	public Object visit(IdDef n) {
-		//src n.getId();
+		src += "ID DEF label(" + n.getId() + ")";
+		src += "\n";
 		return null;
 	}
 
 	@Override
 	public Object visit(IdRef n) {
-		//src n.getId();
+		src += "ID REF label(" + n.getId() + ")";
+		src += "\n";
 		return null;
 	}
 
 	@Override
 	public Object visit(IfStatement n) {
-		//src n.getIfKeyword();
-		//src "(";
-		n.getIfExpression().accept(this);
-		//src ")\n";
-		//src prefix;
-		//src n.getThenKeyword();
-		//src "\n";
+		src += n.getIfKeyword();
+		src += "\n";
 		addSpace();
-		//src prefix;
+		n.getIfExpression().accept(this);
+		removeSpace();
+		addSpace();
+		src += n.getThenKeyword();
+		src += "\n";
+		addSpace();
 		n.getThenStatement().accept(this);
 		removeSpace();
+		removeSpace();
 		if (n.getElseStatement() != null) {
-			//src "\n";
-			//src prefix;
-			//src n.getElseKeyword();
-			//src "\n";
 			addSpace();
-			//src prefix;
-			n.getElseStatement().accept(this);			
+			src += n.getElseKeyword();
+			src += "\n";
+			addSpace();
+			n.getElseStatement().accept(this);
+			removeSpace();
+			removeSpace();
+		}
+		return null;
+	}
+
+	@Override
+	public Object visit(LessThan n) {
+		src += "LESS THAN";
+		src += "\n";
+		addSpace();
+		n.getLeftOperand().accept(this);
+		removeSpace();
+		addSpace();
+		n.getRightOperand().accept(this);
+		removeSpace();
+		return null;
+	}
+
+	@Override
+	public Object visit(LessThanEqual n) {
+		src += "LESS THAN EQUAL";
+		src += "\n";
+		addSpace();
+		n.getLeftOperand().accept(this);
+		removeSpace();
+		addSpace();
+		n.getRightOperand().accept(this);
+		removeSpace();
+		return null;
+	}
+
+	@Override
+	public Object visit(Modulo n) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visit(Multiply n) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visit(NOT n) {
+		src += "NOT";
+		src += "\n";
+		return null;
+	}
+
+	@Override
+	public Object visit(NotEqual n) {
+		src += "NOT EQUAL";
+		src += "\n";
+		addSpace();
+		n.getLeftOperand().accept(this);
+		removeSpace();
+		addSpace();
+		n.getRightOperand().accept(this);
+		removeSpace();
+		return null;
+	}
+
+	@Override
+	public Object visit(OR n) {
+		src += "OR";
+		src += "\n";
+		addSpace();
+		n.getLeftOperand().accept(this);
+		removeSpace();
+		addSpace();
+		n.getRightOperand().accept(this);
+		removeSpace();
+		return null;
+	}
+
+	@Override
+	public Object visit(Parameters n) {
+		src += "PARAMETERS";
+		src += "\n";
+		for (ASTNode node : n.getParameters()) {
+			addSpace();
+			node.accept(this);
 			removeSpace();
 		}
 		return null;
 	}
 	
 	@Override
-	public Object visit(LessThan n) {
-		n.getLeftOperand().accept(this);
-		//src n.getOperator();
-		n.getRightOperand().accept(this);
-		return null;
-	}
-
-	@Override
-	public Object visit(LessThanEqual n) {
-		n.getLeftOperand().accept(this);
-		//src n.getOperator();
-		n.getRightOperand().accept(this);
-		return null;
-	}
-	
-	@Override
-	public Object visit(Modulo n) {
-		n.getLeftOperand().accept(this);
-		//src n.getOperator();
-		n.getRightOperand().accept(this);
-		return null;
-	}
-
-	@Override
-	public Object visit(Multiply n) {
-		n.getLeftOperand().accept(this);
-		//src n.getOperator();
-		n.getRightOperand().accept(this);
-		return null;
-	}
-
-	@Override
-	public Object visit(NOT n) {
-		//src n.getNotKeyword();
-		//src "(";
-		n.getNotChild().accept(this);
-		//src ")";
-		return null;
-	}
-	
-	@Override
-	public Object visit(NotEqual n) {
-		n.getLeftOperand().accept(this);
-		//src n.getOperator();
-		n.getRightOperand().accept(this);
-		return null;
-	}
-	
-	@Override
-	public Object visit(OR n) {
-		n.getLeftOperand().accept(this);
-		//src n.getOperator();
-		n.getRightOperand().accept(this);
-		return null;
-	}
-	
-	@Override
-	public Object visit(Parameters n) {
-		return null;
-	}
-	
-	@Override
 	public Object visit(Program n) {
-		//src n.getProgramKeyword();
-		//src n.getProgramName();
+		src += n.getProgramKeyword();
+		src += "\n";
 		for (ASTNode node : n.getStatements()) {
+			addSpace();
 			node.accept(this);
+			removeSpace();
 		}
 		return null;
 	}
 
 	@Override
 	public Object visit(Read n) {
-		//src n.getReadKeyword();
-		//src "(";
+		src += n.getReadKeyword();
+		src += "\n";
+		addSpace();
 		n.getInput().accept(this);
-		//src ")";
+		removeSpace();
 		return null;
 	}
-	
+
 	@Override
 	public Object visit(Return n) {
-		//src n.getReturnKeyword();
-		//src "(";
+		src += n.getReturnKeyword();
+		src += "\n";
+		addSpace();
 		n.getReturn().accept(this);
-		//src ")";
+		removeSpace();
 		return null;
 	}
 
 	@Override
 	public Object visit(Subscript n) {
-		n.getId().accept(this);
-		//src "[";
-		n.getSubscriptExpression().accept(this);
-		//src "]";
+		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public Object visit(Subtract n) {
-		n.getLeftOperand().accept(this);
-		//src n.getOperator();
-		n.getRightOperand().accept(this);
+		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public Object visit(TypeCharacter n) {
-		//src n.getTypeKeyword();
-//		n.getChild().accept(this);
+		src += n.getTypeKeyword();
+		src += "\n";
+		addSpace();
+		n.getChild().accept(this);
+		removeSpace();
 		return null;
 	}
 
 	@Override
 	public Object visit(TypeFloat n) {
-		//src n.getTypeKeyword();
-//		n.getChild().accept(this);
+		src += n.getTypeKeyword();
+		src += "\n";
+		addSpace();
+		n.getChild().accept(this);
+		removeSpace();
 		return null;
 	}
 
 	@Override
 	public Object visit(TypeInteger n) {
-		//src n.getTypeKeyword();
-//		n.getChild().accept(this);
+		src += n.getTypeKeyword();
+		src += "\n";
+		addSpace();
+		n.getChild().accept(this);
+		removeSpace();
 		return null;
 	}
 
 	@Override
 	public Object visit(VariableDeclarations n) {
-		//src n.getVarKeyword();
+		src += n.getVarKeyword() + "DECLARATIONS";
+		src += "\n";
 		for (ASTNode node : n.getDecls()) {
 			addSpace();
-			//src prefix;
 			node.accept(this);
 			removeSpace();
-			//src "\n";
 		}
 		return null;
 	}
-	
+
 	@Override
 	public Object visit(WhileStatement n) {
-		//src n.getWhileKeyword();
-		//src "(";
+		src += n.getWhileKeyword();
+		src += "\n";
+		addSpace();
 		n.getWhileExpression().accept(this);
-		//src ")";
-		//src n.getDoKeyword();
-		//src "\n";
+		removeSpace();
 		addSpace();
 		n.getDoStatement().accept(this);
 		removeSpace();
 		return null;
 	}
-	
+
 	@Override
 	public Object visit(Write n) {
-		//src n.getWriteKeyword();
-		//src "(";
+		src += n.getWriteKeyword();
+		src += "\n";
+		addSpace();
 		n.getOutput().accept(this);
-		//src ")";
+		removeSpace();
 		return null;
 	}
 
@@ -374,12 +439,13 @@ public class SourceVisitor implements Visitor {
 		return src;
 	}
 	
-	private void addSpace() {
+	public void addSpace() {
 		prefix += "\t";
+		src += prefix;
 	}
 	
-	private void removeSpace() {
+	public void removeSpace() {
 		prefix = prefix.substring(0, prefix.length() - 1);
 	}
-	
+
 }

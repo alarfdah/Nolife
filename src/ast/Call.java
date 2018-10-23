@@ -4,15 +4,15 @@ import java.util.List;
 
 import visitor.Visitor;
 
-public class CallFunction extends Expression {
+public class Call extends Statement {
 
-	public IdRef getFunctionVariable() {
-		return (IdRef)getChild(0);
+	public String getMethodName() {
+		return getLabel();
 	}
 	
 	// params
 	public List<ASTNode> getCallArguments() {
-		return getChildren().subList(1, getChildren().size());
+		return getChildren();
 	}
 	
 	@Override // check if needed
