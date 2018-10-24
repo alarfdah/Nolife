@@ -8,8 +8,8 @@ public class Read extends Statement {
 		return "READ";
 	}
 	
-	public Expression getInput() {
-		return (Expression)getChild(0);
+	public ASTNode getInput() {
+		return getChild(0);
 	}
 	
 	@Override

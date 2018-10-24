@@ -2,7 +2,7 @@ package visitor;
 
 import ast.*;
 
-public class SourceVisitor implements Visitor {
+public class SourceVisitor implements Visitor<Object> {
 
 	private String prefix = "";
 	private String src = "";

@@ -36,8 +36,10 @@ public class NolifeParser {
   	  	  	factory = new ASTNodeFactory();
   	  	  	parser = new NolifeParser(input);
   	  	  	ASTNode node = parser.program();
+//  	  	  	SourceVisitor sv = new SourceVisitor();
   	  	  	TreeVisitor tv = new TreeVisitor();
-  	  	  	node.accept(tv);
+//			TypeVisitor tv = new TypeVisitor();
+			node.accept(tv);
   	  	  	System.out.println(tv.getSource());
   	  	} catch (ParseException e) {
   	  	  	System.err.println("Syntax Error: " + e.getMessage());
@@ -216,6 +218,7 @@ ASTNode type(ASTNode declareNode) :
   	ASTNode typeNode = null;
   	ASTNode newTypeNode = null;
   	Declare newDeclareNode = null;
+  	ArrayDecl newArrayDeclNode = null;
 }
 {
 
@@ -247,11 +250,40 @@ ASTNode type(ASTNode declareNode) :
 	}
   	| typeNode = array_type()
   	{
-  	  	typeNode.getChild(0).setLabel(declareNode.getChild(0).getLabel());
-  	  	declareNode.removeChild(0);
-	  	declareNode.addChild(typeNode);
+  	  	newDeclareNode = (Declare)factory.makeASTNode("Declare");
+  	  	if (typeNode instanceof TypeInteger) {
+  	  	  	for (ASTNode n : declareNode.getChildren()) {
+	  	  	  	newTypeNode = (TypeInteger)factory.makeASTNode("TypeInteger");
+	  	  	  	newArrayDeclNode = (ArrayDecl)factory.makeASTNode("ArrayDecl");
+	  	  	  	newArrayDeclNode.setLabel(n.getLabel());
+	  	  	  	newArrayDeclNode.addChild(((ArrayDecl)typeNode.getChild(0)).getMinBound());
+	  	  	  	newArrayDeclNode.addChild(((ArrayDecl)typeNode.getChild(0)).getMaxBound());
+	  	  	  	newTypeNode.addChild(newArrayDeclNode);
+	  	  	  	newDeclareNode.addChild(newTypeNode);
+  	  	 	}
+  	  	} else if (typeNode instanceof TypeFloat) {
+  	  	  	for (ASTNode n : declareNode.getChildren()) {
+	  	  	  	newTypeNode = (TypeFloat)factory.makeASTNode("TypeFloat");
+	  	  	  	newArrayDeclNode = (ArrayDecl)factory.makeASTNode("ArrayDecl");
+	  	  	  	newArrayDeclNode.setLabel(n.getLabel());
+	  	  	  	newArrayDeclNode.addChild(((ArrayDecl)typeNode.getChild(0)).getMinBound());
+	  	  	  	newArrayDeclNode.addChild(((ArrayDecl)typeNode.getChild(0)).getMaxBound());
+	  	  	  	newTypeNode.addChild(newArrayDeclNode);
+	  	  	  	newDeclareNode.addChild(newTypeNode);
+	  	  	 }
+  	  	} else if (typeNode instanceof TypeCharacter) {
+  	  	  	for (ASTNode n : declareNode.getChildren()) {
+	  	  	  	newTypeNode = (TypeCharacter)factory.makeASTNode("TypeCharacter");
+	  	  	  	newArrayDeclNode = (ArrayDecl)factory.makeASTNode("ArrayDecl");
+	  	  	  	newArrayDeclNode.setLabel(n.getLabel());
+	  	  	  	newArrayDeclNode.addChild(((ArrayDecl)typeNode.getChild(0)).getMinBound());
+	  	  	  	newArrayDeclNode.addChild(((ArrayDecl)typeNode.getChild(0)).getMaxBound());
+	  	  	  	newTypeNode.addChild(newArrayDeclNode);
+	  	  	  	newDeclareNode.addChild(newTypeNode);
+  	  	 	}
+  	  	}
 	  	
-	  	return declareNode;
+	  	return newDeclareNode;
   	}
   	)
 }
@@ -587,18 +619,10 @@ ASTNode i_o_stmt() :
   	  	writeNode = (Write)factory.makeASTNode("Write");
   	}
 	( <O_READ> <O_LPAREN> defNode = variable() <O_RPAREN>
-	{
-	  	if (defNode instanceof ArrayDef) {
-	  		refNode = (ArrayRef)factory.makeASTNode("ArrayRef");
-			refNode.setLabel(((ArrayDef)defNode).getId());
-			refNode.addChild(((ArrayDef)defNode).getSubscriptExpression());
-	  	} else if (defNode instanceof IdDef) {
-			refNode = (IdRef)factory.makeASTNode("IdRef");
-			refNode.setLabel(((IdDef)defNode).getId());
-	  	} 
-		readNode.addChild(refNode);
-	  	return readNode;
-	}
+		{
+		  	readNode.addChild(defNode);
+		  	return readNode;
+		}
 	| <O_WRITE>	<O_LPAREN> ( exprNode = expr() | exprNode = string() ) <O_RPAREN>
 	  	{
 	  	  	writeNode.addChild(exprNode);

@@ -2,7 +2,7 @@ package visitor;
 
 import ast.*;
 
-public class TreeVisitor implements Visitor {
+public class TreeVisitor implements Visitor<Object> {
 
 	private String prefix = "";
 	private String src = "";
@@ -398,9 +398,9 @@ public class TreeVisitor implements Visitor {
 	public Object visit(Program n) {
 		src += n.getProgramKeyword() + " label(" + n.getProgramName() + ")";
 		src += "\n";
-		for (ASTNode node : n.getStatements()) {
+		for (Statement statement : n.getStatements()) {
 			addSpace();
-			node.accept(this);
+			statement.accept(this);
 			removeSpace();
 		}
 		return null;

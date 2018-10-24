@@ -9,6 +9,8 @@ public abstract class ASTNode {
 	
 	protected String label;
 	protected List<ASTNode> children = new LinkedList<ASTNode>();
+	protected int realType;
+	protected int convertedType;
 	
 	public void setLabel(String l) {
 		label = l;
@@ -42,6 +44,22 @@ public abstract class ASTNode {
 	
 	public List<ASTNode> getChildren() {
 		return children;
+	}
+	
+	public int getRealType() {
+		return realType;
+	}
+
+	public void setRealType(int realType) {
+		this.realType = realType;
+	}
+
+	public int getConvertedType() {
+		return convertedType;
+	}
+
+	public void setConvertedType(int convertedType) {
+		this.convertedType = convertedType;
 	}
 	
 	

@@ -29,7 +29,9 @@ public class NolifeParser implements NolifeParserConstants {
                         factory = new ASTNodeFactory();
                         parser = new NolifeParser(input);
                         ASTNode node = parser.program();
+//  	  	  	SourceVisitor sv = new SourceVisitor();
                         TreeVisitor tv = new TreeVisitor();
+//			TypeVisitor tv = new TypeVisitor();
                         node.accept(tv);
                         System.out.println(tv.getSource());
                 } catch (ParseException e) {
@@ -139,6 +141,7 @@ public class NolifeParser implements NolifeParserConstants {
         ASTNode typeNode = null;
         ASTNode newTypeNode = null;
         Declare newDeclareNode = null;
+        ArrayDecl newArrayDeclNode = null;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case O_CHARACTER:
     case O_FLOAT:
@@ -170,11 +173,43 @@ public class NolifeParser implements NolifeParserConstants {
       break;
     case O_ARRAY:
       typeNode = array_type();
-                typeNode.getChild(0).setLabel(declareNode.getChild(0).getLabel());
-                declareNode.removeChild(0);
-                declareNode.addChild(typeNode);
+                newDeclareNode = (Declare)factory.makeASTNode("Declare");
+                if (typeNode instanceof TypeInteger) {
+                        for (ASTNode n : declareNode.getChildren()) {
+                                newTypeNode = (TypeInteger)factory.makeASTNode("TypeInteger");
+                                newArrayDeclNode = (ArrayDecl)factory.makeASTNode("ArrayDecl");
+                                newArrayDeclNode.setLabel(n.getLabel());
+                                newArrayDeclNode.addChild(((ArrayDecl)typeNode.getChild(0)).getMinBound());
+                                newArrayDeclNode.addChild(((ArrayDecl)typeNode.getChild(0)).getMaxBound());
+                                newTypeNode.addChild(newArrayDeclNode);
+                                newDeclareNode.addChild(newTypeNode);
+                        }
+                } else if (typeNode instanceof TypeFloat) {
+                        for (ASTNode n : declareNode.getChildren()) {
+                                newTypeNode = (TypeFloat)factory.makeASTNode("TypeFloat");
+                                newArrayDeclNode = (ArrayDecl)factory.makeASTNode("ArrayDecl");
+                                newArrayDeclNode.setLabel(n.getLabel());
+                                newArrayDeclNode.addChild(((ArrayDecl)typeNode.getChild(0)).getMinBound());
+                                newArrayDeclNode.addChild(((ArrayDecl)typeNode.getChild(0)).getMaxBound());
+                                newTypeNode.addChild(newArrayDeclNode);
+                                newDeclareNode.addChild(newTypeNode);
+                         }
+                } else if (typeNode instanceof TypeCharacter) {
+                        for (ASTNode n : declareNode.getChildren()) {
+                                newTypeNode = (TypeCharacter)factory.makeASTNode("TypeCharacter");
+                                newArrayDeclNode = (ArrayDecl)factory.makeASTNode("ArrayDecl");
+                                newArrayDeclNode.setLabel(n.getLabel());
+                                newArrayDeclNode.addChild(((ArrayDecl)typeNode.getChild(0)).getMinBound());
+                                newArrayDeclNode.addChild(((ArrayDecl)typeNode.getChild(0)).getMaxBound());
+                                newTypeNode.addChild(newArrayDeclNode);
+                                newDeclareNode.addChild(newTypeNode);
+                        }
+                }
+//  	  	typeNode.getChild(0).setLabel(declareNode.getChild(0).getLabel());
+//  	  	declareNode.removeChild(0);
+//	  	declareNode.addChild(newTypeNode);
 
-                {if (true) return declareNode;}
+                {if (true) return newDeclareNode;}
       break;
     default:
       jj_la1[4] = jj_gen;
@@ -569,15 +604,17 @@ public class NolifeParser implements NolifeParserConstants {
       jj_consume_token(O_LPAREN);
       defNode = variable();
       jj_consume_token(O_RPAREN);
-                if (defNode instanceof ArrayDef) {
-                        refNode = (ArrayRef)factory.makeASTNode("ArrayRef");
-                        refNode.setLabel(((ArrayDef)defNode).getId());
-                        refNode.addChild(((ArrayDef)defNode).getSubscriptExpression());
-                } else if (defNode instanceof IdDef) {
-                        refNode = (IdRef)factory.makeASTNode("IdRef");
-                        refNode.setLabel(((IdDef)defNode).getId());
-                }
-                readNode.addChild(refNode);
+                readNode.addChild(defNode);
+
+//	  	if (defNode instanceof ArrayDef) {
+//	  		refNode = (ArrayRef)factory.makeASTNode("ArrayRef");
+//			refNode.setLabel(((ArrayDef)defNode).getId());
+//			refNode.addChild(((ArrayDef)defNode).getSubscriptExpression());
+//	  	} else if (defNode instanceof IdDef) {
+//			refNode = (IdRef)factory.makeASTNode("IdRef");
+//			refNode.setLabel(((IdDef)defNode).getId());
+//	  	} 
+//		readNode.addChild(refNode);
                 {if (true) return readNode;}
       break;
     case O_WRITE:
@@ -1083,14 +1120,6 @@ public class NolifeParser implements NolifeParserConstants {
     finally { jj_save(1, xla); }
   }
 
-  static private boolean jj_3R_10() {
-    if (jj_scan_token(O_IDENTIFIER)) return true;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_11()) jj_scanpos = xsp;
-    return false;
-  }
-
   static private boolean jj_3_1() {
     if (jj_3R_9()) return true;
     return false;
@@ -1109,6 +1138,14 @@ public class NolifeParser implements NolifeParserConstants {
 
   static private boolean jj_3R_11() {
     if (jj_scan_token(O_LBRACKET)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_10() {
+    if (jj_scan_token(O_IDENTIFIER)) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_11()) jj_scanpos = xsp;
     return false;
   }
 
