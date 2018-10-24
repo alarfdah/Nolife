@@ -313,15 +313,6 @@ public class SourceVisitor implements Visitor {
 	
 		return null;
 	}
-	
-	@Override
-	public Object visit(Subscript n) {
-		n.getId().accept(this);
-		//src "[";
-		n.getSubscriptExpression().accept(this);
-		//src "]";
-		return null;
-	}
 
 	@Override
 	public Object visit(Subtract n) {

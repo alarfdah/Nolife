@@ -79,8 +79,6 @@ public class ASTNodeFactory {
 			return new Return();
 		else if (nodeType == "SubroutineDeclarations")
 			return new SubroutineDeclarations();
-		else if (nodeType == "Subscript")
-			return new Subscript();
 		else if (nodeType == "Subtract")
 			return new Subtract();
 		else if (nodeType == "TypeCharacter")

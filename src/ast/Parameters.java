@@ -7,6 +7,9 @@ import visitor.Visitor;
 public class Parameters extends Statement {
 
 	public List<ASTNode> getParameters() {
+		if (getChildren() == null) {
+			return null;
+		}
 		return getChildren();
 	}
 	

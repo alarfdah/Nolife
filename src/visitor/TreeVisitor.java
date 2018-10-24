@@ -35,11 +35,8 @@ public class TreeVisitor implements Visitor {
 	
 	@Override
 	public Object visit(ArrayDecl n) {
-		src += "ARRAY DECL";
+		src += "ARRAY DECL label(" + n.getId() + ")";
 		src += "\n";
-		addSpace();
-		n.getVariableName().accept(this);
-		removeSpace();
 		addSpace();
 		n.getMinBound().accept(this);
 		removeSpace();
@@ -51,15 +48,21 @@ public class TreeVisitor implements Visitor {
 	
 	@Override
 	public Object visit(ArrayDef n) {
-		src += "ARRAY DEF";
+		src += "ARRAY DEF label(" + n.getId() + ")";
 		src += "\n";
+		addSpace();
+		n.getSubscriptExpression().accept(this);
+		removeSpace();
 		return null;
 	}
 	
 	@Override
 	public Object visit(ArrayRef n) {
-		src += "ARRAY REF";
+		src += "ARRAY REF label(" + n.getId() + ")";
 		src += "\n";
+		addSpace();
+		n.getSubscriptExpression().accept(this);
+		removeSpace();
 		return null;
 	}
 
@@ -81,9 +84,11 @@ public class TreeVisitor implements Visitor {
 		src += "CALL label(" + n.getMethodName() + ")";
 		src += "\n";
 		for (ASTNode node : n.getCallArguments()) {
-			addSpace();
-			node.accept(this);
-			removeSpace();
+			if (node != null) {
+				addSpace();
+				node.accept(this);
+				removeSpace();				
+			}
 		}
 		return null;
 	}
@@ -141,28 +146,28 @@ public class TreeVisitor implements Visitor {
 
 	@Override
 	public Object visit(ConstantCharacter n) {
-		src += n.getCharacter();
+		src += "CONST CHARACTER label(" + n.getCharacter() + ")";
 		src += "\n";
 		return null;
 	}
 
 	@Override
 	public Object visit(ConstantFloat n) {
-		src += n.getFloat();
+		src += "CONST FLOAT label(" + n.getFloat() + ")";
 		src += "\n";
 		return null;
 	}
 
 	@Override
 	public Object visit(ConstantInteger n) {
-		src += n.getInteger();
+		src += "CONST INTEGER label(" + n.getInteger() + ")";
 		src += "\n";
 		return null;
 	}
 
 	@Override
 	public Object visit(ConstantString n) {
-		src += n.getString();
+		src += "CONST STRING label(" + n.getString() + ")";
 		src += "\n";
 		return null;
 	}
@@ -380,16 +385,18 @@ public class TreeVisitor implements Visitor {
 		src += n.getProcedureKeyword();
 		src += "\n";
 		for (ASTNode node : n.getStatements()) {
-			addSpace();
-			node.accept(this);
-			removeSpace();
+			if (node != null) {
+				addSpace();
+				node.accept(this);
+				removeSpace();				
+			}
 		}
 		return null;
 	}
 	
 	@Override
 	public Object visit(Program n) {
-		src += n.getProgramKeyword();
+		src += n.getProgramKeyword() + " label(" + n.getProgramName() + ")";
 		src += "\n";
 		for (ASTNode node : n.getStatements()) {
 			addSpace();
@@ -428,16 +435,6 @@ public class TreeVisitor implements Visitor {
 			node.accept(this);
 			removeSpace();
 		}
-		return null;
-	}
-	
-	@Override
-	public Object visit(Subscript n) {
-		src += "SUBSCRIPT label(" + n.getId() + ")";
-		src += "\n";
-		addSpace();
-		n.getSubscriptExpression().accept(this);
-		removeSpace();
 		return null;
 	}
 

@@ -14,7 +14,7 @@ public class Program extends ASTNode {
 	}
 	
 	public String getProgramName() {
-		return getLabel() + ";\n\n";
+		return getLabel();
 	}
 	
 	public List<Statement> getStatements() {

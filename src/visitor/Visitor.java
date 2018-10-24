@@ -40,7 +40,6 @@ public interface Visitor {
 	public Object visit(Read n);
 	public Object visit(Return n);
 	public Object visit(SubroutineDeclarations n);
-	public Object visit(Subscript n);
 	public Object visit(Subtract n);
 	public Object visit(TypeCharacter n);
 	public Object visit(TypeFloat n);

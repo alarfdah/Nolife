@@ -12,6 +12,9 @@ public class Call extends Statement {
 	
 	// params
 	public List<ASTNode> getCallArguments() {
+		if (getChildren() == null) {
+			return null;
+		}
 		return getChildren();
 	}
 	

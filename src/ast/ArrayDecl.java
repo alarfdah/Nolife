@@ -4,16 +4,16 @@ import visitor.Visitor;
 
 public class ArrayDecl extends Declaration {
 
-	public IdDecl getVariableName() {
-		return (IdDecl)getChild(0);
+	public String getId() {
+		return getLabel();
 	}
 	
 	public Expression getMinBound() {
-		return (Expression)getChild(1);
+		return (Expression)getChild(0);
 	}
 	
 	public Expression getMaxBound() {
-		return (Expression)getChild(2);
+		return (Expression)getChild(1);
 	}
 	
 	@Override

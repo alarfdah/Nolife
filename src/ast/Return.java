@@ -8,8 +8,8 @@ public class Return extends Statement {
 		return "RETURN";
 	}
 	
-	public Expression getReturn() {
-		return (Expression)getChild(0);
+	public ASTNode getReturn() {
+		return getChild(0);
 	}
 	
 	@Override

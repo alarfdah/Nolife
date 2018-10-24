@@ -237,7 +237,7 @@ ASTNode type(ASTNode declareNode) :
 	  	  	 }
   	  	} else if (typeNode instanceof TypeCharacter) {
   	  	  	for (ASTNode n : declareNode.getChildren()) {
-	  	  	  	newTypeNode = (TypeInteger)factory.makeASTNode("TypeCharacter");
+	  	  	  	newTypeNode = (TypeCharacter)factory.makeASTNode("TypeCharacter");
 	  	  	  	newTypeNode.addChild(n);
 	  	  	  	newDeclareNode.addChild(newTypeNode);
   	  	 	}
@@ -247,7 +247,7 @@ ASTNode type(ASTNode declareNode) :
 	}
   	| typeNode = array_type()
   	{
-  	  	typeNode.getChild(0).addChild(0, declareNode.getChild(0));
+  	  	typeNode.getChild(0).setLabel(declareNode.getChild(0).getLabel());
   	  	declareNode.removeChild(0);
 	  	declareNode.addChild(typeNode);
 	  	
@@ -282,16 +282,12 @@ ASTNode standard_type() :
 
 ASTNode array_type() : 
 {
-  	ASTNode dimNode = null;
+  	ASTNode arrayDeclNode = null;
   	ASTNode typeNode = null;
-  	ArrayDecl arrayDeclNode = null;
 }
 {
-    <O_ARRAY> <O_LBRACKET> dimNode = dim() <O_RBRACKET> <O_OF> typeNode = standard_type()
+    <O_ARRAY> <O_LBRACKET> arrayDeclNode = dim() <O_RBRACKET> <O_OF> typeNode = standard_type()
     {
-      	arrayDeclNode = (ArrayDecl)factory.makeASTNode("ArrayDecl");
-      	arrayDeclNode.addChild(dimNode.getChild(0));
-      	arrayDeclNode.addChild(dimNode.getChild(1));
       	typeNode.addChild(arrayDeclNode);
 	  	return typeNode;
 	}
@@ -301,14 +297,14 @@ ASTNode dim() :
 {
   	Token minBound = null;
   	Token maxBound = null;
-  	ASTNode dimNode = null;
+  	ArrayDecl arrayDeclNode = null;
   	Expression minNode = null;
   	Expression maxNode = null;
   	
 }
 {
 	{
-		dimNode = factory.makeASTNode("Subscript");
+		arrayDeclNode = (ArrayDecl)factory.makeASTNode("ArrayDecl");
 	}
 	( minBound = <O_INT> <O_DOT> <O_DOT > maxBound = <O_INT>
 	{
@@ -326,9 +322,9 @@ ASTNode dim() :
 	}
 	)
 	{
-	  	dimNode.addChild(minNode);
-		dimNode.addChild(maxNode);
-	  	return dimNode;
+	  	arrayDeclNode.addChild(minNode);
+		arrayDeclNode.addChild(maxNode);
+	  	return arrayDeclNode;
 	}
 }
 
@@ -425,11 +421,9 @@ ASTNode parameter_list() :
   	ASTNode declareNode = null;
 }
 {
-  	{
-  	  	parametersNode = (Parameters)factory.makeASTNode("Parameters");
-  	}
 	declareNode = identifier_list() <O_COLON> declareNode = type(declareNode)
 	{
+  	  	parametersNode = (Parameters)factory.makeASTNode("Parameters");
 		parametersNode.addChild(declareNode);
 	}
     ( <O_SEMICOLON> declareNode = identifier_list() <O_COLON> declareNode = type(declareNode)
@@ -569,10 +563,7 @@ ASTNode procedure_invocation() :
   	Call callNode = null;
 }
 {
-	id = <O_IDENTIFIER> <O_LPAREN>
-	(
-	  	exprListNode = expr_list()
-	)? <O_RPAREN>
+	id = <O_IDENTIFIER> <O_LPAREN> (exprListNode = expr_list())? <O_RPAREN>
 	{
 		callNode = (Call)factory.makeASTNode("Call");
 		callNode.setLabel(id.image);
@@ -583,34 +574,34 @@ ASTNode procedure_invocation() :
 
 ASTNode i_o_stmt() :
 {
-  	Expression exprNode = null;
-  	IdDef idDefNode = null;
   	Read readNode = null;
   	Write writeNode = null;
+  	ASTNode exprNode = null;
+  	ASTNode defNode = null;
+  	ASTNode refNode = null;
   	ASTNode varNode = null;
 }
 {
-	( <O_READ> <O_LPAREN> {  idDefNode = (IdDef)variable(); } <O_RPAREN>
-	{
-		exprNode = (IdRef)factory.makeASTNode("IdRef");
-		exprNode.setLabel(idDefNode.getId());
+  	{
 		readNode = (Read)factory.makeASTNode("Read");
-		readNode.addChild(exprNode);
+  	  	writeNode = (Write)factory.makeASTNode("Write");
+  	}
+	( <O_READ> <O_LPAREN> defNode = variable() <O_RPAREN>
+	{
+	  	if (defNode instanceof ArrayDef) {
+	  		refNode = (ArrayRef)factory.makeASTNode("ArrayRef");
+			refNode.setLabel(((ArrayDef)defNode).getId());
+			refNode.addChild(((ArrayDef)defNode).getSubscriptExpression());
+	  	} else if (defNode instanceof IdDef) {
+			refNode = (IdRef)factory.makeASTNode("IdRef");
+			refNode.setLabel(((IdDef)defNode).getId());
+	  	} 
+		readNode.addChild(refNode);
 	  	return readNode;
 	}
-	| <O_WRITE> <O_LPAREN>
-		( { exprNode = (Expression)expr(); }
-		{
-	  	  	writeNode = (Write)factory.makeASTNode("Write");
-		  	writeNode.addChild(exprNode);
-	  	}
-		| { exprNode = (Expression)string(); }
-		{
-	  	  	writeNode = (Write)factory.makeASTNode("Write");
-		  	writeNode.addChild(exprNode);
-	  	}
-		) <O_RPAREN>
+	| <O_WRITE>	<O_LPAREN> ( exprNode = expr() | exprNode = string() ) <O_RPAREN>
 	  	{
+	  	  	writeNode.addChild(exprNode);
 	  	  	return writeNode;
 	  	}
 	)
@@ -702,7 +693,7 @@ ASTNode case_labels() :
   	{
   	  	clauseNode = (Clause)factory.makeASTNode("Clause");
   	}
-	(id = < O_INT > { clauseNode.setLabel(id.image); }
+	( id = < O_INT > { clauseNode.setLabel(id.image); }
 	| id = < O_FLOATCON > { clauseNode.setLabel(id.image); })
 	
 	( <O_COMMA>
@@ -752,16 +743,14 @@ ASTNode exprPrime(ASTNode exprNode) :
   	ASTNode term1Node = null;
 }
 {
-	( <O_OR>
-		term1Node = term1()
+	( <O_OR> term1Node = term1()
 		{
 			orNode = (OR)factory.makeASTNode("OR");
 			orNode.addChild(exprNode);
 			orNode.addChild(exprPrime(term1Node));
 			return orNode;
 		}
-  	| <O_AND>
-  		term1Node = term1()
+  	| <O_AND> term1Node = term1()
   		{
 			andNode = (AND)factory.makeASTNode("AND");
 			andNode.addChild(exprNode);
@@ -797,48 +786,42 @@ ASTNode term1Prime(ASTNode exprNode) :
   	ASTNode term2Node = null;
 }
 {
-	( <O_LT>
-		term2Node = term2()
+	( <O_LT> term2Node = term2()
 		{
 		  	lessThanNode = (LessThan)factory.makeASTNode("LessThan");
 		  	lessThanNode.addChild(exprNode);
 		  	lessThanNode.addChild(term1Prime(term2Node));
 		  	return lessThanNode;
 		}
-	| <O_LE>
-		term2Node = term2()
+	| <O_LE> term2Node = term2()
 		{
 		  	lessThanEqualNode = (LessThanEqual)factory.makeASTNode("LessThanEqual");
 		  	lessThanEqualNode.addChild(exprNode);
 		  	lessThanEqualNode.addChild(term1Prime(term2Node));
 		  	return lessThanEqualNode;
 		}
-	| <O_GT>
-		term2Node = term2()
+	| <O_GT> term2Node = term2()
 		{
 		  	greaterThanNode = (GreaterThan)factory.makeASTNode("GreaterThan");
 		  	greaterThanNode.addChild(exprNode);
 		  	greaterThanNode.addChild(term1Prime(term2Node));
 		  	return greaterThanNode;
 		}
-	| <O_GE>
-		term2Node = term2()
+	| <O_GE> term2Node = term2()
 		{
 		  	greaterThanEqualNode = (GreaterThanEqual)factory.makeASTNode("GreaterThanEqual");
 		  	greaterThanEqualNode.addChild(exprNode);
 		  	greaterThanEqualNode.addChild(term1Prime(term2Node));
 		  	return greaterThanEqualNode;
 		}
-	| <O_NE>
-		term2Node = term2()
+	| <O_NE> term2Node = term2()
 		{
 		  	notEqualNode = (NotEqual)factory.makeASTNode("NotEqual");
 		  	notEqualNode.addChild(exprNode);
 		  	notEqualNode.addChild(term1Prime(term2Node));
 		  	return notEqualNode;
 		}
-	| <O_EQ>
-		term2Node = term2()
+	| <O_EQ> term2Node = term2()
 		{
 		  	equalNode = (Equal)factory.makeASTNode("Equal");
 		  	equalNode.addChild(exprNode);
@@ -937,37 +920,54 @@ ASTNode term3Prime(ASTNode exprNode) :
 
 ASTNode factor() :
 {
-  	Expression exprNode = null;
+  	ArrayRef arrayRefNode = null;
+  	ASTNode exprNode = null;
+  	Call callNode = null;
   	NOT notNode = null;
   	ASTNode parametersNode = null;
-  	Token var = null;
+  	Token id = null;
 }
 {
-	(  var = <O_IDENTIFIER>
+	(  id = <O_IDENTIFIER>
 		{
 			exprNode = (IdRef)factory.makeASTNode("IdRef");
-	  		exprNode.setLabel(var.image);
+	  		exprNode.setLabel(id.image);
 		}
-		( <O_LBRACKET> { exprNode = (Expression)expr(); } <O_RBRACKET>
-		| <O_LPAREN> ( parametersNode = expr_list())? <O_RPAREN> )?
-	| var = <O_INT>
-	{
-	  	exprNode = (ConstantInteger)factory.makeASTNode("ConstantInteger");
-	  	exprNode.setLabel(var.image);
-	}
-	| var = <O_FLOATCON>
-	{
-	  	exprNode = (ConstantFloat)factory.makeASTNode("ConstantFloat");
-	  	exprNode.setLabel(var.image);
-	}
-	| var = <O_CHAR>
-	{
-	  	exprNode = (ConstantCharacter)factory.makeASTNode("ConstantCharacter");
-	  	exprNode.setLabel(var.image);
-	}
-	| <O_LPAREN> { exprNode = (Expression)expr(); } <O_RPAREN>
-	| <O_NOT>
-		{ exprNode = (Expression)factor(); }
+		( <O_LBRACKET> exprNode = expr() <O_RBRACKET>
+			{
+			  	arrayRefNode = (ArrayRef)factory.makeASTNode("ArrayRef");
+			  	arrayRefNode.setLabel(id.image);
+			  	arrayRefNode.addChild(exprNode);
+			  	return arrayRefNode;
+			}
+		| <O_LPAREN> (parametersNode = expr_list())? <O_RPAREN>
+			{
+				callNode = (Call)factory.makeASTNode("Call");
+				callNode.setLabel(id.image);
+			  	callNode.addChild(parametersNode);
+			  	return callNode;
+			}
+		)?
+	| id = <O_INT>
+		{
+		  	exprNode = (ConstantInteger)factory.makeASTNode("ConstantInteger");
+		  	exprNode.setLabel(id.image);
+		}
+	| id = <O_FLOATCON>
+		{
+		  	exprNode = (ConstantFloat)factory.makeASTNode("ConstantFloat");
+		  	exprNode.setLabel(id.image);
+		}
+	| id = <O_CHAR>
+		{
+		  	exprNode = (ConstantCharacter)factory.makeASTNode("ConstantCharacter");
+		  	exprNode.setLabel(id.image);
+		}
+	| <O_LPAREN> exprNode = expr() <O_RPAREN>
+		{
+		  	
+		}
+	| <O_NOT> exprNode = factor()
 		{
 			notNode = (NOT)factory.makeASTNode("NOT");
 			notNode.addChild(exprNode);
@@ -981,26 +981,24 @@ ASTNode factor() :
 
 ASTNode variable() : 
 {
-  	Subscript subscriptNode = null;
+  	ArrayDef arrayDefNode = null;
   	IdDef idDefNode = null;
   	ASTNode exprNode = null;
   	Token id = null;
 }
 {
 	id = <O_IDENTIFIER>
-	(
-	 	<O_LBRACKET>
-			exprNode = expr()
-			{
-			  	subscriptNode = (Subscript)factory.makeASTNode("Subscript");
-			  	subscriptNode.addChild(exprNode);
-			}
-		<O_RBRACKET>
+	( <O_LBRACKET> exprNode = expr() <O_RBRACKET>
+		{
+		  	arrayDefNode = (ArrayDef)factory.makeASTNode("ArrayDef");
+		  	arrayDefNode.setLabel(id.image);
+		  	arrayDefNode.addChild(exprNode);
+		  	return arrayDefNode; 	
+		}
 	)?
 	{
 	  	idDefNode = (IdDef) factory.makeASTNode("IdDef");
 	  	idDefNode.setLabel(id.image);
-
 	  	return idDefNode;
 	}
 }
