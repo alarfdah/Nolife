@@ -48,13 +48,16 @@ public class SourceVisitor implements Visitor<Object> {
 		n.getRhs().accept(this);
 		return null;
 	}
+	
+	@Override
+	public Object visit(CallFunction n) {
+		
+		return null;
+	}
 
 	@Override
-	public Object visit(Call n) {
+	public Object visit(CallProcedure n) {
 		//src n.getMethodName();
-		for (ASTNode node : n.getCallArguments()) {
-			node.accept(this);
-		}
 		return null;
 	}
 

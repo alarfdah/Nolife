@@ -9,7 +9,8 @@ public interface Visitor<T> {
 	public T visit(ArrayDef n);
 	public T visit(ArrayRef n);
 	public T visit(Assignment n);
-	public T visit(Call n);
+	public T visit(CallFunction n);
+	public T visit(CallProcedure n);
 	public T visit(Cases n);
 	public T visit(CaseStatement n);
 	public T visit(Clause n);

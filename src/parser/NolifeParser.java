@@ -17,7 +17,7 @@ public class NolifeParser implements NolifeParserConstants {
                         try {
                                 input = new java.io.FileInputStream(args[args.length - 1]);
                         } catch (java.io.FileNotFoundException e) {
-                                System.out.println("Filen not found.");
+                                System.out.println("File not found.");
                                 return;
                         }
                 } else {
@@ -30,10 +30,10 @@ public class NolifeParser implements NolifeParserConstants {
                         parser = new NolifeParser(input);
                         ASTNode node = parser.program();
 //  	  	  	SourceVisitor sv = new SourceVisitor();
-                        TreeVisitor tv = new TreeVisitor();
-//			TypeVisitor tv = new TypeVisitor();
+//  	  	  	TreeVisitor tv = new TreeVisitor();
+                        TypeVisitor tv = new TypeVisitor();
                         node.accept(tv);
-                        System.out.println(tv.getSource());
+//  	  	  	System.out.println(tv.getSource());
                 } catch (ParseException e) {
                         System.err.println("Syntax Error: " + e.getMessage());
                 }
@@ -205,9 +205,6 @@ public class NolifeParser implements NolifeParserConstants {
                                 newDeclareNode.addChild(newTypeNode);
                         }
                 }
-//  	  	typeNode.getChild(0).setLabel(declareNode.getChild(0).getLabel());
-//  	  	declareNode.removeChild(0);
-//	  	declareNode.addChild(newTypeNode);
 
                 {if (true) return newDeclareNode;}
       break;
@@ -565,7 +562,7 @@ public class NolifeParser implements NolifeParserConstants {
   static final public ASTNode procedure_invocation() throws ParseException {
         Token id = null;
         ASTNode exprListNode = null;
-        Call callNode = null;
+        CallProcedure callProcedureNode = null;
     id = jj_consume_token(O_IDENTIFIER);
     jj_consume_token(O_LPAREN);
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -582,10 +579,10 @@ public class NolifeParser implements NolifeParserConstants {
       ;
     }
     jj_consume_token(O_RPAREN);
-                callNode = (Call)factory.makeASTNode("Call");
-                callNode.setLabel(id.image);
-                callNode.addChild(exprListNode);
-                {if (true) return callNode;}
+                callProcedureNode = (CallProcedure)factory.makeASTNode("CallProcedure");
+                callProcedureNode.setLabel(id.image);
+                callProcedureNode.addChild(exprListNode);
+                {if (true) return callProcedureNode;}
     throw new Error("Missing return statement in function");
   }
 
@@ -604,18 +601,8 @@ public class NolifeParser implements NolifeParserConstants {
       jj_consume_token(O_LPAREN);
       defNode = variable();
       jj_consume_token(O_RPAREN);
-                readNode.addChild(defNode);
-
-//	  	if (defNode instanceof ArrayDef) {
-//	  		refNode = (ArrayRef)factory.makeASTNode("ArrayRef");
-//			refNode.setLabel(((ArrayDef)defNode).getId());
-//			refNode.addChild(((ArrayDef)defNode).getSubscriptExpression());
-//	  	} else if (defNode instanceof IdDef) {
-//			refNode = (IdRef)factory.makeASTNode("IdRef");
-//			refNode.setLabel(((IdDef)defNode).getId());
-//	  	} 
-//		readNode.addChild(refNode);
-                {if (true) return readNode;}
+                        readNode.addChild(defNode);
+                        {if (true) return readNode;}
       break;
     case O_WRITE:
       jj_consume_token(O_WRITE);
@@ -664,22 +651,22 @@ public class NolifeParser implements NolifeParserConstants {
         ASTNode exprNode = null;
         ASTNode casesNode = null;
         CaseStatement caseStatementNode = null;
-                caseStatementNode = (CaseStatement)factory.makeASTNode("CaseStatement");
     jj_consume_token(O_CASE);
     exprNode = expr();
     jj_consume_token(O_OF);
-                caseStatementNode.addChild(exprNode);
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case O_FLOATCON:
     case O_INT:
       casesNode = cases();
-                caseStatementNode.addChild(casesNode);
       break;
     default:
       jj_la1[18] = jj_gen;
       ;
     }
     jj_consume_token(O_END);
+                caseStatementNode = (CaseStatement)factory.makeASTNode("CaseStatement");
+                caseStatementNode.addChild(exprNode);
+                caseStatementNode.addChild(casesNode);
                 {if (true) return caseStatementNode;}
     throw new Error("Missing return statement in function");
   }
@@ -979,7 +966,7 @@ public class NolifeParser implements NolifeParserConstants {
   static final public ASTNode factor() throws ParseException {
         ArrayRef arrayRefNode = null;
         ASTNode exprNode = null;
-        Call callNode = null;
+        CallFunction callFunctionNode = null;
         NOT notNode = null;
         ASTNode parametersNode = null;
         Token id = null;
@@ -1017,10 +1004,10 @@ public class NolifeParser implements NolifeParserConstants {
             ;
           }
           jj_consume_token(O_RPAREN);
-                                callNode = (Call)factory.makeASTNode("Call");
-                                callNode.setLabel(id.image);
-                                callNode.addChild(parametersNode);
-                                {if (true) return callNode;}
+                                callFunctionNode = (CallFunction)factory.makeASTNode("CallFunction");
+                                callFunctionNode.setLabel(id.image);
+                                callFunctionNode.addChild(parametersNode);
+                                {if (true) return callFunctionNode;}
           break;
         default:
           jj_la1[29] = jj_gen;
@@ -1125,6 +1112,11 @@ public class NolifeParser implements NolifeParserConstants {
     return false;
   }
 
+  static private boolean jj_3R_11() {
+    if (jj_scan_token(O_LBRACKET)) return true;
+    return false;
+  }
+
   static private boolean jj_3_2() {
     if (jj_scan_token(O_ELSE)) return true;
     return false;
@@ -1133,11 +1125,6 @@ public class NolifeParser implements NolifeParserConstants {
   static private boolean jj_3R_9() {
     if (jj_3R_10()) return true;
     if (jj_scan_token(O_ASSIGN)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_11() {
-    if (jj_scan_token(O_LBRACKET)) return true;
     return false;
   }
 

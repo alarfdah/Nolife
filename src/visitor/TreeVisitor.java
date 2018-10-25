@@ -80,15 +80,25 @@ public class TreeVisitor implements Visitor<Object> {
 	}
 
 	@Override
-	public Object visit(Call n) {
-		src += "CALL label(" + n.getMethodName() + ")";
+	public Object visit(CallFunction n) {
+		src += "CALL FUNCTION label(" + n.getMethodName() + ")";
 		src += "\n";
-		for (ASTNode node : n.getCallArguments()) {
-			if (node != null) {
-				addSpace();
-				node.accept(this);
-				removeSpace();				
-			}
+		if (n.getCallArguments() != null) {
+			addSpace();
+			n.getCallArguments().accept(this);				
+			removeSpace();
+		}
+		return null;
+	}
+	
+	@Override
+	public Object visit(CallProcedure n) {
+		src += "CALL PROCEDURE label(" + n.getMethodName() + ")";
+		src += "\n";
+		if (n.getCallArguments() != null) {
+			addSpace();
+			n.getCallArguments().accept(this);				
+			removeSpace();
 		}
 		return null;
 	}
@@ -203,9 +213,12 @@ public class TreeVisitor implements Visitor<Object> {
 		src += n.getFunctionKeyword();
 		src += "\n";
 		for (ASTNode node : n.getStatements()) {
-			addSpace();
-			node.accept(this);
-			removeSpace();
+			// Can have no parameters. So null node.
+			if (node != null) {
+				addSpace();
+				node.accept(this);
+				removeSpace();				
+			}
 		}
 		return null;
 	}

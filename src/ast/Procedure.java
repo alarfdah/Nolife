@@ -13,7 +13,7 @@ public class Procedure extends Subroutine {
 		return "PROCEDURE ";
 	}
 	
-	public String getProcedureName() {
+	public String getId() {
 		return getLabel();
 	}
 	

@@ -13,7 +13,7 @@ public class Function extends Subroutine {
 		return "FUNCTION ";
 	}
 	
-	public String getFunctionName() {
+	public String getId() {
 		return getLabel();
 	}
 	

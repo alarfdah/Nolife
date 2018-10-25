@@ -17,8 +17,10 @@ public class ASTNodeFactory {
 			return new ArrayRef();
 		else if (nodeType == "Assignment")
 			return new Assignment();
-		else if (nodeType == "Call")
-			return new Call();
+		else if (nodeType == "CallFunction")
+			return new CallFunction();
+		else if (nodeType == "CallProcedure")
+			return new CallProcedure();
 		else if (nodeType == "Cases")
 			return new Cases();
 		else if (nodeType == "CaseStatement")

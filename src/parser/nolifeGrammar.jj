@@ -24,7 +24,7 @@ public class NolifeParser {
 			try {
 			  	input = new java.io.FileInputStream(args[args.length - 1]);
 			} catch (java.io.FileNotFoundException e) {
-			  	System.out.println("Filen not found.");
+			  	System.out.println("File not found.");
 			  	return;
 			} 
   	  	} else {
@@ -37,10 +37,10 @@ public class NolifeParser {
   	  	  	parser = new NolifeParser(input);
   	  	  	ASTNode node = parser.program();
 //  	  	  	SourceVisitor sv = new SourceVisitor();
-  	  	  	TreeVisitor tv = new TreeVisitor();
-//			TypeVisitor tv = new TypeVisitor();
+//  	  	  	TreeVisitor tv = new TreeVisitor();
+			TypeVisitor tv = new TypeVisitor();
 			node.accept(tv);
-  	  	  	System.out.println(tv.getSource());
+//  	  	  	System.out.println(tv.getSource());
   	  	} catch (ParseException e) {
   	  	  	System.err.println("Syntax Error: " + e.getMessage());
   	  	}
@@ -592,15 +592,15 @@ ASTNode procedure_invocation() :
 {
   	Token id = null;
   	ASTNode exprListNode = null;
-  	Call callNode = null;
+  	CallProcedure callProcedureNode = null;
 }
 {
 	id = <O_IDENTIFIER> <O_LPAREN> (exprListNode = expr_list())? <O_RPAREN>
 	{
-		callNode = (Call)factory.makeASTNode("Call");
-		callNode.setLabel(id.image);
-		callNode.addChild(exprListNode);
-	  	return callNode;
+		callProcedureNode = (CallProcedure)factory.makeASTNode("CallProcedure");
+		callProcedureNode.setLabel(id.image);
+		callProcedureNode.addChild(exprListNode);
+	  	return callProcedureNode;
 	}
 } 
 
@@ -653,20 +653,11 @@ ASTNode case_stmt() :
   	CaseStatement caseStatementNode = null;
 }
 {
+	<O_CASE> exprNode = expr() <O_OF> ( casesNode = cases() )? <O_END>
 	{
 		caseStatementNode = (CaseStatement)factory.makeASTNode("CaseStatement");
-	}
-	<O_CASE> exprNode = expr() <O_OF>
-	{
 	  	caseStatementNode.addChild(exprNode);
-	}
-	(
-	  casesNode = cases()
-	  {
-	    	caseStatementNode.addChild(casesNode);
-	  }
-	)? <O_END>
-	{
+	  	caseStatementNode.addChild(casesNode);
 	  	return caseStatementNode;
 	}
 } 
@@ -946,7 +937,7 @@ ASTNode factor() :
 {
   	ArrayRef arrayRefNode = null;
   	ASTNode exprNode = null;
-  	Call callNode = null;
+  	CallFunction callFunctionNode = null;
   	NOT notNode = null;
   	ASTNode parametersNode = null;
   	Token id = null;
@@ -966,10 +957,10 @@ ASTNode factor() :
 			}
 		| <O_LPAREN> (parametersNode = expr_list())? <O_RPAREN>
 			{
-				callNode = (Call)factory.makeASTNode("Call");
-				callNode.setLabel(id.image);
-			  	callNode.addChild(parametersNode);
-			  	return callNode;
+				callFunctionNode = (CallFunction)factory.makeASTNode("CallFunction");
+				callFunctionNode.setLabel(id.image);
+			  	callFunctionNode.addChild(parametersNode);
+			  	return callFunctionNode;
 			}
 		)?
 	| id = <O_INT>

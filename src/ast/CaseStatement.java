@@ -11,6 +11,9 @@ public class CaseStatement extends Statement {
 	}
 	
 	public Cases getCases() {
+		if (getChild(1) == null) {
+			return null;
+		}
 		return (Cases)getChild(1);
 	}
 	

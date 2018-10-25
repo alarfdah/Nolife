@@ -2,7 +2,7 @@ package ast;
 
 import visitor.Visitor;
 
-public class CallProcedure extends Statement {
+public class CallFunction extends Expression {
 
 	public String getMethodName() {
 		return getLabel();
@@ -15,7 +15,7 @@ public class CallProcedure extends Statement {
 		return getChild(0);
 	}
 	
-	@Override // check if needed
+	@Override
 	public Object accept(Visitor visitor) {
 		return visitor.visit(this);
 	}
