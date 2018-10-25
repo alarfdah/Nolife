@@ -9,6 +9,7 @@ import util.*;
 public class TypeVisitor implements Visitor<Integer> {
 
 	Stack<HashMap<String, Integer>> symTable = new Stack<HashMap<String, Integer>>();
+	HashMap<String, String> subroutineTable = new HashMap<String, String>();
 	
 	@Override
 	public Integer visit(Add n) {
@@ -91,15 +92,20 @@ public class TypeVisitor implements Visitor<Integer> {
 
 	@Override
 	public Integer visit(CallFunction n) {
+		if (subroutineTable.get(n.getMethodName()).equals("PROCEDURE")) {
+			System.err.println("Function call invoking a procedure!");
+		}
 		if (n.getCallArguments() != null) {
 			n.getCallArguments().accept(this);				
 		}
-		
 		return n.getRealType();
 	}
 	
 	@Override
 	public Integer visit(CallProcedure n) {
+		if (subroutineTable.get(n.getMethodName()).equals("FUNCTION")) {
+			System.err.println("Procedure call invoking a function!");
+		}
 		if (n.getCallArguments() != null) {
 			n.getCallArguments().accept(this);				
 		}
@@ -195,14 +201,12 @@ public class TypeVisitor implements Visitor<Integer> {
 
 	@Override
 	public Integer visit(Function n) {
-		boolean hasReturn = false;
-		
 		if (isDeclaredLocal(n.getId())) {
 			System.err.println("Variable " + n.getId() + " is already declared! (Cannot create function)");
 		} else {
 			symTable.peek().put(n.getId(), n.getRealType());			
+			subroutineTable.put(n.getId(), "FUNCTION");
 		}
-		
 		pushFrame();
 		for (Statement statement : n.getStatements()) {
 			if (statement != null) {
@@ -210,9 +214,6 @@ public class TypeVisitor implements Visitor<Integer> {
 			}
 		}
 		popFrame();
-		if (!hasReturn) {
-			System.err.println("Function does not have a return!");
-		}
 		return n.getRealType();
 	}
 
@@ -413,7 +414,8 @@ public class TypeVisitor implements Visitor<Integer> {
 		if (isDeclaredLocal(n.getId())) {
 			System.err.println("Variable " + n.getId() + " is already declared! (Cannot create procedure)");
 		} else {
-			symTable.peek().put(n.getId(), n.getRealType());			
+			symTable.peek().put(n.getId(), n.getRealType());
+			subroutineTable.put(n.getId(), "PROCEDURE");
 		}
 		pushFrame();
 		for (ASTNode node : n.getStatements()) {
