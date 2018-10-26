@@ -245,7 +245,6 @@ public class TypeVisitor implements Visitor<Integer> {
 	if (resolvedType == TypeTable.ANYTYPE) {
 		System.err.println("Cannot use '>=' on type " + TypeTable.getTypeName(lOp) 
 		+ " and type " + TypeTable.getTypeName(rOp) + "!");
-		
 	}
 		return n.getRealType();
 	}
@@ -266,6 +265,9 @@ public class TypeVisitor implements Visitor<Integer> {
 		String id = n.getId();
 		if (!isDeclaredLocal(id) && !isDeclaredGlobal(id)) {
 			System.err.println("Variable " + id + " is not declared!");
+			n.setRealType(TypeTable.ANYTYPE);
+		} else {
+			n.setRealType(getDeclaredType(id));
 		}
 		return n.getRealType();
 	}
@@ -275,6 +277,9 @@ public class TypeVisitor implements Visitor<Integer> {
 		String id = n.getId();
 		if (!isDeclaredLocal(id) && !isDeclaredGlobal(id)) {
 			System.err.println("Variable " + id + " is not declared!");
+			n.setRealType(TypeTable.ANYTYPE);
+		} else {
+			n.setRealType(getDeclaredType(id));
 		}
 		return n.getRealType();
 	}
@@ -301,7 +306,6 @@ public class TypeVisitor implements Visitor<Integer> {
 		if (resolvedType == TypeTable.ANYTYPE) {
 			System.err.println("Cannot use '<' on type " + TypeTable.getTypeName(lOp) 
 			+ " and type " + TypeTable.getTypeName(rOp) + "!");
-			
 		}
 		return n.getRealType();
 	}
@@ -419,7 +423,9 @@ public class TypeVisitor implements Visitor<Integer> {
 		}
 		pushFrame();
 		for (ASTNode node : n.getStatements()) {
-			node.accept(this);
+			if (node != null) {
+				node.accept(this);				
+			}
 		}
 		popFrame();
 		return n.getRealType();

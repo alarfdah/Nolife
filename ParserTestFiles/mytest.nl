@@ -1,28 +1,19 @@
-{*This file tests the following error that can occur in
-declarations. 
+PROGRAM arith;
 
-[1] Variable declared multiple times within same scope.
+VAR a: INTEGER;
+	c: CHARACTER;
 
-*}
+PROCEDURE x;
+VAR a: INTEGER;
+	b, d: CHARACTER;
 
- PROGRAM cow;
-VAR 
-    a:INTEGER; 
-    b:FLOAT;
-    d:ARRAY[1..2] OF CHARACTER;
-
-
-	PROCEDURE c (b:INTEGER); 
-	BEGIN		
-	   b:=1
+	BEGIN
+		IF (a < b AND c > d) THEN
+			WRITE(c)
+		ELSE
+			WRITE(a)
 	END;
-	
-	FUNCTION A (a:INTEGER; b:INTEGER): INTEGER;
-	BEGIN		
-        a:=b;
-        RETURN(a)
-	END;
-	
+
 BEGIN
-	A(a, b)
+	a := a + c
 END

@@ -2,34 +2,38 @@ package util;
 
 public final class TypeTable {
 	
-	public final static int INTEGER = 0;
-	public final static int FLOAT = 1;
-	public final static int CHARACTER = 2;
+	public final static int CHARACTER = 0;
+	public final static int INTEGER = 1;
+	public final static int FLOAT = 2;
 	public final static int ANYTYPE = 3;
 	
 	
 	public final static int[][] arithmeticOperators = {
-			{INTEGER, FLOAT, ANYTYPE}, 		// E.g. INTEGER + X
-			{FLOAT, FLOAT, ANYTYPE},		// E.g. FLOAT + X
-			{ANYTYPE, ANYTYPE, ANYTYPE}		// E.g. CHARACTER + X
+			{ANYTYPE,	ANYTYPE, ANYTYPE, ANYTYPE},		// E.g. CHARACTER 	+ X
+			{ANYTYPE,	INTEGER, FLOAT,   INTEGER}, 	// E.g. INTEGER 	+ X
+			{ANYTYPE,	FLOAT,   FLOAT,   FLOAT  },		// E.g. FLOAT 		+ X
+			{ANYTYPE,   INTEGER, FLOAT,   ANYTYPE}		// E.g. ANYTYPE 	+ X
 	};
 	
 	public final static int[][] logicalOperators = {
-			{CHARACTER, ANYTYPE, ANYTYPE}, 	// E.g. CHARACTER OR X	
-			{ANYTYPE, INTEGER, INTEGER},	// E.g. INTEGER OR X
-			{ANYTYPE, INTEGER, FLOAT}		// E.g. FLOAT OR X
+			{CHARACTER, ANYTYPE, ANYTYPE, CHARACTER}, 	// E.g. CHARACTER 	OR X	
+			{ANYTYPE,   INTEGER, INTEGER, INTEGER  },	// E.g. INTEGER 	OR X
+			{ANYTYPE,   INTEGER, FLOAT,   FLOAT    },	// E.g. FLOAT 		OR X
+			{CHARACTER, INTEGER, FLOAT,   ANYTYPE  }	// E.g. ANYTYPE 	OR X
 	};
 	
 	public final static int[][] relationalOperators = {
-			{INTEGER, ANYTYPE, ANYTYPE},	// E.g. CHARACTER < X
-			{ANYTYPE, INTEGER, INTEGER},	// E.g. INTEGER < X
-			{ANYTYPE, INTEGER, INTEGER}		// E.g. FLOAT < X
+			{INTEGER, ANYTYPE, ANYTYPE, CHARACTER},		// E.g. CHARACTER 	< X
+			{ANYTYPE, INTEGER, INTEGER, INTEGER  },		// E.g. INTEGER 	< X
+			{ANYTYPE, INTEGER, INTEGER, FLOAT    },		// E.g. FLOAT 		< X
+			{ANYTYPE, ANYTYPE, ANYTYPE, ANYTYPE  }		// E..g ANYTYPE 	< X
 	};
 	
 	public final static int[][] modOperator = {
-			{INTEGER, ANYTYPE, ANYTYPE}, 		// E.g. INTEGER MOD X
-			{ANYTYPE, ANYTYPE, ANYTYPE},		// E.g. FLOAT MOD X
-			{ANYTYPE, ANYTYPE, ANYTYPE}			// E.g. CHARACTER MOD X
+			{ANYTYPE, ANYTYPE, ANYTYPE, ANYTYPE},		// E.g. CHARACTER 	MOD X
+			{INTEGER, ANYTYPE, ANYTYPE, ANYTYPE}, 		// E.g. INTEGER 	MOD X
+			{ANYTYPE, ANYTYPE, ANYTYPE, ANYTYPE},		// E.g. FLOAT 		MOD X
+			{ANYTYPE, ANYTYPE, ANYTYPE, ANYTYPE}		// E.g. ANYTYPE 	MOD X
 	};
 	
 	
@@ -39,13 +43,13 @@ public final class TypeTable {
 		String strType = "";
 		switch (type) {
 		case 0:
-			strType = "INTEGER";
+			strType = "CHARACTER";
 			break;
 		case 1:
-			strType = "FLOAT";
+			strType = "INTEGER";
 			break;
 		case 2:
-			strType = "CHARACTER";
+			strType = "FLOAT";
 			break;
 		case 3:
 			strType = "ANYTYPE";
