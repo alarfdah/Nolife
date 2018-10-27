@@ -147,8 +147,14 @@ public class TypeVisitor implements Visitor<Integer> {
 		
 		if (n.getCallArguments() != null) {
 			n.getCallArguments().accept(this);				
-			for (ASTNode node : n.getCallArguments().getChildren()) {
-				
+			String params = "";
+			Type typeNode;
+			for (ASTNode node : ((Parameters)n.getCallArguments()).getParameters()) {
+				params += TypeTable.getTypeName(getDeclaredType(node.getLabel()));
+				params += ",";
+			}
+			if (!params.equals(getParameters(id))) {
+				System.err.println("Parameters for the FUNCTION " + id + " do not match!");
 			}
 		}
 		putReferenced(id, true);
@@ -164,6 +170,15 @@ public class TypeVisitor implements Visitor<Integer> {
 		}
 		if (n.getCallArguments() != null) {
 			n.getCallArguments().accept(this);				
+			String params = "";
+			Type typeNode;
+			for (ASTNode node : ((Parameters)n.getCallArguments()).getParameters()) {
+				params += TypeTable.getTypeName(getDeclaredType(node.getLabel()));
+				params += ",";
+			}
+			if (!params.equals(getParameters(id))) {
+				System.err.println("Parameters for the PROCEDURE " + id + " do not match!");
+			}
 		}
 		putReferenced(id, true);
 		return n.getRealType();
@@ -230,7 +245,6 @@ public class TypeVisitor implements Visitor<Integer> {
 	@Override
 	public Integer visit(Declare n) {
 		n.setRealType(TypeTable.ANYTYPE);
-		
 		for (ASTNode node : n.getDeclarations()) {
 			node.accept(this);
 		}
@@ -274,9 +288,27 @@ public class TypeVisitor implements Visitor<Integer> {
 				statement.accept(this);
 				if (statement instanceof Parameters) {
 					String params = "";
-					for (ASTNode node : statement.getChildren()) {
-						
+					Type typeNode;
+					// For each declare node
+					for (ASTNode declareNode : ((Parameters)statement).getParameters()) {
+						// For each type node
+						for (ASTNode node : ((Declare)declareNode).getDeclarations()) {
+							if (node instanceof TypeInteger) {
+								typeNode = (TypeInteger)node;
+								params += typeNode.getTypeKeyword();
+								params += ",";
+							} else if (node instanceof TypeFloat) {
+								typeNode = (TypeFloat)node;
+								params += typeNode.getTypeKeyword();
+								params += ",";
+							} else if (node instanceof TypeCharacter) {
+								typeNode = (TypeCharacter)node;
+								params += typeNode.getTypeKeyword();
+								params += ",";
+							}							
+						}
 					}
+					putParameters(id, params);
 				}
 			}
 		}
@@ -511,7 +543,9 @@ public class TypeVisitor implements Visitor<Integer> {
 
 	@Override
 	public Integer visit(Parameters n) {
-		n.getParameters().accept(this);
+		for (ASTNode node : n.getParameters()) {
+			node.accept(this);			
+		}
 		return n.getRealType();
 	}
 
@@ -528,9 +562,33 @@ public class TypeVisitor implements Visitor<Integer> {
 			n.setRealType(TypeTable.ANYTYPE);
 		}
 		pushFrame();
-		for (ASTNode node : n.getStatements()) {
-			if (node != null) {
-				node.accept(this);				
+		for (Statement statement: n.getStatements()) {
+			if (statement != null) {
+				statement.accept(this);		
+				if (statement instanceof Parameters) {
+					String params = "";
+					Type typeNode;
+					// For each declare node
+					for (ASTNode declareNode : ((Parameters)statement).getParameters()) {
+						// For each type node
+						for (ASTNode node : ((Declare)declareNode).getDeclarations()) {
+							if (node instanceof TypeInteger) {
+								typeNode = (TypeInteger)node;
+								params += typeNode.getTypeKeyword();
+								params += ",";
+							} else if (node instanceof TypeFloat) {
+								typeNode = (TypeFloat)node;
+								params += typeNode.getTypeKeyword();
+								params += ",";
+							} else if (node instanceof TypeCharacter) {
+								typeNode = (TypeCharacter)node;
+								params += typeNode.getTypeKeyword();
+								params += ",";
+							}							
+						}
+					}
+					putParameters(id, params);
+				}
 			}
 		}
 		popFrame();
@@ -786,20 +844,19 @@ public class TypeVisitor implements Visitor<Integer> {
 		}
 	}
 	
+	// TODO Check this
 	public void putParameters(String symbol, String parameters) {
-		if (symTable.peek().get(symbol) == null) {
+		if (symTable.get(0).get(symbol) == null) {
 			Value value = new Value();
 			value.setParameters(parameters);
-			symTable.peek().put(symbol, value);
+			symTable.get(0).put(symbol, value);
 		} else {
-			symTable.peek().get(symbol).setParameters(parameters);
+			symTable.get(0).get(symbol).setParameters(parameters);
 		}
 	}
 	
 	public String getParameters(String symbol) {
-		if (symTable.peek().containsKey(symbol)) {
-			return symTable.peek().get(symbol).getParameters();
-		} else if (symTable.get(0).containsKey(symbol)) {
+		if (symTable.get(0).containsKey(symbol)) {
 			return symTable.get(0).get(symbol).getParameters();
 		} else {
 			return "nullParameter";

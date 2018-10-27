@@ -385,9 +385,11 @@ public class TreeVisitor implements Visitor<Object> {
 	public Object visit(Parameters n) {
 		src += "PARAMETERS";
 		src += "\n";
-		addSpace();
-		n.getParameters().accept(this);
-		removeSpace();
+		for (ASTNode node : n.getParameters()) {
+			addSpace();
+			node.accept(this);
+			removeSpace();
+		}
 		return null;
 	}
 

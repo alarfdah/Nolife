@@ -6,11 +6,11 @@ import visitor.Visitor;
 
 public class Parameters extends Statement {
 
-	public Declare getParameters() {
-		if (getChild(0) == null) {
+	public List<ASTNode> getParameters() {
+		if (getChildren() == null) {
 			return null;
 		}
-		return (Declare)getChild(0);
+		return getChildren();
 	}
 	
 	@Override

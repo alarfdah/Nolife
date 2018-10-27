@@ -3,12 +3,12 @@ PROGRAM arith;
 VAR a: INTEGER;
 	c: ARRAY[1..2] OF INTEGER;
 	
-	PROCEDURE X(x: INTEGER);
+	PROCEDURE X(x,y: INTEGER);
 	VAR a: FLOAT;
 	BEGIN
 		WRITE(a)
 	END;
 
 BEGIN
-	c := c['c']
+	X(a, b)
 END
