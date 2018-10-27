@@ -4,7 +4,7 @@ import visitor.Visitor;
 
 public class CallProcedure extends Statement {
 
-	public String getMethodName() {
+	public String getId() {
 		return getLabel();
 	}
 	

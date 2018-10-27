@@ -4,7 +4,7 @@ import visitor.Visitor;
 
 public class CallFunction extends Expression {
 
-	public String getMethodName() {
+	public String getId() {
 		return getLabel();
 	}
 	

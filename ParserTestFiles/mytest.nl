@@ -1,19 +1,14 @@
 PROGRAM arith;
 
 VAR a: INTEGER;
-	c: CHARACTER;
-
-PROCEDURE x;
-VAR a: INTEGER;
-	b, d: CHARACTER;
-
+	c: ARRAY[1..2] OF INTEGER;
+	
+	PROCEDURE X(x: INTEGER);
+	VAR a: FLOAT;
 	BEGIN
-		IF (a < b AND c > d) THEN
-			WRITE(c)
-		ELSE
-			WRITE(a)
+		WRITE(a)
 	END;
 
 BEGIN
-	a := a + c
+	c := c['c']
 END

@@ -8,8 +8,7 @@ import util.*;
 
 public class TypeVisitor implements Visitor<Integer> {
 
-	Stack<HashMap<String, Integer>> symTable = new Stack<HashMap<String, Integer>>();
-	HashMap<String, String> subroutineTable = new HashMap<String, String>();
+	Stack<HashMap<String, Value>> symTable = new Stack<HashMap<String, Value>>();
 	
 	@Override
 	public Integer visit(Add n) {
@@ -48,11 +47,32 @@ public class TypeVisitor implements Visitor<Integer> {
 	public Integer visit(ArrayDecl n) {
 		String id = n.getId();
 		if (!isDeclaredLocal(id)) {
-			symTable.peek().put(id, n.getRealType());
+			
+			// Add the id
+			putId(id);
+			
+			// Add the declared type of array
+			putDeclaredType(id, n.getRealType());
+			
+			// Add the variable type as ARRAY
+			putVarType(id, "ARRAY");
+			
+			// Add the minimum bound of the array
+			putMinBound(id, n.getMinBound().getLabel());
+			
+			// Add the maximum bound of the array
+			putMaxBound(id, n.getMaxBound().getLabel());
+			
 			n.getMinBound().accept(this);
 			n.getMaxBound().accept(this);
+			
+			// Set the real type of the array
+			n.setRealType(n.getRealType());
 		} else {
 			System.err.println("Array " + id + " is already declared!");
+			
+			// Set it to ANTYPE
+			n.setRealType(TypeTable.ANYTYPE);
 		}
 		return n.getRealType();
 	}
@@ -62,9 +82,21 @@ public class TypeVisitor implements Visitor<Integer> {
 		String id = n.getId();
 		if (!isDeclaredLocal(id) && !isDeclaredGlobal(id)) {
 			System.err.println("Array " + id + " is not declared!");
+			n.setRealType(TypeTable.ANYTYPE);
 		} else {
+			String expr = "";
+			
+			// If constant valued expression then check bounds
+			if (n.getSubscriptExpression() instanceof ConstantInteger 
+					|| n.getSubscriptExpression() instanceof ConstantCharacter) {
+				expr = n.getSubscriptExpression().getLabel();
+				if (expr.compareTo(getMinBound(id)) < 0 || expr.compareTo(getMaxBound(id)) > 0) {
+					System.err.println("ArrayIndexOutOfBounds: array " + id + ", index is " + expr);
+				}
+			}
+			
 			n.getSubscriptExpression().accept(this);			
-			// TODO out of array bounds
+			n.setRealType(getDeclaredType(id));
 		}
 		return n.getRealType();
 	}
@@ -74,9 +106,24 @@ public class TypeVisitor implements Visitor<Integer> {
 		String id = n.getId();
 		if (!isDeclaredLocal(id) && !isDeclaredGlobal(id)) {
 			System.err.println("Array " + id + " is not declared!");
+			n.setRealType(TypeTable.ANYTYPE);
 		} else {
+			String expr = "";
+			
+			// Set the array reference to true
+			putReferenced(id, true);
+			
+			// If constant valued expression then check bounds
+			if (n.getSubscriptExpression() instanceof ConstantInteger 
+					|| n.getSubscriptExpression() instanceof ConstantCharacter) {
+				expr = n.getSubscriptExpression().getLabel();
+				if (expr.compareTo(getMinBound(id)) < 0 || expr.compareTo(getMaxBound(id)) > 0) {
+					System.err.println("ArrayIndexOutOfBounds: array " + id + ", index is " + expr);
+				}
+			}
+			
 			n.getSubscriptExpression().accept(this);
-			// TODO out of array bounds
+			n.setRealType(getDeclaredType(id));
 		}
 		return n.getRealType();
 	}
@@ -92,24 +139,33 @@ public class TypeVisitor implements Visitor<Integer> {
 
 	@Override
 	public Integer visit(CallFunction n) {
-		if (subroutineTable.get(n.getMethodName()).equals("PROCEDURE")) {
+		n.setRealType(TypeTable.ANYTYPE);
+		String id = n.getId();
+		if (getVarType(id).equals("PROCEDURE")) {
 			System.err.println("Function call invoking a procedure!");
 		}
+		
 		if (n.getCallArguments() != null) {
 			n.getCallArguments().accept(this);				
+			for (ASTNode node : n.getCallArguments().getChildren()) {
+				
+			}
 		}
+		putReferenced(id, true);
 		return n.getRealType();
 	}
 	
 	@Override
 	public Integer visit(CallProcedure n) {
-		if (subroutineTable.get(n.getMethodName()).equals("FUNCTION")) {
+		n.setRealType(TypeTable.ANYTYPE);
+		String id = n.getId();
+		if (getVarType(id).equals("FUNCTION")) {
 			System.err.println("Procedure call invoking a function!");
 		}
 		if (n.getCallArguments() != null) {
 			n.getCallArguments().accept(this);				
 		}
-		
+		putReferenced(id, true);
 		return n.getRealType();
 	}
 
@@ -201,16 +257,27 @@ public class TypeVisitor implements Visitor<Integer> {
 
 	@Override
 	public Integer visit(Function n) {
-		if (isDeclaredLocal(n.getId())) {
-			System.err.println("Variable " + n.getId() + " is already declared! (Cannot create function)");
+		String id = n.getId();
+		if (isDeclaredLocal(id)) {
+			System.err.println("Variable " + id + " is already declared! (Cannot create function)");
 		} else {
-			symTable.peek().put(n.getId(), n.getRealType());			
-			subroutineTable.put(n.getId(), "FUNCTION");
+			putId(id);
+			putDeclaredType(id, n.getRealType());
+			putVarType(id, "FUNCTION");
+			
+			// Set the type of function
+			n.setRealType(n.getRealType());
 		}
 		pushFrame();
 		for (Statement statement : n.getStatements()) {
 			if (statement != null) {
 				statement.accept(this);
+				if (statement instanceof Parameters) {
+					String params = "";
+					for (ASTNode node : statement.getChildren()) {
+						
+					}
+				}
 			}
 		}
 		popFrame();
@@ -253,9 +320,22 @@ public class TypeVisitor implements Visitor<Integer> {
 	public Integer visit(IdDecl n) {
 		String id = n.getId();
 		if (!isDeclaredLocal(id)) {
-			symTable.peek().put(id, n.getRealType());
+			// Add the id
+			putId(id);
+			
+			// Add the declared type
+			putDeclaredType(id, n.getRealType());
+			
+			// Add id as a variable
+			putVarType(id, "VARIABLE");
+			
+			// Set the type of IdDecl
+			n.setRealType(n.getRealType());
 		} else {
 			System.err.println("Variable " + id + " is already declared locally!");
+			
+			// Set it to ANYTYPE
+			n.setRealType(TypeTable.ANYTYPE);
 		}
 		return n.getRealType();
 	}
@@ -265,9 +345,19 @@ public class TypeVisitor implements Visitor<Integer> {
 		String id = n.getId();
 		if (!isDeclaredLocal(id) && !isDeclaredGlobal(id)) {
 			System.err.println("Variable " + id + " is not declared!");
+			// Set it to ANYTYPE
 			n.setRealType(TypeTable.ANYTYPE);
 		} else {
-			n.setRealType(getDeclaredType(id));
+			
+			// If array
+			if (getVarType(id).equals("ARRAY")) {
+				System.err.println("Incorrect number of dimensions of array " + id);
+				n.setRealType(TypeTable.ANYTYPE);
+			// If variable
+			} else {
+				// Set the type of IdDef from declaration
+				n.setRealType(getDeclaredType(id));				
+			}
 		}
 		return n.getRealType();
 	}
@@ -277,9 +367,23 @@ public class TypeVisitor implements Visitor<Integer> {
 		String id = n.getId();
 		if (!isDeclaredLocal(id) && !isDeclaredGlobal(id)) {
 			System.err.println("Variable " + id + " is not declared!");
+			
+			// Set the type to ANYTYPE
 			n.setRealType(TypeTable.ANYTYPE);
 		} else {
-			n.setRealType(getDeclaredType(id));
+			
+			// It is referenced
+			putReferenced(id, true);
+			
+			// If array
+			if (getVarType(id).equals("ARRAY")) {
+				System.err.println("Incorrect number of dimensions of array " + id);
+				n.setRealType(TypeTable.ANYTYPE);
+			// If variable
+			} else {
+				// Set the type of IdRef from declaration
+				n.setRealType(getDeclaredType(id));				
+			}
 		}
 		return n.getRealType();
 	}
@@ -407,19 +511,21 @@ public class TypeVisitor implements Visitor<Integer> {
 
 	@Override
 	public Integer visit(Parameters n) {
-		for (ASTNode node : n.getParameters()) {
-			node.accept(this);
-		}
+		n.getParameters().accept(this);
 		return n.getRealType();
 	}
 
 	@Override
 	public Integer visit(Procedure n) {
-		if (isDeclaredLocal(n.getId())) {
-			System.err.println("Variable " + n.getId() + " is already declared! (Cannot create procedure)");
+		String id = n.getId();
+		if (isDeclaredLocal(id)) {
+			System.err.println("Variable " + id + " is already declared! (Cannot create procedure)");
 		} else {
-			symTable.peek().put(n.getId(), n.getRealType());
-			subroutineTable.put(n.getId(), "PROCEDURE");
+			putId(id);
+			putDeclaredType(id, TypeTable.ANYTYPE);
+			putVarType(id, "PROCEDURE");
+			
+			n.setRealType(TypeTable.ANYTYPE);
 		}
 		pushFrame();
 		for (ASTNode node : n.getStatements()) {
@@ -440,7 +546,11 @@ public class TypeVisitor implements Visitor<Integer> {
 		for (Statement statement : n.getStatements()) {
 			statement.accept(this);
 		}
-		
+		for (Value value : symTable.peek().values()) {
+			if (!getIsReferenced(value.getId())) {
+				System.err.println(value.getVarType() + " " + value.getId() + " was declared but never referenced!");
+			}
+		}
 		popFrame();
 		return n.getRealType();
 	}
@@ -533,7 +643,7 @@ public class TypeVisitor implements Visitor<Integer> {
 	}
 
 	public void pushFrame() {
-		symTable.push(new HashMap<String, Integer>());
+		symTable.push(new HashMap<String, Value>());
 	}
 	
 	public void popFrame() {
@@ -556,13 +666,143 @@ public class TypeVisitor implements Visitor<Integer> {
 		}
 	}
 	
+	public void putId(String symbol) {
+		if (symTable.peek().get(symbol) == null) {
+			Value value = new Value();
+			value.setId(symbol);
+			symTable.peek().put(symbol, value);
+		} else {
+			symTable.peek().get(symbol).setId(symbol);
+		}
+	}
+	
+	public String getId(String symbol) {
+		if (symTable.peek().containsKey(symbol)) {
+			return symTable.peek().get(symbol).getId();
+		} else if (symTable.get(0).containsKey(symbol)) {
+			return symTable.get(0).get(symbol).getId();
+		} else {
+			return "nullString";
+		}
+	}
+	
+	public void putVarType(String symbol, String varType) {
+		if (symTable.peek().get(symbol) == null) {
+			Value value = new Value();
+			value.setVarType(varType);
+			symTable.peek().put(symbol, value);
+		} else {
+			symTable.peek().get(symbol).setVarType(varType);
+		}
+	}
+	
+	public String getVarType(String symbol) {
+		if (symTable.peek().containsKey(symbol)) {
+			return symTable.peek().get(symbol).getVarType();
+		} else if (symTable.get(0).containsKey(symbol)) {
+			return symTable.get(0).get(symbol).getVarType();
+		} else {
+			return "nullString";
+		}
+	}
+	
+	public void putDeclaredType(String symbol, int type) {
+		if (symTable.peek().get(symbol) == null) {
+			Value value = new Value();
+			value.setDeclaredType(type);
+			symTable.peek().put(symbol, value);
+		} else {
+			symTable.peek().get(symbol).setDeclaredType(type);
+		}
+	}
+	
 	public int getDeclaredType(String symbol) {
 		if (symTable.peek().containsKey(symbol)) {
-			return symTable.peek().get(symbol);
+			return symTable.peek().get(symbol).getDeclaredType();
 		} else if (symTable.get(0).containsKey(symbol)) {
-			return symTable.get(0).get(symbol);
+			return symTable.get(0).get(symbol).getDeclaredType();
 		} else {
 			return -1;
+		}
+	}
+	
+	public void putReferenced(String symbol, boolean isReferenced) {
+		if (symTable.peek().get(symbol) == null) {
+			Value value = new Value();
+			value.setReferenced(isReferenced);
+			symTable.peek().put(symbol, value);
+		} else {
+			symTable.peek().get(symbol).setReferenced(isReferenced);
+		}
+	}
+	
+	public boolean getIsReferenced(String symbol) {
+		if (symTable.peek().containsKey(symbol)) {
+			return symTable.peek().get(symbol).isReferenced();
+		} else if (symTable.get(0).containsKey(symbol)) {
+			return symTable.get(0).get(symbol).isReferenced();
+		} else {
+			return false;
+		}
+	}
+	
+	public void putMinBound(String symbol, String minBound) {
+		if (symTable.peek().get(symbol) == null) {
+			Value value = new Value();
+			value.setMinBound(minBound);
+			symTable.peek().put(symbol, value);
+		} else {
+			symTable.peek().get(symbol).setMinBound(minBound);
+		}
+	}
+	
+	public String getMinBound(String symbol) {
+		if (symTable.peek().containsKey(symbol)) {
+			return symTable.peek().get(symbol).getMinBound();
+		} else if (symTable.get(0).containsKey(symbol)) {
+			return symTable.get(0).get(symbol).getMinBound();
+		} else {
+			return "nullMinBound";
+		}
+	}
+	
+	public void putMaxBound(String symbol, String maxBound) {
+		if (symTable.peek().get(symbol) == null) {
+			Value value = new Value();
+			value.setMaxBound(maxBound);
+			symTable.peek().put(symbol, value);
+		} else {
+			symTable.peek().get(symbol).setMaxBound(maxBound);
+		}
+	}
+	
+	public String getMaxBound(String symbol) {
+		if (symTable.peek().containsKey(symbol)) {
+			return symTable.peek().get(symbol).getMaxBound();
+		} else if (symTable.get(0).containsKey(symbol)) {
+			return symTable.get(0).get(symbol).getMaxBound();
+		} else {
+			return "nullMaxBound";
+		}
+	}
+	
+	public void putParameters(String symbol, String parameters) {
+		if (symTable.peek().get(symbol) == null) {
+			Value value = new Value();
+			value.setParameters(parameters);
+			symTable.peek().put(symbol, value);
+		} else {
+			symTable.peek().get(symbol).setParameters(parameters);
+		}
+	}
+	
+	public String getParameters(String symbol) {
+		if (symTable.peek().containsKey(symbol)) {
+			return symTable.peek().get(symbol).getParameters();
+		} else if (symTable.get(0).containsKey(symbol)) {
+			return symTable.get(0).get(symbol).getParameters();
+		} else {
+			return "nullParameter";
 		}
 	}
 }
