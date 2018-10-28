@@ -132,12 +132,8 @@ public class TreeVisitor implements Visitor<Object> {
 	
 	@Override
 	public Object visit(Clause n) {
-		src += "CLAUSE";
+		src += "CLAUSE label(" + n.getLabel() + ")";
 		src += "\n";
-		addSpace();
-		src += n.getLabel();
-		src += "\n";
-		removeSpace();
 		addSpace();
 		n.getStatement().accept(this);
 		removeSpace();
