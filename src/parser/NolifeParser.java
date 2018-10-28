@@ -30,10 +30,11 @@ public class NolifeParser implements NolifeParserConstants {
                         parser = new NolifeParser(input);
                         ASTNode node = parser.program();
 //  	  	  	SourceVisitor sv = new SourceVisitor();
-//  	  	  	TreeVisitor tv = new TreeVisitor();
                         TypeVisitor tv = new TypeVisitor();
                         node.accept(tv);
-//  	  	  	System.out.println(tv.getSource());
+                        TreeVisitor treev = new TreeVisitor();
+                        node.accept(treev);
+                        System.out.println(treev.getSource());
                 } catch (ParseException e) {
                         System.err.println("Syntax Error: " + e.getMessage());
                 }

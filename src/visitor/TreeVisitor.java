@@ -122,9 +122,11 @@ public class TreeVisitor implements Visitor<Object> {
 		addSpace();
 		n.getCaseExpression().accept(this);
 		removeSpace();
-		addSpace();
-		n.getCases().accept(this);
-		removeSpace();
+		if (n.getCases() != null) {
+			addSpace();
+			n.getCases().accept(this);
+			removeSpace();			
+		}
 		return null;
 	}
 	

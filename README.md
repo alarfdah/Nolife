@@ -14,3 +14,10 @@ Notes:
 2. Every recursive call, for a child add space to global variable "prefix".
 3. Real type of a node is due to its children.
 4. Converted type of a node is due to its parent.
+
+TODO:
+1. Never referenced
+2. Param list
+3. Add decls to list before walking
+4. Incorrect number of dimensions on arrays passed as arguments
+5. Assigning to anytype

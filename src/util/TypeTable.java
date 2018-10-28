@@ -36,8 +36,14 @@ public final class TypeTable {
 			{ANYTYPE, INTEGER, ANYTYPE, ANYTYPE}		// E.g. ANYTYPE 	MOD X
 	};
 	
+	public final static int[][] assignmentOperator = {
+			{CHARACTER, ANYTYPE, ANYTYPE, CHARACTER},	// E.g. CHARACTER 	:= X
+			{ANYTYPE,	INTEGER, INTEGER, INTEGER  },	// E.g. INTEGER 	:= X
+			{ANYTYPE,	FLOAT,   FLOAT,   FLOAT	   },	// E.g. FLOAT 		:= X
+			{ANYTYPE,	ANYTYPE, ANYTYPE, ANYTYPE  }	// E.g. ANYTYPE 	:= X
+	};
 	
-	public final static int[] notOperator = { INTEGER, ANYTYPE, ANYTYPE }; // E.g. NOT X
+	public final static int[] notOperator = { ANYTYPE, INTEGER, ANYTYPE, ANYTYPE }; // E.g. NOT X
 	
 	public static String getTypeName(int type) {
 		String strType = "";
@@ -51,11 +57,8 @@ public final class TypeTable {
 		case 2:
 			strType = "FLOAT";
 			break;
-		case 3:
-			strType = "ANYTYPE";
-			break;
 			default:
-				strType = "error";
+				strType = "ANYTYPE";
 		}
 		return strType;
 	}

@@ -1,14 +1,17 @@
 package util;
 
+import java.util.LinkedList;
+import java.util.List;
+
 public class Value {
 
-	private String id;
-	private int declaredType;
-	private String varType;
-	private boolean referenced;
-	private String minBound;
-	private String maxBound;
-	private String parameters;
+	private String id;				// id = x
+	private int declaredType;		// Type: INTEGER
+	private String varType;			// VAR/ARRAY/FUNCTION/PROCEDURE
+	private boolean referenced;		// IS REFERENCED?
+	private String minBound;		// MIN BOUND
+	private String maxBound;		// MAX BOUND
+	private List<Integer> parameters = new LinkedList<Integer>();		// PARAMETERS
 	
 	public String getId() {
 		return id;
@@ -50,11 +53,13 @@ public class Value {
 		this.maxBound = maxBound;
 	}
 	
-	public String getParameters() {
+	public List<Integer> getParameters() {
 		return parameters;
 	}
-	public void setParameters(String parameters) {
-		this.parameters = parameters;
+	public void addParameter(int parameter) {
+		parameters.add(parameter);
 	}
+	
+	
 	
 }
