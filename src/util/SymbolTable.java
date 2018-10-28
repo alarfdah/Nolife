@@ -61,7 +61,7 @@ public class SymbolTable {
 		} else if (symTable.get(0).containsKey(symbol)) {
 			return symTable.get(0).get(symbol).getVarType();
 		} else {
-			System.out.println("null get var type");
+//			System.out.println("null get var type");
 			return null;
 		}
 	}

@@ -20,7 +20,7 @@ public class TypeVisitor implements Visitor<Integer> {
 		
 		n.setRealType(resolvedType);
 		
-		if (resolvedType == TypeTable.ANYTYPE) {
+		if (resolvedType == TypeTable.ANYTYPE && lOp != TypeTable.ANYTYPE && rOp != TypeTable.ANYTYPE) {
 			System.err.println("Cannot ADD type " + TypeTable.getTypeName(lOp) 
 			+ " to " + TypeTable.getTypeName(rOp) + "!" );
 		}
@@ -37,7 +37,7 @@ public class TypeVisitor implements Visitor<Integer> {
 		
 		n.setRealType(resolvedType);
 		
-		if (resolvedType == TypeTable.ANYTYPE) {
+		if (resolvedType == TypeTable.ANYTYPE && lOp != TypeTable.ANYTYPE && rOp != TypeTable.ANYTYPE) {
 			System.err.println("Cannot AND type " + TypeTable.getTypeName(lOp) 
 			+ " with " + TypeTable.getTypeName(rOp) + "!");
 		}
@@ -97,23 +97,32 @@ public class TypeVisitor implements Visitor<Integer> {
 				if (n.getSubscriptExpression() instanceof ConstantInteger) {
 					expr = n.getSubscriptExpression().getLabel();
 					
+					// If ArrayDecl subscript is a CHARACTER and the ArrayDef subscript is an INTEGER
 					if (SymbolTable.getMinBound(id).startsWith("'") && Character.isLetter(SymbolTable.getMinBound(id).charAt(1))) {
 						System.err.println("Index type mismatch:\n\tArray " + id + " expects subscript type CHARACTER and index is of type INTEGER!");
-					} else if (expr.compareTo(SymbolTable.getMinBound(id)) < 0 || expr.compareTo(SymbolTable.getMaxBound(id)) > 0) {
+						
+					// If ArrayDecl and ArrayDef subscripts are of the same type, but outside bounds
+					} else if (Integer.valueOf(expr).compareTo(Integer.valueOf(SymbolTable.getMinBound(id))) < 0 || Integer.valueOf(expr).compareTo(Integer.valueOf(SymbolTable.getMaxBound(id))) > 0) {
 						System.err.println("ArrayIndexOutOfBounds: array " + id + ", index is " + expr);
 					}
-					
+				
 				} else if (n.getSubscriptExpression() instanceof ConstantCharacter) {
 					expr = n.getSubscriptExpression().getLabel();
 					
+					// If ArrayDecl subscript is a INTEGER and the ArrayDef subscript is a CHARACTER
 					if (SymbolTable.isStringInt(SymbolTable.getMinBound(id))) {
 						System.err.println("Index type mismatch:\n\tArray " + id + " expects subscript type INTEGER and index is of type CHARACTER!");
+						
+					// If ArrayDecl and ArrayDef subscripts are of the same type, but outside bounds	
 					} else if (expr.compareTo(SymbolTable.getMinBound(id)) < 0 || expr.compareTo(SymbolTable.getMaxBound(id)) > 0) {
 						System.err.println("ArrayIndexOutOfBounds: array " + id + ", index is " + expr);
 					}
 				}				
 				
+				// Call accept on subscript expression
 				n.getSubscriptExpression().accept(this);
+				
+				// Set type of ArrayDef from type of ArrayDecl
 				n.setRealType(SymbolTable.getDeclaredType(id));
 			}
 		}
@@ -142,23 +151,32 @@ public class TypeVisitor implements Visitor<Integer> {
 				if (n.getSubscriptExpression() instanceof ConstantInteger) {
 					expr = n.getSubscriptExpression().getLabel();
 					
-					if (Character.isLetter(SymbolTable.getMinBound(id).charAt(1))) {
+					// If ArrayDecl subscript is a CHARACTER and the ArrayDef subscript is an INTEGER 
+					if (SymbolTable.getMinBound(id).startsWith("'") && Character.isLetter(SymbolTable.getMinBound(id).charAt(1))) {
 						System.err.println("Index type mismatch:\n\tArray " + id + " expects subscript type CHARACTER and index is of type INTEGER!");
-					} else if (expr.compareTo(SymbolTable.getMinBound(id)) < 0 || expr.compareTo(SymbolTable.getMaxBound(id)) > 0) {
+
+					// If ArrayDecl and ArrayDef subscripts are of the same type, but outside bounds
+					} else if (Integer.valueOf(expr).compareTo(Integer.valueOf(SymbolTable.getMinBound(id))) < 0 || Integer.valueOf(expr).compareTo(Integer.valueOf(SymbolTable.getMaxBound(id))) > 0) {
 						System.err.println("ArrayIndexOutOfBounds: array " + id + ", index is " + expr);
 					}
 					
 				} else if (n.getSubscriptExpression() instanceof ConstantCharacter) {
 					expr = n.getSubscriptExpression().getLabel();
 					
+					// If ArrayDecl subscript is a INTEGER and the ArrayDef subscript is a CHARACTER
 					if (SymbolTable.isStringInt(SymbolTable.getMinBound(id))) {
 						System.err.println("Index type mismatch:\n\tArray " + id + " expects subscript type INTEGER and index is of type CHARACTER!");
+						
+					// If ArrayDecl and ArrayDef subscripts are of the same type, but outside bounds	
 					} else if (expr.compareTo(SymbolTable.getMinBound(id)) < 0 || expr.compareTo(SymbolTable.getMaxBound(id)) > 0) {
 						System.err.println("ArrayIndexOutOfBounds: array " + id + ", index is " + expr);
 					}
 				}
 				
+				// Call accept on subscript expression
 				n.getSubscriptExpression().accept(this);
+
+				// Set type of ArrayDef from type of ArrayDecl
 				n.setRealType(SymbolTable.getDeclaredType(id));
 			}
 			
@@ -174,7 +192,7 @@ public class TypeVisitor implements Visitor<Integer> {
 		
 		Integer resolvedType = TypeTable.assignmentOperator[lhs][rhs];
 		
-		if (resolvedType == TypeTable.ANYTYPE) {
+		if (resolvedType == TypeTable.ANYTYPE && lhs != TypeTable.ANYTYPE && rhs != TypeTable.ANYTYPE) {
 			System.err.println("Cannot assign type " + TypeTable.getTypeName(rhs) 
 			+ " to type " + TypeTable.getTypeName(lhs) + "!");
 		}
@@ -186,15 +204,17 @@ public class TypeVisitor implements Visitor<Integer> {
 	public Integer visit(CallFunction n) {
 		int i;
 		String id = n.getId();
-		List<Integer> paramsOfCall = new LinkedList<Integer>();
 		List<Integer> paramsOfId;
+		List<Integer> paramsOfCall = new LinkedList<Integer>();
 		
-		// if function does not exist
+		// if procedure does not exist
 		if (SymbolTable.getVarType(id) == null) {
 			n.setRealType(TypeTable.ANYTYPE);
+			System.err.println("FUNCTION " + id + " was never declared!");
 			return n.getRealType();
 		}
 		
+		// If calling a function
 		if (SymbolTable.getVarType(id).equals("PROCEDURE")) {
 			System.err.println("Function call invoking procedure " + id + "!");
 			n.setRealType(TypeTable.ANYTYPE);
@@ -202,6 +222,7 @@ public class TypeVisitor implements Visitor<Integer> {
 			n.setRealType(SymbolTable.getDeclaredType(id));
 		}
 		
+		// Get parameters
 		if (n.getCallArguments() != null) {
 			checkArraySubscript = false;
 			n.getCallArguments().accept(this);				
@@ -210,13 +231,19 @@ public class TypeVisitor implements Visitor<Integer> {
 				paramsOfCall.add(node.getRealType());
 			}
 		}
+		
+		// Get procedure params
 		paramsOfId = SymbolTable.getParameters(id);
+		
+		// Compare size of call params and procedure params
 		if (paramsOfCall.size() != paramsOfId.size()) {
 			System.err.println("Parameters for the FUNCTION " + id + " do not match:");
-
 			System.err.println("\t Parameter size: " + paramsOfCall.size() + " but function accepts parameters of size: " + paramsOfId.size() + "!");
+
 		} else {
 			boolean printed = false;
+			
+			// Check if each param matches
 			for (i = 0; i < paramsOfCall.size(); i++) {
 				if (paramsOfCall.get(i) != TypeTable.ANYTYPE && paramsOfCall.get(i) != paramsOfId.get(i)) {
 					if (!printed) {
@@ -227,6 +254,8 @@ public class TypeVisitor implements Visitor<Integer> {
 				}
 			}
 		}
+		
+		// Procedure is now referenced
 		SymbolTable.putReferenced(id, true);
 		return n.getRealType();
 	}
@@ -235,15 +264,17 @@ public class TypeVisitor implements Visitor<Integer> {
 	public Integer visit(CallProcedure n) {
 		int i;
 		String id = n.getId();
-		List<Integer> paramsOfCall = new LinkedList<Integer>();
 		List<Integer> paramsOfId;
+		List<Integer> paramsOfCall = new LinkedList<Integer>();
 		
 		// if procedure does not exist
 		if (SymbolTable.getVarType(id) == null) {
 			n.setRealType(TypeTable.ANYTYPE);
+			System.err.println("PROCEDURE " + id + " was never declared!");
 			return n.getRealType();
 		}
 		
+		// If calling a function
 		if (SymbolTable.getVarType(id).equals("FUNCTION")) {
 			System.err.println("Procedure call invoking function " + id + "!");
 			n.setRealType(TypeTable.ANYTYPE);
@@ -251,6 +282,7 @@ public class TypeVisitor implements Visitor<Integer> {
 			n.setRealType(SymbolTable.getDeclaredType(id));
 		}
 		
+		// Get parameters
 		if (n.getCallArguments() != null) {
 			checkArraySubscript = false;
 			n.getCallArguments().accept(this);				
@@ -259,12 +291,18 @@ public class TypeVisitor implements Visitor<Integer> {
 				paramsOfCall.add(node.getRealType());
 			}
 		}
+		
+		// Get procedure params
 		paramsOfId = SymbolTable.getParameters(id);
+		
+		// Compare size of call params and procedure params
 		if (paramsOfCall.size() != paramsOfId.size()) {
 			System.err.println("Parameters for the PROCEDURE " + id + " do not match:");
 			System.err.println("\t Parameter size: " + paramsOfCall.size() + " but procedure accepts parameters of size: " + paramsOfId.size() + "!");
 		} else {
 			boolean printed = false;
+			
+			// Check if each param matches
 			for (i = 0; i < paramsOfCall.size(); i++) {
 				if (paramsOfCall.get(i) != TypeTable.ANYTYPE && paramsOfCall.get(i) != paramsOfId.get(i)) {
 					if (!printed) {
@@ -275,6 +313,8 @@ public class TypeVisitor implements Visitor<Integer> {
 				}
 			}
 		}
+		
+		// Procedure is now referenced
 		SymbolTable.putReferenced(id, true);
 		return n.getRealType();
 	}
@@ -362,7 +402,7 @@ public class TypeVisitor implements Visitor<Integer> {
 		
 		n.setRealType(resolvedType);
 		
-		if (resolvedType == TypeTable.ANYTYPE) {
+		if (resolvedType == TypeTable.ANYTYPE && lOp != TypeTable.ANYTYPE && rOp != TypeTable.ANYTYPE) {
 			System.err.println("Cannot use '=' on type " + TypeTable.getTypeName(lOp) 
 			+ " and type " + TypeTable.getTypeName(rOp) + "!");
 			
@@ -397,7 +437,7 @@ public class TypeVisitor implements Visitor<Integer> {
 		
 		n.setRealType(resolvedType);
 		
-		if (resolvedType == TypeTable.ANYTYPE) {
+		if (resolvedType == TypeTable.ANYTYPE && lOp != TypeTable.ANYTYPE && rOp != TypeTable.ANYTYPE) {
 			System.err.println("Cannot use '>' on type " + TypeTable.getTypeName(lOp) 
 			+ " and type " + TypeTable.getTypeName(rOp) + "!");
 			
@@ -413,7 +453,7 @@ public class TypeVisitor implements Visitor<Integer> {
 	
 	n.setRealType(resolvedType);
 	
-	if (resolvedType == TypeTable.ANYTYPE) {
+	if (resolvedType == TypeTable.ANYTYPE && lOp != TypeTable.ANYTYPE && rOp != TypeTable.ANYTYPE) {
 		System.err.println("Cannot use '>=' on type " + TypeTable.getTypeName(lOp) 
 		+ " and type " + TypeTable.getTypeName(rOp) + "!");
 	}
@@ -512,7 +552,7 @@ public class TypeVisitor implements Visitor<Integer> {
 		
 		n.setRealType(resolvedType);
 		
-		if (resolvedType == TypeTable.ANYTYPE) {
+		if (resolvedType == TypeTable.ANYTYPE && lOp != TypeTable.ANYTYPE && rOp != TypeTable.ANYTYPE) {
 			System.err.println("Cannot use '<' on type " + TypeTable.getTypeName(lOp) 
 			+ " and type " + TypeTable.getTypeName(rOp) + "!");
 		}
@@ -528,7 +568,7 @@ public class TypeVisitor implements Visitor<Integer> {
 		
 		n.setRealType(resolvedType);
 		
-		if (resolvedType == TypeTable.ANYTYPE) {
+		if (resolvedType == TypeTable.ANYTYPE && lOp != TypeTable.ANYTYPE && rOp != TypeTable.ANYTYPE) {
 			System.err.println("Cannot use '<=' on type " + TypeTable.getTypeName(lOp) 
 			+ " and type " + TypeTable.getTypeName(rOp) + "!");
 			
@@ -562,7 +602,7 @@ public class TypeVisitor implements Visitor<Integer> {
 		
 		n.setRealType(resolvedType);
 		
-		if (resolvedType == TypeTable.ANYTYPE) {
+		if (resolvedType == TypeTable.ANYTYPE && lOp != TypeTable.ANYTYPE && rOp != TypeTable.ANYTYPE) {
 			System.err.println("Cannot MULTIPLY type " + TypeTable.getTypeName(lOp) 
 			+ " with " + TypeTable.getTypeName(rOp) + "!");
 			
@@ -574,7 +614,8 @@ public class TypeVisitor implements Visitor<Integer> {
 	public Integer visit(NOT n) {
 		Integer declaredType = (Integer) n.getNotChild().accept(this);
 		Integer resolvedType = TypeTable.notOperator[declaredType];
-		if (resolvedType == TypeTable.ANYTYPE) {
+		
+		if (resolvedType == TypeTable.ANYTYPE && declaredType != TypeTable.ANYTYPE) {
 			System.err.println("Cannot use NOT on type " + TypeTable.getTypeName(declaredType) + "!");
 		}
 		n.setRealType(resolvedType);
@@ -590,7 +631,7 @@ public class TypeVisitor implements Visitor<Integer> {
 		
 		n.setRealType(resolvedType);
 		
-		if (resolvedType == TypeTable.ANYTYPE) {
+		if (resolvedType == TypeTable.ANYTYPE && lOp != TypeTable.ANYTYPE && rOp != TypeTable.ANYTYPE) {
 			System.err.println("Cannot use '<>' on type " + TypeTable.getTypeName(lOp) 
 			+ " and type " + TypeTable.getTypeName(rOp) + "!");
 			
@@ -607,7 +648,7 @@ public class TypeVisitor implements Visitor<Integer> {
 		
 		n.setRealType(resolvedType);
 		
-		if (resolvedType == TypeTable.ANYTYPE) {
+		if (resolvedType == TypeTable.ANYTYPE && lOp != TypeTable.ANYTYPE && rOp != TypeTable.ANYTYPE) {
 			System.err.println("Cannot OR type " + TypeTable.getTypeName(lOp) 
 			+ " with " + TypeTable.getTypeName(rOp) + "!");
 			
@@ -650,7 +691,6 @@ public class TypeVisitor implements Visitor<Integer> {
 	@Override
 	public Integer visit(Program n) {
 		n.setRealType(TypeTable.ANYTYPE);
-		
 		// Create a new stack frame
 		pushFrame();
 		
@@ -670,8 +710,8 @@ public class TypeVisitor implements Visitor<Integer> {
 		
 		// Variables, Functions, Procedures that were declared but never referenced
 		for (Value value : SymbolTable.symTable.peek().values()) {
-			if (SymbolTable.getVarType(value.getId()).equals("VARIABLE") && !SymbolTable.getIsReferenced(value.getId())) {
-				System.err.println("Warning:\n\t" + value.getVarType() + " " + value.getId() + " was declared but never referenced in MAIN!");
+			if (!SymbolTable.getIsReferenced(value.getId())) {
+				System.err.println(value.getVarType() + " " + value.getId() + " was declared but never referenced in MAIN!");
 			}
 		}
 		
@@ -702,7 +742,11 @@ public class TypeVisitor implements Visitor<Integer> {
 			int declaredType = 3;
 			String varType = "";
 			List<Statement> statements = null;
+			
+			// If a type node that contains a function
 			if (node instanceof Type) {
+				
+				// Get the declared type
 				if (node instanceof TypeInteger) {
 					declaredType = TypeTable.INTEGER;
 				} else if (node instanceof TypeFloat) {
@@ -710,9 +754,12 @@ public class TypeVisitor implements Visitor<Integer> {
 				} else if (node instanceof TypeCharacter) {
 					declaredType = TypeTable.CHARACTER;
 				}
+				
 				varType = "FUNCTION";
 				id = ((Type)node).getChild().getLabel();
 				statements = ((Function)((Type)node).getChild()).getStatements();
+				
+			// If a procedure node
 			} else if (node instanceof Procedure) {
 				declaredType = TypeTable.ANYTYPE;
 				varType = "PROCEDURE";
@@ -720,19 +767,25 @@ public class TypeVisitor implements Visitor<Integer> {
 				statements = ((Procedure)node).getStatements();
 			}
 			
-			if (SymbolTable.isDeclaredLocal(id)) {
-				System.err.println(SymbolTable.getVarType(id) + " with id: " + id + " is already declared!");
+			// Add all subroutines to the table
+			if (SymbolTable.isDeclaredGlobal(id)) {
+				System.err.println(SymbolTable.getVarType(id) + " with id: " + id + " is already declared globally!");
 			} else {
 				SymbolTable.putId(id);
 				SymbolTable.putDeclaredType(id, declaredType);
 				SymbolTable.putVarType(id, varType);	
 			}
+			
+			// Add all the subroutines' parameters
 			for (Statement statement : statements) {
 				if (statement != null && statement instanceof Parameters) {
+					
 					// For each declare node
 					for (ASTNode declareNode : ((Parameters)statement).getParameters()) {
+						
 						// For each type node
 						for (ASTNode typeNode : ((Declare)declareNode).getDeclarations()) {
+							
 							if (typeNode instanceof TypeInteger) {
 								SymbolTable.putParameter(id, TypeTable.INTEGER);
 							} else if (typeNode instanceof TypeFloat) {
@@ -764,7 +817,7 @@ public class TypeVisitor implements Visitor<Integer> {
 		
 		n.setRealType(resolvedType);
 		
-		if (resolvedType == TypeTable.ANYTYPE) {
+		if (resolvedType == TypeTable.ANYTYPE && lOp != TypeTable.ANYTYPE && rOp != TypeTable.ANYTYPE) {
 			System.err.println("Cannot SUBTRACT type " + TypeTable.getTypeName(rOp) 
 			+ " from " + TypeTable.getTypeName(lOp) + "!");
 			
@@ -799,10 +852,6 @@ public class TypeVisitor implements Visitor<Integer> {
 		return n.getRealType();
 	}
 
-	/**
-	 * 
-	 * Calls all the declare nodes
-	 */
 	@Override
 	public Integer visit(VariableDeclarations n) {
 		// Call declare nodes

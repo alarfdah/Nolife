@@ -29,9 +29,12 @@ public class NolifeParser implements NolifeParserConstants {
                         factory = new ASTNodeFactory();
                         parser = new NolifeParser(input);
                         ASTNode node = parser.program();
-//  	  	  	SourceVisitor sv = new SourceVisitor();
+
+//  	  	  	SourceVisitor sv = new SourceVisitor(); // A work in progress
+                        System.out.println("*****TYPE CHECKING*****");
                         TypeVisitor tv = new TypeVisitor();
                         node.accept(tv);
+                        System.out.println("*****TREE VISITOR*****");
                         TreeVisitor treev = new TreeVisitor();
                         node.accept(treev);
                         System.out.println(treev.getSource());
@@ -1108,11 +1111,6 @@ public class NolifeParser implements NolifeParserConstants {
     finally { jj_save(1, xla); }
   }
 
-  static private boolean jj_3_1() {
-    if (jj_3R_9()) return true;
-    return false;
-  }
-
   static private boolean jj_3R_11() {
     if (jj_scan_token(O_LBRACKET)) return true;
     return false;
@@ -1134,6 +1132,11 @@ public class NolifeParser implements NolifeParserConstants {
     Token xsp;
     xsp = jj_scanpos;
     if (jj_3R_11()) jj_scanpos = xsp;
+    return false;
+  }
+
+  static private boolean jj_3_1() {
+    if (jj_3R_9()) return true;
     return false;
   }
 

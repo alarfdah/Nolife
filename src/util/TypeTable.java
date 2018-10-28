@@ -40,7 +40,7 @@ public final class TypeTable {
 			{CHARACTER, ANYTYPE, ANYTYPE, CHARACTER},	// E.g. CHARACTER 	:= X
 			{ANYTYPE,	INTEGER, INTEGER, INTEGER  },	// E.g. INTEGER 	:= X
 			{ANYTYPE,	FLOAT,   FLOAT,   FLOAT	   },	// E.g. FLOAT 		:= X
-			{ANYTYPE,	ANYTYPE, ANYTYPE, ANYTYPE  }	// E.g. ANYTYPE 	:= X
+			{CHARACTER,	INTEGER, FLOAT,   ANYTYPE  }	// E.g. ANYTYPE 	:= X
 	};
 	
 	public final static int[] notOperator = { ANYTYPE, INTEGER, ANYTYPE, ANYTYPE }; // E.g. NOT X

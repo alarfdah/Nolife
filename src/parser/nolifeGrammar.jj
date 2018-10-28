@@ -36,9 +36,12 @@ public class NolifeParser {
   	  	  	factory = new ASTNodeFactory();
   	  	  	parser = new NolifeParser(input);
   	  	  	ASTNode node = parser.program();
-//  	  	  	SourceVisitor sv = new SourceVisitor();
+  	  	  	
+//  	  	  	SourceVisitor sv = new SourceVisitor(); // A work in progress
+			System.out.println("*****TYPE CHECKING*****");
 			TypeVisitor tv = new TypeVisitor();
 			node.accept(tv);
+			System.out.println("*****TREE VISITOR*****");
   	  	  	TreeVisitor treev = new TreeVisitor();
 			node.accept(treev);
   	  	  	System.out.println(treev.getSource());
