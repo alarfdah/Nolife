@@ -151,7 +151,7 @@ public class SymbolTable {
 	}
 	
 	// TODO Check this
-	public static void putParameters(String symbol, int parameter) {
+	public static void putParameter(String symbol, int parameter) {
 		if (symTable.peek().get(symbol) != null) {
 			symTable.peek().get(symbol).addParameter(parameter);			
 		} else if (symTable.get(0).get(symbol) != null) {

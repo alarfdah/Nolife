@@ -189,11 +189,18 @@ public class TypeVisitor implements Visitor<Integer> {
 		}
 		paramsOfId = SymbolTable.getParameters(id);
 		if (params.size() != paramsOfId.size()) {
-			System.err.println("Parameters for the FUNCTION " + id + " do not match!");
+			System.err.println("Parameters for the FUNCTION " + id + " do not match:");
+
+			System.err.println("\t Parameter size: " + params.size() + " but function accepts parameters of size: " + paramsOfId.size() + "!");
 		} else {
+			boolean printed = false;
 			for (i = 0; i < params.size(); i++) {
 				if (params.get(i) != TypeTable.ANYTYPE && params.get(i) != paramsOfId.get(i)) {
-					System.err.println("Parameters for the FUNCTION " + id + " do not match!");
+					if (!printed) {
+						System.err.println("Parameters for the FUNCTION " + id + " do not match:");
+						printed = true;
+					}
+					System.err.println("\t Parameter " + (i + 1) + " of type " + TypeTable.getTypeName(params.get(i)) + " but function accepts type " + TypeTable.getTypeName(paramsOfId.get(i)) + "!");
 				}
 			}
 		}
@@ -229,11 +236,17 @@ public class TypeVisitor implements Visitor<Integer> {
 		}
 		paramsOfId = SymbolTable.getParameters(id);
 		if (params.size() != paramsOfId.size()) {
-			System.err.println("Parameters for the PROCEDURE " + id + " do not match!");
+			System.err.println("Parameters for the PROCEDURE " + id + " do not match:");
+			System.err.println("\t Parameter size: " + params.size() + " but procedure accepts parameters of size: " + paramsOfId.size() + "!");
 		} else {
+			boolean printed = false;
 			for (i = 0; i < params.size(); i++) {
 				if (params.get(i) != TypeTable.ANYTYPE && params.get(i) != paramsOfId.get(i)) {
-					System.err.println("Parameters for the PROCEDURE " + id + " do not match!");
+					if (!printed) {
+						System.err.println("Parameters for the PROCEDURE " + id + " do not match:");
+						printed = true;
+					}
+					System.err.println("\t Parameter " + (i + 1) + " of type " + TypeTable.getTypeName(params.get(i)) + " but procedure accepts type " + TypeTable.getTypeName(paramsOfId.get(i)) + "!");
 				}
 			}
 		}
@@ -329,32 +342,10 @@ public class TypeVisitor implements Visitor<Integer> {
 	@Override
 	public Integer visit(Function n) {
 		String id = n.getId();
-		if (SymbolTable.isDeclaredLocal(id)) {
-			System.err.println(SymbolTable.getVarType(id) + " with id: " + id + " is already declared! (Cannot create function)");
-		} else {
-			SymbolTable.putId(id);
-			SymbolTable.putDeclaredType(id, n.getRealType());
-			SymbolTable.putVarType(id, "FUNCTION");
-		}
-		pushFrame();
+		n.setRealType(SymbolTable.getDeclaredType(id));
 		for (Statement statement : n.getStatements()) {
 			if (statement != null) {
 				statement.accept(this);
-				if (statement instanceof Parameters) {
-					// For each declare node
-					for (ASTNode declareNode : ((Parameters)statement).getParameters()) {
-						// For each type node
-						for (ASTNode node : ((Declare)declareNode).getDeclarations()) {
-							if (node instanceof TypeInteger) {
-								SymbolTable.putParameters(id, TypeTable.INTEGER);
-							} else if (node instanceof TypeFloat) {
-								SymbolTable.putParameters(id, TypeTable.FLOAT);
-							} else if (node instanceof TypeCharacter) {
-								SymbolTable.putParameters(id, TypeTable.CHARACTER);
-							}							
-						}
-					}
-				}
 			}
 		}
 		
@@ -363,7 +354,6 @@ public class TypeVisitor implements Visitor<Integer> {
 				System.err.println(value.getVarType() + " " + value.getId() + " was declared but never referenced in FUNCTION " + id + "!");
 			}
 		}
-		popFrame();
 		return n.getRealType();
 	}
 
@@ -605,34 +595,10 @@ public class TypeVisitor implements Visitor<Integer> {
 	@Override
 	public Integer visit(Procedure n) {
 		String id = n.getId();
-		if (SymbolTable.isDeclaredLocal(id)) {
-			System.err.println(SymbolTable.getVarType(id) + " with id: " + id + " is already declared! (Cannot create procedure)");
-		} else {
-			SymbolTable.putId(id);
-			SymbolTable.putDeclaredType(id, TypeTable.ANYTYPE);
-			SymbolTable.putVarType(id, "PROCEDURE");
-			
-			n.setRealType(TypeTable.ANYTYPE);
-		}
-		pushFrame();
+		n.setRealType(SymbolTable.getDeclaredType(id));
 		for (Statement statement: n.getStatements()) {
 			if (statement != null) {
-				statement.accept(this);		
-				if (statement instanceof Parameters) {
-					// For each declare node
-					for (ASTNode declareNode : ((Parameters)statement).getParameters()) {
-						// For each type node
-						for (ASTNode node : ((Declare)declareNode).getDeclarations()) {
-							if (node instanceof TypeInteger) {
-								SymbolTable.putParameters(id, TypeTable.INTEGER);
-							} else if (node instanceof TypeFloat) {
-								SymbolTable.putParameters(id, TypeTable.FLOAT);
-							} else if (node instanceof TypeCharacter) {
-								SymbolTable.putParameters(id, TypeTable.CHARACTER);
-							}							
-						}
-					}
-				}
+				statement.accept(this);
 			}
 		}
 		for (Value value : SymbolTable.symTable.peek().values()) {
@@ -640,7 +606,6 @@ public class TypeVisitor implements Visitor<Integer> {
 				System.err.println(value.getVarType() + " " + value.getId() + " was declared but never referenced in PROCEDURE " + id + "!");
 			}
 		}
-		popFrame();
 		return n.getRealType();
 	}
 
@@ -688,8 +653,60 @@ public class TypeVisitor implements Visitor<Integer> {
 
 	@Override
 	public Integer visit(SubroutineDeclarations n) {
+		String id = "";
 		for (ASTNode node : n.getSubroutines()) {
+			int declaredType = 3;
+			String varType = "";
+			List<Statement> statements = null;
+			if (node instanceof Type) {
+				if (node instanceof TypeInteger) {
+					declaredType = TypeTable.INTEGER;
+				} else if (node instanceof TypeFloat) {
+					declaredType = TypeTable.FLOAT;
+				} else if (node instanceof TypeCharacter) {
+					declaredType = TypeTable.CHARACTER;
+				}
+				varType = "FUNCTION";
+				id = ((Type)node).getChild().getLabel();
+				statements = ((Function)((Type)node).getChild()).getStatements();
+			} else if (node instanceof Procedure) {
+				declaredType = TypeTable.ANYTYPE;
+				varType = "PROCEDURE";
+				id = node.getLabel();
+				statements = ((Procedure)node).getStatements();
+			}
+			
+			if (SymbolTable.isDeclaredLocal(id)) {
+				System.err.println(SymbolTable.getVarType(id) + " with id: " + id + " is already declared!");
+			} else {
+				SymbolTable.putId(id);
+				SymbolTable.putDeclaredType(id, declaredType);
+				SymbolTable.putVarType(id, varType);	
+			}
+			for (Statement statement : statements) {
+				if (statement != null && statement instanceof Parameters) {
+					// For each declare node
+					for (ASTNode declareNode : ((Parameters)statement).getParameters()) {
+						// For each type node
+						for (ASTNode typeNode : ((Declare)declareNode).getDeclarations()) {
+							if (typeNode instanceof TypeInteger) {
+								SymbolTable.putParameter(id, TypeTable.INTEGER);
+							} else if (typeNode instanceof TypeFloat) {
+								SymbolTable.putParameter(id, TypeTable.FLOAT);
+							} else if (typeNode instanceof TypeCharacter) {
+								SymbolTable.putParameter(id, TypeTable.CHARACTER);
+							}							
+						}
+					}
+				}
+			}
+		 
+		}
+		
+		for (ASTNode node : n.getSubroutines()) {
+			pushFrame();
 			node.accept(this);
+			popFrame();
 		}
 		return n.getRealType();
 	}
