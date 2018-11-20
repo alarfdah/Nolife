@@ -30,14 +30,21 @@ public class NolifeParser implements NolifeParserConstants {
                         parser = new NolifeParser(input);
                         ASTNode node = parser.program();
 
-//  	  	  	SourceVisitor sv = new SourceVisitor(); // A work in progress
-                        System.out.println("*****TYPE CHECKING*****");
-                        TypeVisitor tv = new TypeVisitor();
-                        node.accept(tv);
+//  	  	SourceVisitor sv = new SourceVisitor(); // A work in progress
+
+//			System.out.println("*****TYPE CHECKING*****");
+//			TypeVisitor typev = new TypeVisitor();
+//			node.accept(typev);
+
                         System.out.println("*****TREE VISITOR*****");
                         TreeVisitor treev = new TreeVisitor();
                         node.accept(treev);
                         System.out.println(treev.getSource());
+
+                        System.out.println("*****CODE*****");
+                        MemoryVisitor memv = new MemoryVisitor();
+                        node.accept(memv);
+
                 } catch (ParseException e) {
                         System.err.println("Syntax Error: " + e.getMessage());
                 }
@@ -1111,6 +1118,11 @@ public class NolifeParser implements NolifeParserConstants {
     finally { jj_save(1, xla); }
   }
 
+  static private boolean jj_3_1() {
+    if (jj_3R_9()) return true;
+    return false;
+  }
+
   static private boolean jj_3R_11() {
     if (jj_scan_token(O_LBRACKET)) return true;
     return false;
@@ -1132,11 +1144,6 @@ public class NolifeParser implements NolifeParserConstants {
     Token xsp;
     xsp = jj_scanpos;
     if (jj_3R_11()) jj_scanpos = xsp;
-    return false;
-  }
-
-  static private boolean jj_3_1() {
-    if (jj_3R_9()) return true;
     return false;
   }
 

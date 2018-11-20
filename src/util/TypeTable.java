@@ -6,6 +6,7 @@ public final class TypeTable {
 	public final static int INTEGER = 1;
 	public final static int FLOAT = 2;
 	public final static int ANYTYPE = 3;
+	public final static int STRING = 4;
 	
 	
 	public final static int[][] arithmeticOperators = {
@@ -56,6 +57,9 @@ public final class TypeTable {
 			break;
 		case 2:
 			strType = "FLOAT";
+			break;
+		case 4:
+			strType = "STRING";
 			break;
 			default:
 				strType = "ANYTYPE";

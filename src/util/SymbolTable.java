@@ -6,7 +6,7 @@ import java.util.Stack;
 
 public class SymbolTable {
 
-	public static Stack<HashMap<String, Value>> symTable = new Stack<HashMap<String, Value>>();
+	public static Stack<HashMap<String, SymbolValue>> symTable = new Stack<HashMap<String, SymbolValue>>();
 	
 	public static boolean isDeclaredGlobal(String symbol) {
 		if (symTable.get(0).containsKey(symbol)) {
@@ -26,7 +26,7 @@ public class SymbolTable {
 	
 	public static void putId(String symbol) {
 		if (symTable.peek().get(symbol) == null) {
-			Value value = new Value();
+			SymbolValue value = new SymbolValue();
 			value.setId(symbol);
 			symTable.peek().put(symbol, value);
 		} else {

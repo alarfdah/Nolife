@@ -3,7 +3,7 @@ package util;
 import java.util.LinkedList;
 import java.util.List;
 
-public class Value {
+public class SymbolValue {
 
 	private String id;				// id = x
 	private int declaredType;		// Type: INTEGER

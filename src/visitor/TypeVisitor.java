@@ -373,7 +373,7 @@ public class TypeVisitor implements Visitor<Integer> {
 
 	@Override
 	public Integer visit(ConstantString n) {
-		n.setRealType(TypeTable.CHARACTER);
+		n.setRealType(TypeTable.STRING);
 		return n.getRealType();
 	}
 
@@ -420,7 +420,7 @@ public class TypeVisitor implements Visitor<Integer> {
 			}
 		}
 		
-		for (Value value : SymbolTable.symTable.peek().values()) {
+		for (SymbolValue value : SymbolTable.symTable.peek().values()) {
 			if (!SymbolTable.getIsReferenced(value.getId())) {
 				System.err.println(value.getVarType() + " " + value.getId() + " was declared but never referenced in FUNCTION " + id + "!");
 			}
@@ -673,7 +673,7 @@ public class TypeVisitor implements Visitor<Integer> {
 				statement.accept(this);
 			}
 		}
-		for (Value value : SymbolTable.symTable.peek().values()) {
+		for (SymbolValue value : SymbolTable.symTable.peek().values()) {
 			if (!SymbolTable.getIsReferenced(value.getId())) {
 				System.err.println(value.getVarType() + " " + value.getId() + " was declared but never referenced in PROCEDURE " + id + "!");
 			}
@@ -709,7 +709,7 @@ public class TypeVisitor implements Visitor<Integer> {
 		}
 		
 		// Variables, Functions, Procedures that were declared but never referenced
-		for (Value value : SymbolTable.symTable.peek().values()) {
+		for (SymbolValue value : SymbolTable.symTable.peek().values()) {
 			if (!SymbolTable.getIsReferenced(value.getId())) {
 				System.err.println(value.getVarType() + " " + value.getId() + " was declared but never referenced in MAIN!");
 			}
@@ -875,7 +875,7 @@ public class TypeVisitor implements Visitor<Integer> {
 	}
 
 	public void pushFrame() {
-		SymbolTable.symTable.push(new HashMap<String, Value>());
+		SymbolTable.symTable.push(new HashMap<String, SymbolValue>());
 	}
 	
 	public void popFrame() {

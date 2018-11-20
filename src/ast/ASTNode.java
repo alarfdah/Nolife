@@ -11,6 +11,7 @@ public abstract class ASTNode {
 	protected List<ASTNode> children = new LinkedList<ASTNode>();
 	protected int realType;
 	protected int convertedType;
+	protected int offset;
 	
 	public void setLabel(String l) {
 		label = l;
@@ -56,6 +57,14 @@ public abstract class ASTNode {
 
 	public int getConvertedType() {
 		return convertedType;
+	}
+	
+	public int getOffset() {
+		return offset;
+	}
+
+	public void setOffset(int offset) {
+		this.offset = offset;
 	}
 
 	public void setConvertedType(int convertedType) {
