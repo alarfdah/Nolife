@@ -4,6 +4,17 @@ import visitor.Visitor;
 
 public class ArrayRef extends Expression {
 
+	private String minBound;
+	private String maxBound;
+	
+	public void setMinBound(String minBound) {
+		this.minBound = minBound;
+	}
+
+	public void setMaxBound(String maxBound) {
+		this.maxBound = maxBound;
+	}
+	
 	public String getId() {
 		return getLabel();
 	}

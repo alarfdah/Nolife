@@ -1,12 +1,18 @@
 PROGRAM helloworld;
-VAR x: INTEGER;
+VAR x, q: INTEGER;
 	y: FLOAT;
+	z: ARRAY[1..2] OF INTEGER;
+	w: CHARACTER;
+FUNCTION b4 (a:INTEGER) :INTEGER;
+BEGIN
+	WRITE(4);
+	RETURN a+1
+END;
 BEGIN
 	WRITE('Hello, World!');
 	WRITE('aaaa');
-	WRITE('DOES IT WORK??');
-	WRITE('zzz');
-	WRITE('12')
+	WRITE(1);
+	x := 0
 	
 END
 	

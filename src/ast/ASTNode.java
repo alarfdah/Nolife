@@ -12,6 +12,8 @@ public abstract class ASTNode {
 	protected int realType;
 	protected int convertedType;
 	protected int offset;
+	protected boolean local;
+	protected boolean param = false;
 	
 	public void setLabel(String l) {
 		label = l;
@@ -71,6 +73,21 @@ public abstract class ASTNode {
 		this.convertedType = convertedType;
 	}
 	
+	public boolean isLocal() {
+		return local;
+	}
+
+	public void setLocal(boolean local) {
+		this.local = local;
+	}
 	
+	public boolean isParam() {
+		return param;
+	}
+
+	public void setParam(boolean param) {
+		this.param = param;
+	}
+
 	public abstract Object accept(Visitor visitor);
 }

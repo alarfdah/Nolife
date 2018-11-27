@@ -10,9 +10,11 @@ import util.TypeTable;
 
 public class MemoryVisitor implements Visitor {
 
+	// TODO Check reset offset
+	
 	private int constOffset = 0;
-	private int varOffset = 0;
-	private int paramOffset = 0;
+	private int varOffset = 4;
+	private int paramOffset = 8;
 	
 	private HashMap<String, ASTNode> constantMap = new HashMap<>();
 	private Stack<HashMap<String, ASTNode>> scopeStack = new Stack<>();
@@ -31,7 +33,7 @@ public class MemoryVisitor implements Visitor {
 	}
 	
 	public void resetVarOffset() {
-		varOffset = 0;
+		varOffset = 4;
 	}
 	
 	public void incrementParamOffset(int by) {
@@ -39,7 +41,7 @@ public class MemoryVisitor implements Visitor {
 	}
 	
 	public void resetParamOffset() {
-		paramOffset = 0;
+		paramOffset = 8;
 	}
 	
 	public int getConstOffset() {
@@ -63,7 +65,7 @@ public class MemoryVisitor implements Visitor {
 	}
 	
 	public void printConstantMap() {
-		System.out.println("Constant Map");
+		System.out.println("*****Constant Map*****");
 		for(ASTNode n : constantMap.values()) {
 			System.out.println("Value: " + n.getLabel() 
 			+ ", Type: " + TypeTable.getTypeName(n.getRealType()) + ", Offset: " + n.getOffset());
@@ -71,12 +73,7 @@ public class MemoryVisitor implements Visitor {
 	}
 	
 	public void printVariableMap() {
-		System.out.println("Variable Map");
-		System.out.println("Current scope");
-		for(ASTNode n : scopeStack.peek().values()) {
-			System.out.println("Variable: " + n.getLabel() 
-			+ ", Type: " + TypeTable.getTypeName(n.getRealType()) + ", Offset: " + n.getOffset());
-		}
+		System.out.println("*****Variable Map*****");
 		System.out.println("Global scope");
 		for(ASTNode n : scopeStack.get(0).values()) {
 			System.out.println("Variable: " + n.getLabel() 
@@ -100,21 +97,82 @@ public class MemoryVisitor implements Visitor {
 
 	@Override
 	public Object visit(ArrayDecl n) {
-		String minBound = n.getMinBound().getChild(0).getLabel();
-		String maxBound = n.getMaxBound().getChild(0).getLabel();
+		String minBound = n.getMinBound().getLabel();
+		String maxBound = n.getMaxBound().getLabel();
+		n.setOffset(getVarOffset());
+		n.setMinBound(minBound);
+		n.setMaxBound(maxBound);
+		if (scopeStack.size() == 2)
+			n.setLocal(true);
+		else 
+			n.setLocal(false);
 		
+		scopeStack.peek().put(n.getId(), n);
+		incrementVarOffset((Integer.parseInt(maxBound) - Integer.parseInt(minBound)) * 4 + 4);
 		return null;
 	}
 
 	@Override
 	public Object visit(ArrayDef n) {
 		n.getSubscriptExpression().accept(this);
+		String id = n.getId();
+		int offset = 0;
+		int type = 0;
+		boolean local = false;
+		boolean param = false;
+		if (scopeStack.peek().containsKey(id)) {
+			offset = scopeStack.peek().get(id).getOffset();
+			type = scopeStack.peek().get(id).getRealType();
+			local = scopeStack.peek().get(id).isLocal();
+			param = scopeStack.peek().get(id).isParam();
+			n.setOffset(offset);
+			n.setRealType(type);
+			n.setLocal(local);
+			n.setParam(param);
+		} else if (scopeStack.get(0).containsKey(n.getId())) {
+			offset = scopeStack.get(0).get(id).getOffset();
+			type = scopeStack.peek().get(id).getRealType();
+			local = scopeStack.peek().get(id).isLocal();
+			param = scopeStack.peek().get(id).isParam();
+			n.setOffset(offset);
+			n.setRealType(type);
+			n.setLocal(local);
+			n.setParam(param);
+		} else {
+			System.out.println("array '" + id + "' never declared!");
+		}
 		return null;
 	}
 
 	@Override
 	public Object visit(ArrayRef n) {
 		n.getSubscriptExpression().accept(this);
+		String id = n.getId();
+		int offset = 0;
+		int type = 0;
+		boolean local = false;
+		boolean param = false;
+		if (scopeStack.peek().containsKey(id)) {
+			offset = scopeStack.peek().get(id).getOffset();
+			type = scopeStack.peek().get(id).getRealType();
+			local = scopeStack.peek().get(id).isLocal();
+			param = scopeStack.peek().get(id).isParam();
+			n.setOffset(offset);
+			n.setRealType(type);
+			n.setLocal(local);
+			n.setParam(param);
+		} else if (scopeStack.get(0).containsKey(n.getId())) {
+			offset = scopeStack.get(0).get(id).getOffset();
+			type = scopeStack.peek().get(id).getRealType();
+			local = scopeStack.peek().get(id).isLocal();
+			param = scopeStack.peek().get(id).isParam();
+			n.setOffset(offset);
+			n.setRealType(type);
+			n.setLocal(local);
+			n.setParam(param);
+		} else {
+			System.out.println("array '" + id + "' never declared!");
+		}
 		return null;
 	}
 
@@ -127,31 +185,40 @@ public class MemoryVisitor implements Visitor {
 
 	@Override
 	public Object visit(CallFunction n) {
-		// TODO Auto-generated method stub
+		if (n.getCallArguments() != null) {
+			n.getCallArguments().accept(this);				
+		}
 		return null;
 	}
 
 	@Override
 	public Object visit(CallProcedure n) {
-		// TODO Auto-generated method stub
+		if (n.getCallArguments() != null) {
+			n.getCallArguments().accept(this);				
+		}
 		return null;
 	}
 
 	@Override
 	public Object visit(Cases n) {
-		// TODO Auto-generated method stub
+		for (ASTNode node : n.getClauseList()) {
+			node.accept(this);
+		}
 		return null;
 	}
 
 	@Override
 	public Object visit(CaseStatement n) {
-		// TODO Auto-generated method stub
+		n.getCaseExpression().accept(this);
+		if (n.getCases() != null) {
+			n.getCases().accept(this);
+		}
 		return null;
 	}
 
 	@Override
 	public Object visit(Clause n) {
-		// TODO Auto-generated method stub
+		n.getStatement().accept(this);
 		return null;
 	}
 
@@ -165,6 +232,7 @@ public class MemoryVisitor implements Visitor {
 
 	@Override
 	public Object visit(ConstantCharacter n) {
+		n.setRealType(TypeTable.CHARACTER);
 		n.setOffset(getConstOffset());
 		constantMap.put(n.getLabel(), n);
 		incrementConstOffset(4);
@@ -173,6 +241,7 @@ public class MemoryVisitor implements Visitor {
 
 	@Override
 	public Object visit(ConstantFloat n) {
+		n.setRealType(TypeTable.FLOAT);
 		n.setOffset(getConstOffset());
 		constantMap.put(n.getLabel(), n);
 		incrementConstOffset(4);
@@ -181,6 +250,7 @@ public class MemoryVisitor implements Visitor {
 
 	@Override
 	public Object visit(ConstantInteger n) {
+		n.setRealType(TypeTable.INTEGER);
 		n.setOffset(getConstOffset());
 		constantMap.put(n.getLabel(), n);
 		incrementConstOffset(4);
@@ -189,6 +259,7 @@ public class MemoryVisitor implements Visitor {
 
 	@Override
 	public Object visit(ConstantString n) {
+		n.setRealType(TypeTable.STRING);
 		n.setOffset(getConstOffset());
 		constantMap.put(n.getLabel(), n);
 		incrementConstOffset(n.getLabel().length() - 2 + 1);
@@ -197,19 +268,31 @@ public class MemoryVisitor implements Visitor {
 
 	@Override
 	public Object visit(Declare n) {
-		// TODO Auto-generated method stub
+		for (ASTNode node : n.getDeclarations()) {
+			node.accept(this);	
+		}
 		return null;
 	}
 
 	@Override
 	public Object visit(Equal n) {
-		// TODO Auto-generated method stub
+		n.getLeftOperand().accept(this);
+		n.getRightOperand().accept(this);
 		return null;
 	}
 
 	@Override
 	public Object visit(Function n) {
-		
+		String id = n.getId();
+		for (ASTNode node : n.getStatements()) {
+			// Can have no parameters. So null node.
+			if (node != null) {
+				if (node instanceof Parameters) {
+					node.setLabel(id);;
+				}
+				node.accept(this);
+			}
+		}
 		return null;
 	}
 
@@ -230,43 +313,98 @@ public class MemoryVisitor implements Visitor {
 	@Override
 	public Object visit(IdDecl n) {
 		n.setOffset(getVarOffset());
+		if (scopeStack.size() == 2)
+			n.setLocal(true);
+		else
+			n.setLocal(false);
+		
+		scopeStack.peek().put(n.getId(), n);
 		incrementVarOffset(4);
+		
+//		System.out.println("Declared Variable: " + n.getId() + ", Type: " 
+//		+ n.getRealType() + ", Offset: " + n.getOffset()
+//		+ ", " + (scopeStack.size() == 1 ? "Global" : "Local"));
 		return null;
 	}
 
 	@Override
 	public Object visit(IdDef n) {
+		String id = n.getId();
 		int offset = 0;
-		if (scopeStack.peek().containsKey(n.getLabel())) {
-			offset = scopeStack.peek().get(n.getLabel()).getOffset();
+		int type = 0;
+		boolean local = false;
+		boolean param = false;
+		if (scopeStack.peek().containsKey(id)) {
+			offset = scopeStack.peek().get(id).getOffset();
+			type = scopeStack.peek().get(id).getRealType();
+			local = scopeStack.peek().get(id).isLocal();
+			param = scopeStack.peek().get(id).isParam();
 			n.setOffset(offset);
-		} else if (scopeStack.get(0).containsKey(n.getLabel())) {
-			offset = scopeStack.get(0).get(n.getLabel()).getOffset();
+			n.setRealType(type);
+			n.setLocal(local);
+			n.setParam(param);
+		} else if (scopeStack.get(0).containsKey(n.getId())) {
+			offset = scopeStack.get(0).get(id).getOffset();
+			type = scopeStack.peek().get(id).getRealType();
+			local = scopeStack.peek().get(id).isLocal();
+			param = scopeStack.peek().get(id).isParam();
 			n.setOffset(offset);
+			n.setRealType(type);
+			n.setLocal(local);
+			n.setParam(param);
 		} else {
-			System.out.println("variable never declared!");
+			System.out.println("variable '" + id + "' never declared!");
 		}
+
+//		System.out.println("Defined Variable: " + id + ", Type: " 
+//		+ n.getRealType() + ", Offset: " + n.getOffset()
+//		+ ", " + (scopeStack.size() == 1 ? "Global" : "Local"));
+		
 		return null;
 	}
 
 	@Override
 	public Object visit(IdRef n) {
+		String id = n.getId();
 		int offset = 0;
-		if (scopeStack.peek().containsKey(n.getLabel())) {
-			offset = scopeStack.peek().get(n.getLabel()).getOffset();
+		int type = 0;
+		boolean local = false;
+		boolean param = false;
+		if (scopeStack.peek().containsKey(id)) {
+			offset = scopeStack.peek().get(id).getOffset();
+			type = scopeStack.peek().get(id).getRealType();
+			local = scopeStack.peek().get(id).isLocal();
+			param = scopeStack.peek().get(id).isParam();
 			n.setOffset(offset);
-		} else if (scopeStack.get(0).containsKey(n.getLabel())) {
-			offset = scopeStack.get(0).get(n.getLabel()).getOffset();
+			n.setRealType(type);
+			n.setLocal(local);
+			n.setParam(param);
+		} else if (scopeStack.get(0).containsKey(n.getId())) {
+			offset = scopeStack.get(0).get(id).getOffset();
+			type = scopeStack.peek().get(id).getRealType();
+			local = scopeStack.peek().get(id).isLocal();
+			param = scopeStack.peek().get(id).isParam();
 			n.setOffset(offset);
+			n.setRealType(type);
+			n.setLocal(local);
+			n.setParam(param);
 		} else {
-			System.out.println("variable never declared!");
+			System.out.println("variable '" + id + "' never declared!");
 		}
+//		System.out.println("Referenced Variable: " + id + ", Type: " 
+//		+ n.getRealType() + ", Offset: " + n.getOffset()
+//		+ ", " + (scopeStack.size() == 1 ? "Global" : "Local"));
+		
 		return null;
 	}
 
 	@Override
 	public Object visit(IfStatement n) {
-		// TODO Auto-generated method stub
+		n.getIfExpression().accept(this);
+		n.getThenStatement().accept(this);
+		if (n.getElseStatement() != null) {
+			n.getElseStatement().accept(this);
+		}
 		return null;
 	}
 
@@ -320,13 +458,58 @@ public class MemoryVisitor implements Visitor {
 
 	@Override
 	public Object visit(Parameters n) {
-		// TODO Auto-generated method stub
+		resetParamOffset();
+		Declaration decl;
+		Type type;
+		IdDecl idDecl;
+		ArrayDecl arrDecl;
+		int strType = 0;
+		for (ASTNode declNode : n.getParameters()) { // For each declaration
+			decl = (Declaration)declNode;
+			for (ASTNode typeNode : decl.getChildren()) { // For each type
+				
+				type = (Type)typeNode;
+				if (type instanceof TypeInteger) {
+					strType = TypeTable.INTEGER;
+				} else if (type instanceof TypeCharacter) {
+					strType = TypeTable.CHARACTER;
+				} else if (type instanceof TypeFloat) {
+					strType = TypeTable.FLOAT;
+				}
+				
+				if (type.getChild() instanceof IdDecl) {
+					idDecl = (IdDecl)type.getChild();
+					idDecl.setOffset(paramOffset);
+					idDecl.setRealType(strType);
+					idDecl.setLocal(true);
+					idDecl.setParam(true);
+					scopeStack.peek().put(idDecl.getId(), idDecl);
+				} else if (type.getChild() instanceof ArrayDecl) {
+					arrDecl = (ArrayDecl)type.getChild();
+					arrDecl.setOffset(paramOffset);
+					arrDecl.setRealType(strType);
+					arrDecl.setLocal(true);
+					arrDecl.setParam(true);
+					arrDecl.setMinBound(arrDecl.getMinBound().getLabel());
+					arrDecl.setMaxBound(arrDecl.getMaxBound().getLabel());
+					scopeStack.peek().put(arrDecl.getId(), arrDecl);
+				}
+				incrementParamOffset(4);
+			}
+				
+		}
 		return null;
 	}
 
 	@Override
 	public Object visit(Procedure n) {
-		// TODO Auto-generated method stub
+		for (ASTNode node : n.getStatements()) {
+			if (node != null) {
+				node.accept(this);
+				resetVarOffset();
+				resetParamOffset();
+			}
+		}
 		return null;
 	}
 
@@ -344,13 +527,13 @@ public class MemoryVisitor implements Visitor {
 
 	@Override
 	public Object visit(Read n) {
-		// TODO Auto-generated method stub
+		n.getInput().accept(this);
 		return null;
 	}
 
 	@Override
 	public Object visit(Return n) {
-		// TODO Auto-generated method stub
+		n.getReturn().accept(this);
 		return null;
 	}
 
@@ -366,37 +549,44 @@ public class MemoryVisitor implements Visitor {
 
 	@Override
 	public Object visit(Subtract n) {
-		// TODO Auto-generated method stub
+		n.getLeftOperand().accept(this);
+		n.getRightOperand().accept(this);
 		return null;
 	}
 
 	@Override
 	public Object visit(TypeCharacter n) {
+		n.getChild().setRealType(TypeTable.CHARACTER);
 		n.getChild().accept(this);
 		return null;
 	}
 
 	@Override
 	public Object visit(TypeFloat n) {
+		n.getChild().setRealType(TypeTable.FLOAT);
 		n.getChild().accept(this);
 		return null;
 	}
 
 	@Override
 	public Object visit(TypeInteger n) {
+		n.getChild().setRealType(TypeTable.INTEGER);
 		n.getChild().accept(this);
 		return null;
 	}
 
 	@Override
 	public Object visit(VariableDeclarations n) {
-		
+		for (ASTNode node : n.getDecls()) {
+			node.accept(this);
+		}
 		return null;
 	}
 
 	@Override
 	public Object visit(WhileStatement n) {
-		// TODO Auto-generated method stub
+		n.getWhileExpression().accept(this);
+		n.getDoStatement().accept(this);
 		return null;
 	}
 
