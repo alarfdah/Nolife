@@ -51,6 +51,11 @@ public class NolifeParser {
 			System.out.println("*****CODE*****");
 			MemoryVisitor memv = new MemoryVisitor();
 			node.accept(memv);
+
+			System.out.println("*****CodeVisitor*****");
+			CodeVisitor codev = new CodeVisitor();
+			node.accept(codev);
+
 			
   	  	} catch (ParseException e) {
   	  	  	System.err.println("Syntax Error: " + e.getMessage());

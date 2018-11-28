@@ -4,15 +4,23 @@ import visitor.Visitor;
 
 public class ArrayDecl extends Declaration {
 
-	private String minBound;
-	private String maxBound;
+	private String minimumBound;
+	private String maximumBound;
 	
-	public void setMinBound(String minBound) {
-		this.minBound = minBound;
+	public void setMinimumBound(String minBound) {
+		this.minimumBound = minBound;
 	}
 
-	public void setMaxBound(String maxBound) {
-		this.maxBound = maxBound;
+	public void setMaximumBound(String maxBound) {
+		this.maximumBound = maxBound;
+	}
+	
+	public String getMinimumBound() {
+		return minimumBound;
+	}
+	
+	public String getMaximumBound() {
+		return maximumBound;
 	}
 
 	public String getId() {

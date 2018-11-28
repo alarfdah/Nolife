@@ -1,6 +1,14 @@
 package visitor;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Stack;
 
 import ast.*;
@@ -18,7 +26,7 @@ public class MemoryVisitor implements Visitor {
 	
 	private HashMap<String, ASTNode> constantMap = new HashMap<>();
 	private Stack<HashMap<String, ASTNode>> scopeStack = new Stack<>();
-	
+	public static Map<String, ASTNode> sortedConstMap;
 	
 	public void incrementConstOffset(int by) {
 		constOffset += by;
@@ -100,8 +108,8 @@ public class MemoryVisitor implements Visitor {
 		String minBound = n.getMinBound().getLabel();
 		String maxBound = n.getMaxBound().getLabel();
 		n.setOffset(getVarOffset());
-		n.setMinBound(minBound);
-		n.setMaxBound(maxBound);
+		n.setMinimumBound(minBound);
+		n.setMaximumBound(maxBound);
 		if (scopeStack.size() == 2)
 			n.setLocal(true);
 		else 
@@ -233,9 +241,6 @@ public class MemoryVisitor implements Visitor {
 	@Override
 	public Object visit(ConstantCharacter n) {
 		n.setRealType(TypeTable.CHARACTER);
-		n.setOffset(getConstOffset());
-		constantMap.put(n.getLabel(), n);
-		incrementConstOffset(4);
 		return null;
 	}
 
@@ -251,9 +256,6 @@ public class MemoryVisitor implements Visitor {
 	@Override
 	public Object visit(ConstantInteger n) {
 		n.setRealType(TypeTable.INTEGER);
-		n.setOffset(getConstOffset());
-		constantMap.put(n.getLabel(), n);
-		incrementConstOffset(4);
 		return null;
 	}
 
@@ -490,8 +492,8 @@ public class MemoryVisitor implements Visitor {
 					arrDecl.setRealType(strType);
 					arrDecl.setLocal(true);
 					arrDecl.setParam(true);
-					arrDecl.setMinBound(arrDecl.getMinBound().getLabel());
-					arrDecl.setMaxBound(arrDecl.getMaxBound().getLabel());
+					arrDecl.setMinimumBound(arrDecl.getMinBound().getLabel());
+					arrDecl.setMaximumBound(arrDecl.getMaxBound().getLabel());
 					scopeStack.peek().put(arrDecl.getId(), arrDecl);
 				}
 				incrementParamOffset(4);
@@ -522,6 +524,8 @@ public class MemoryVisitor implements Visitor {
 		printConstantMap();
 		printVariableMap();
 		popFrame();
+		sortedConstMap = sortMap(constantMap);
+		
 		return null;
 	}
 
@@ -593,9 +597,31 @@ public class MemoryVisitor implements Visitor {
 	@Override
 	public Object visit(Write n) {
 		n.getOutput().accept(this);
-		return null;
-		
-		
+		return null;	
 	}
 
+	private Map<String, ASTNode> sortMap(HashMap<String, ASTNode> map) {
+		// 1. Convert Map to List of Map
+	    List<Map.Entry<String, ASTNode>> list =
+	            new LinkedList<Map.Entry<String, ASTNode>>(map.entrySet());
+	
+	    // 2. Sort list with Collections.sort(), provide a custom Comparator
+	    //    Try switch the o1 o2 position for a different order
+	    Collections.sort(list, new Comparator<Map.Entry<String, ASTNode>>() {
+	        public int compare(Map.Entry<String, ASTNode> o1,
+	                           Map.Entry<String, ASTNode> o2) {
+	            return ((Integer)o1.getValue().getOffset()).compareTo((Integer)o2.getValue().getOffset());
+	        }
+	    });
+	
+	    // 3. Loop the sorted list and put it into a new insertion order Map LinkedHashMap
+	    Map<String, ASTNode> sortedMap = new LinkedHashMap<String, ASTNode>();
+	    for (Map.Entry<String, ASTNode> entry : list) {
+	        sortedMap.put(entry.getKey(), entry.getValue());
+	    }
+	    
+    return sortedMap;
+	}
+
+	
 }

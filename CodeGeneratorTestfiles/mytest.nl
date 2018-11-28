@@ -1,8 +1,7 @@
 PROGRAM helloworld;
 VAR x, q: INTEGER;
 	y: FLOAT;
-	z: ARRAY[1..2] OF INTEGER;
-	w: CHARACTER;
+	z: ARRAY[1..3] OF INTEGER;
 FUNCTION b4 (a:INTEGER) :INTEGER;
 BEGIN
 	WRITE(4);
@@ -11,8 +10,11 @@ END;
 BEGIN
 	WRITE('Hello, World!');
 	WRITE('aaaa');
+	WRITE(1.0);
 	WRITE(1);
-	x := 0
+	WRITE('a');
+	q := 1;
+	x := 0 + q
 	
 END
 	

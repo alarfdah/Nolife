@@ -45,6 +45,11 @@ public class NolifeParser implements NolifeParserConstants {
                         MemoryVisitor memv = new MemoryVisitor();
                         node.accept(memv);
 
+                        System.out.println("*****CodeVisitor*****");
+                        CodeVisitor codev = new CodeVisitor();
+                        node.accept(codev);
+
+
                 } catch (ParseException e) {
                         System.err.println("Syntax Error: " + e.getMessage());
                 }
@@ -1118,6 +1123,20 @@ public class NolifeParser implements NolifeParserConstants {
     finally { jj_save(1, xla); }
   }
 
+  static private boolean jj_3R_9() {
+    if (jj_3R_10()) return true;
+    if (jj_scan_token(O_ASSIGN)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_10() {
+    if (jj_scan_token(O_IDENTIFIER)) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_11()) jj_scanpos = xsp;
+    return false;
+  }
+
   static private boolean jj_3_1() {
     if (jj_3R_9()) return true;
     return false;
@@ -1130,20 +1149,6 @@ public class NolifeParser implements NolifeParserConstants {
 
   static private boolean jj_3_2() {
     if (jj_scan_token(O_ELSE)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_9() {
-    if (jj_3R_10()) return true;
-    if (jj_scan_token(O_ASSIGN)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_10() {
-    if (jj_scan_token(O_IDENTIFIER)) return true;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_11()) jj_scanpos = xsp;
     return false;
   }
 
