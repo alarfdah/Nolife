@@ -14,7 +14,7 @@ BEGIN
 	WRITE(1);
 	WRITE('a');
 	q := 1;
-	x := 0 + q
+	x := 0 + q + 3
 	
 END
 	
