@@ -17,9 +17,13 @@ public class TypeVisitor implements Visitor<Integer> {
 		Integer rOp = (Integer) n.getRightOperand().accept(this);
 		
 		Integer resolvedType = TypeTable.arithmeticOperators[lOp][rOp];
-		
 		n.setRealType(resolvedType);
 		
+		if (lOp != rOp) {
+			n.getLeftOperand().setConvertedType(resolvedType);
+			n.getRightOperand().setConvertedType(resolvedType);
+		}
+
 		if (resolvedType == TypeTable.ANYTYPE && lOp != TypeTable.ANYTYPE && rOp != TypeTable.ANYTYPE) {
 			System.err.println("Cannot ADD type " + TypeTable.getTypeName(lOp) 
 			+ " to " + TypeTable.getTypeName(rOp) + "!" );

@@ -32,16 +32,16 @@ public class NolifeParser implements NolifeParserConstants {
 
 //  	  	SourceVisitor sv = new SourceVisitor(); // A work in progress
 
-//			System.out.println("*****TYPE CHECKING*****");
-//			TypeVisitor typev = new TypeVisitor();
-//			node.accept(typev);
+                        System.out.println("*****TYPE CHECKING*****");
+                        TypeVisitor typev = new TypeVisitor();
+                        node.accept(typev);
 
                         System.out.println("*****TREE VISITOR*****");
                         TreeVisitor treev = new TreeVisitor();
                         node.accept(treev);
                         System.out.println(treev.getSource());
 
-                        System.out.println("*****CODE*****");
+//			System.out.println("*****MEMORY VISITOR*****");
                         MemoryVisitor memv = new MemoryVisitor();
                         node.accept(memv);
 
