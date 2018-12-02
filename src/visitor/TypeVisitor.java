@@ -19,10 +19,10 @@ public class TypeVisitor implements Visitor<Integer> {
 		Integer resolvedType = TypeTable.arithmeticOperators[lOp][rOp];
 		n.setRealType(resolvedType);
 		
-		if (lOp != rOp) {
-			n.getLeftOperand().setConvertedType(resolvedType);
-			n.getRightOperand().setConvertedType(resolvedType);
-		}
+		// Set converted type of children
+		n.getLeftOperand().setConvertedType(resolvedType);
+		n.getRightOperand().setConvertedType(resolvedType);
+		
 
 		if (resolvedType == TypeTable.ANYTYPE && lOp != TypeTable.ANYTYPE && rOp != TypeTable.ANYTYPE) {
 			System.err.println("Cannot ADD type " + TypeTable.getTypeName(lOp) 
@@ -40,6 +40,11 @@ public class TypeVisitor implements Visitor<Integer> {
 		Integer resolvedType = TypeTable.logicalOperators[lOp][rOp];
 		
 		n.setRealType(resolvedType);
+		
+		// Set converted type of children
+		n.getLeftOperand().setConvertedType(resolvedType);
+		n.getRightOperand().setConvertedType(resolvedType);
+				
 		
 		if (resolvedType == TypeTable.ANYTYPE && lOp != TypeTable.ANYTYPE && rOp != TypeTable.ANYTYPE) {
 			System.err.println("Cannot AND type " + TypeTable.getTypeName(lOp) 
@@ -195,6 +200,11 @@ public class TypeVisitor implements Visitor<Integer> {
 		Integer rhs = (Integer) n.getRhs().accept(this);
 		
 		Integer resolvedType = TypeTable.assignmentOperator[lhs][rhs];
+		
+		// Set converted type of children
+		n.getLhs().setConvertedType(resolvedType);
+		n.getRhs().setConvertedType(resolvedType);
+		
 		
 		if (resolvedType == TypeTable.ANYTYPE && lhs != TypeTable.ANYTYPE && rhs != TypeTable.ANYTYPE) {
 			System.err.println("Cannot assign type " + TypeTable.getTypeName(rhs) 
@@ -406,6 +416,10 @@ public class TypeVisitor implements Visitor<Integer> {
 		
 		n.setRealType(resolvedType);
 		
+		// Set converted type of children
+		n.getLeftOperand().setConvertedType(resolvedType);
+		n.getRightOperand().setConvertedType(resolvedType);
+		
 		if (resolvedType == TypeTable.ANYTYPE && lOp != TypeTable.ANYTYPE && rOp != TypeTable.ANYTYPE) {
 			System.err.println("Cannot use '=' on type " + TypeTable.getTypeName(lOp) 
 			+ " and type " + TypeTable.getTypeName(rOp) + "!");
@@ -441,6 +455,11 @@ public class TypeVisitor implements Visitor<Integer> {
 		
 		n.setRealType(resolvedType);
 		
+		// Set converted type of children
+		n.getLeftOperand().setConvertedType(resolvedType);
+		n.getRightOperand().setConvertedType(resolvedType);
+		
+		
 		if (resolvedType == TypeTable.ANYTYPE && lOp != TypeTable.ANYTYPE && rOp != TypeTable.ANYTYPE) {
 			System.err.println("Cannot use '>' on type " + TypeTable.getTypeName(lOp) 
 			+ " and type " + TypeTable.getTypeName(rOp) + "!");
@@ -456,6 +475,11 @@ public class TypeVisitor implements Visitor<Integer> {
 	Integer resolvedType = TypeTable.relationalOperators[lOp][rOp];
 	
 	n.setRealType(resolvedType);
+	
+	// Set converted type of children
+	n.getLeftOperand().setConvertedType(resolvedType);
+	n.getRightOperand().setConvertedType(resolvedType);
+	
 	
 	if (resolvedType == TypeTable.ANYTYPE && lOp != TypeTable.ANYTYPE && rOp != TypeTable.ANYTYPE) {
 		System.err.println("Cannot use '>=' on type " + TypeTable.getTypeName(lOp) 
@@ -556,6 +580,11 @@ public class TypeVisitor implements Visitor<Integer> {
 		
 		n.setRealType(resolvedType);
 		
+		// Set converted type of children
+		n.getLeftOperand().setConvertedType(resolvedType);
+		n.getRightOperand().setConvertedType(resolvedType);
+		
+		
 		if (resolvedType == TypeTable.ANYTYPE && lOp != TypeTable.ANYTYPE && rOp != TypeTable.ANYTYPE) {
 			System.err.println("Cannot use '<' on type " + TypeTable.getTypeName(lOp) 
 			+ " and type " + TypeTable.getTypeName(rOp) + "!");
@@ -571,6 +600,11 @@ public class TypeVisitor implements Visitor<Integer> {
 		Integer resolvedType = TypeTable.relationalOperators[lOp][rOp];
 		
 		n.setRealType(resolvedType);
+		
+		// Set converted type of children
+		n.getLeftOperand().setConvertedType(resolvedType);
+		n.getRightOperand().setConvertedType(resolvedType);
+		
 		
 		if (resolvedType == TypeTable.ANYTYPE && lOp != TypeTable.ANYTYPE && rOp != TypeTable.ANYTYPE) {
 			System.err.println("Cannot use '<=' on type " + TypeTable.getTypeName(lOp) 
@@ -589,6 +623,11 @@ public class TypeVisitor implements Visitor<Integer> {
 		
 		n.setRealType(resolvedType);
 		
+		// Set converted type of children
+		n.getLeftOperand().setConvertedType(resolvedType);
+		n.getRightOperand().setConvertedType(resolvedType);
+		
+		
 		if (resolvedType == TypeTable.ANYTYPE) {
 			System.err.println("Cannot MOD on type " + TypeTable.getTypeName(lOp) 
 			+ " and type " + TypeTable.getTypeName(rOp) + "!");
@@ -606,6 +645,11 @@ public class TypeVisitor implements Visitor<Integer> {
 		
 		n.setRealType(resolvedType);
 		
+		// Set converted type of children
+		n.getLeftOperand().setConvertedType(resolvedType);
+		n.getRightOperand().setConvertedType(resolvedType);
+		
+		
 		if (resolvedType == TypeTable.ANYTYPE && lOp != TypeTable.ANYTYPE && rOp != TypeTable.ANYTYPE) {
 			System.err.println("Cannot MULTIPLY type " + TypeTable.getTypeName(lOp) 
 			+ " with " + TypeTable.getTypeName(rOp) + "!");
@@ -618,6 +662,8 @@ public class TypeVisitor implements Visitor<Integer> {
 	public Integer visit(NOT n) {
 		Integer declaredType = (Integer) n.getNotChild().accept(this);
 		Integer resolvedType = TypeTable.notOperator[declaredType];
+		
+		n.getNotChild().setConvertedType(resolvedType);
 		
 		if (resolvedType == TypeTable.ANYTYPE && declaredType != TypeTable.ANYTYPE) {
 			System.err.println("Cannot use NOT on type " + TypeTable.getTypeName(declaredType) + "!");
@@ -635,6 +681,11 @@ public class TypeVisitor implements Visitor<Integer> {
 		
 		n.setRealType(resolvedType);
 		
+		// Set converted type of children
+		n.getLeftOperand().setConvertedType(resolvedType);
+		n.getRightOperand().setConvertedType(resolvedType);
+		
+		
 		if (resolvedType == TypeTable.ANYTYPE && lOp != TypeTable.ANYTYPE && rOp != TypeTable.ANYTYPE) {
 			System.err.println("Cannot use '<>' on type " + TypeTable.getTypeName(lOp) 
 			+ " and type " + TypeTable.getTypeName(rOp) + "!");
@@ -651,6 +702,11 @@ public class TypeVisitor implements Visitor<Integer> {
 		Integer resolvedType = TypeTable.logicalOperators[lOp][rOp];
 		
 		n.setRealType(resolvedType);
+		
+		// Set converted type of children
+		n.getLeftOperand().setConvertedType(resolvedType);
+		n.getRightOperand().setConvertedType(resolvedType);
+		
 		
 		if (resolvedType == TypeTable.ANYTYPE && lOp != TypeTable.ANYTYPE && rOp != TypeTable.ANYTYPE) {
 			System.err.println("Cannot OR type " + TypeTable.getTypeName(lOp) 
@@ -820,6 +876,11 @@ public class TypeVisitor implements Visitor<Integer> {
 		Integer resolvedType = TypeTable.arithmeticOperators[lOp][rOp];
 		
 		n.setRealType(resolvedType);
+		
+		// Set converted type of children
+		n.getLeftOperand().setConvertedType(resolvedType);
+		n.getRightOperand().setConvertedType(resolvedType);
+		
 		
 		if (resolvedType == TypeTable.ANYTYPE && lOp != TypeTable.ANYTYPE && rOp != TypeTable.ANYTYPE) {
 			System.err.println("Cannot SUBTRACT type " + TypeTable.getTypeName(rOp) 

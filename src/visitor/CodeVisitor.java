@@ -8,6 +8,7 @@ public class CodeVisitor implements Visitor<Integer> {
 								// 0,		1,		2,		3,		4,		5
 	private String[] register = {"%eax", "%ebx", "%ecx", "%edi", "%esi", "%edx"};
 	private boolean[] regUsed = { false,  false,  false,  false,  false,  false};
+	private int labelNumber = 0;
 	
 	private int findEmptyReg(int n) {
 		if (n != -1) {
@@ -26,6 +27,14 @@ public class CodeVisitor implements Visitor<Integer> {
 	
 	private void freeReg(int n) {
 		regUsed[n] = false;
+	}
+	
+	private int getLabel() {
+		return labelNumber;
+	}
+	
+	private void incrementLabel() {
+		labelNumber++;
 	}
 	
 	@Override
@@ -62,7 +71,18 @@ public class CodeVisitor implements Visitor<Integer> {
 
 	@Override
 	public Integer visit(AND n) {
-		// TODO Auto-generated method stub
+		Integer lhs = (Integer)n.getLeftOperand().accept(this);
+		Integer rhs = (Integer)n.getRightOperand().accept(this);
+		String output = "";
+		int elseLabel = getLabel();
+		output += "# AND...\n";
+		output += "\tcmp  " + register[lhs] + ", 0\n";
+		output += "\tje  .L" + elseLabel + "\n";
+		output += "\tcmp  " + register[rhs] + ", 0\n";
+		output += "\tje  .L" + elseLabel;
+		System.out.println(output);
+		freeReg(lhs);
+		freeReg(rhs);
 		return null;
 	}
 
@@ -87,14 +107,13 @@ public class CodeVisitor implements Visitor<Integer> {
 	@Override
 	public Integer visit(Assignment n) {
 		String output = "";	
-		output += "# Assignment...";
-		System.out.println(output);
+		output += "# Assignment...\n";
 		
 		Integer rhs = (Integer)n.getRhs().accept(this);
 		
 		if (n.getLhs() instanceof IdDef) {
 			IdDef idDef = (IdDef)n.getLhs();
-			output = "\tmov  dword ptr [%ebp - " + idDef.getOffset() + "], " + register[rhs]; 
+			output += "\tmov  dword ptr [%ebp - " + idDef.getOffset() + "], " + register[rhs]; 
 		} else if (n.getLhs() instanceof ArrayDef) {
 			ArrayDef arrDef = (ArrayDef)n.getLhs();
 		}
@@ -189,7 +208,16 @@ public class CodeVisitor implements Visitor<Integer> {
 
 	@Override
 	public Integer visit(Equal n) {
-		// TODO Auto-generated method stub
+		Integer lhs = (Integer)n.getLeftOperand().accept(this);
+		Integer rhs = (Integer)n.getRightOperand().accept(this);
+		String output = "";
+		int label = getLabel();
+		output += "# Equal Equal...\n";
+		output += "\tcmp  " + register[lhs] + ", " + register[rhs] + "\n";
+		output += "\tjne  .L" + label + "\n";
+		System.out.println(output);
+		freeReg(lhs);
+		freeReg(rhs);
 		return null;
 	}
 
@@ -201,25 +229,41 @@ public class CodeVisitor implements Visitor<Integer> {
 
 	@Override
 	public Integer visit(GreaterThan n) {
-		// TODO Auto-generated method stub
+		Integer lhs = (Integer)n.getLeftOperand().accept(this);
+		Integer rhs = (Integer)n.getRightOperand().accept(this);
+		String output = "";
+		int label = getLabel();
+		output += "# Greater Than...\n";
+		output += "\tcmp  " + register[lhs] + ", " + register[rhs] + "\n";
+		output += "\tjle  .L" + label + "\n";
+		System.out.println(output);
+		freeReg(lhs);
+		freeReg(rhs);
 		return null;
 	}
 
 	@Override
 	public Integer visit(GreaterThanEqual n) {
-		// TODO Auto-generated method stub
+		Integer lhs = (Integer)n.getLeftOperand().accept(this);
+		Integer rhs = (Integer)n.getRightOperand().accept(this);
+		String output = "";
+		int label = getLabel();
+		output += "# Greater Than Equal...\n";
+		output += "\tcmp  " + register[lhs] + ", " + register[rhs] + "\n";
+		output += "\tjl  .L" + label + "\n";
+		System.out.println(output);
+		freeReg(lhs);
+		freeReg(rhs);
 		return null;
 	}
 
 	@Override
 	public Integer visit(IdDecl n) {
-		
 		return null;
 	}
 
 	@Override
 	public Integer visit(IdDef n) {
-		
 		return null;
 	}
 
@@ -227,7 +271,7 @@ public class CodeVisitor implements Visitor<Integer> {
 	public Integer visit(IdRef n) {
 		int regi = findEmptyReg(-1);
 		String output = "";
-		output += "#IdRef...\n";
+		output += "# IdRef...\n";
 		output += "\tmov  " + register[regi] + ", dword ptr [%ebp - " + n.getOffset() + "]";
 		System.out.println(output);
 		return regi;
@@ -235,19 +279,138 @@ public class CodeVisitor implements Visitor<Integer> {
 
 	@Override
 	public Integer visit(IfStatement n) {
-		// TODO Auto-generated method stub
+		String output = "";
+		int elseLabel = -1;
+		int ifLabel = -1;
+		output += "# If Statement...";
+		System.out.println(output);
+		output = "";
+		if (n.getIfExpression() instanceof ConstantInteger) {
+			Integer regi = (Integer)n.getIfExpression().accept(this);
+			incrementLabel();
+			elseLabel = getLabel();
+			incrementLabel();
+			ifLabel = getLabel();
+			
+			output += "\tcmp  " + register[regi] + ", 0\n";
+			output += "\tje   .L" + elseLabel;
+			System.out.println(output);
+			
+			// If true then
+			n.getThenStatement().accept(this);
+			// Skip else
+			output = "\tjmp  .L" + ifLabel + "\n";
+			// Skip to else
+			output += ".L" + elseLabel + ":";
+			System.out.println(output);
+						
+			freeReg(regi);
+		} else if (n.getIfExpression() instanceof IdRef) {
+			Integer regi = (Integer)n.getIfExpression().accept(this);
+			incrementLabel();
+			elseLabel = getLabel();
+			incrementLabel();
+			ifLabel = getLabel();
+			
+			output += "\tcmp  " + register[regi] + ", 0\n";
+			output += "\tje   .L" + elseLabel;
+			System.out.println(output);
+			
+			// If true then
+			n.getThenStatement().accept(this);
+			// Skip else
+			output = "\tjmp  .L" + ifLabel + "\n";
+			// Skip to else
+			output += ".L" + elseLabel + ":";
+			System.out.println(output);
+			
+			
+			freeReg(regi);
+		} else if (n.getIfExpression() instanceof OR) { // OR can bypass the second condition if the first is met
+			incrementLabel();
+			elseLabel = getLabel();
+			n.getIfExpression().accept(this);
+			
+			output = ".L" + elseLabel + ":";
+			System.out.println(output);
+			// If true then
+			n.getThenStatement().accept(this);
+			elseLabel = getLabel();
+			incrementLabel();
+			ifLabel = getLabel();
+			
+			// Skip else
+			output = "\tjmp  .L" + ifLabel + "\n";
+			// Skip to else
+			output += ".L" + elseLabel + ":";
+			System.out.println(output);
+		} else if (n.getIfExpression() instanceof BinaryExpression) {
+			incrementLabel();
+			elseLabel = getLabel();
+			n.getIfExpression().accept(this);
+			
+			// If true then
+			n.getThenStatement().accept(this);
+			incrementLabel();
+			ifLabel = getLabel();
+			
+			// Skip else
+			output += "\tjmp  .L" + ifLabel + "\n";
+			// Skip to else
+			output += ".L" + elseLabel + ":";
+			System.out.println(output);
+		} else if (n.getIfExpression() instanceof NOT) {
+			Integer regi = (Integer)n.getIfExpression().accept(this);
+			incrementLabel();
+			elseLabel = getLabel();
+			incrementLabel();
+			ifLabel = getLabel();
+			output += "\tcmp  " + register[regi] + ", 0\n";
+			output += "\tje   .L" + elseLabel;
+			System.out.println(output);
+			
+			n.getThenStatement().accept(this);
+			output = "\tjmp  .L" + ifLabel + "\n";
+			output += ".L" + elseLabel + ":";
+			System.out.println(output);
+		}
+		
+		if (n.getElseStatement() != null) {
+			n.getElseStatement().accept(this);
+			
+		}
+		output = ".L" + ifLabel + ":";
+		System.out.println(output);
 		return null;
 	}
 
 	@Override
 	public Integer visit(LessThan n) {
-		// TODO Auto-generated method stub
+		Integer lhs = (Integer)n.getLeftOperand().accept(this);
+		Integer rhs = (Integer)n.getRightOperand().accept(this);
+		String output = "";
+		int label = getLabel();
+		output += "# Less Than...\n";
+		output += "\tcmp  " + register[lhs] + ", " + register[rhs] + "\n";
+		output += "\tjge  .L" + label + "\n";
+		System.out.println(output);
+		freeReg(lhs);
+		freeReg(rhs);
 		return null;
 	}
 
 	@Override
 	public Integer visit(LessThanEqual n) {
-		// TODO Auto-generated method stub
+		Integer lhs = (Integer)n.getLeftOperand().accept(this);
+		Integer rhs = (Integer)n.getRightOperand().accept(this);
+		String output = "";
+		int label = getLabel();
+		output += "# Less Than Equal...\n";
+		output += "\tcmp  " + register[lhs] + ", " + register[rhs] + "\n";
+		output += "\tjg  .L" + label + "\n";
+		System.out.println(output);
+		freeReg(lhs);
+		freeReg(rhs);
 		return null;
 	}
 
@@ -284,9 +447,9 @@ public class CodeVisitor implements Visitor<Integer> {
 			output += "\tadd  %esp, 4\n";
 			// Multiply top two values on the float stack
 			output += "\tfmul %st(0), %st(1)\n";
-			output += "\tsub %esp, 4\n";
+			output += "\tsub  %esp, 4\n";
 			output += "\tfstp dword ptr[%esp]\n";
-			output += "\tpop " + register[lhs] + "\n";
+			output += "\tpop  " + register[lhs] + "\n";
 			// Free the float stack
 			output += "\tsub  %esp, 4\n";
 			output += "\tfstp dword ptr[%esp]\n";
@@ -301,19 +464,56 @@ public class CodeVisitor implements Visitor<Integer> {
 
 	@Override
 	public Integer visit(NOT n) {
-		// TODO Auto-generated method stub
+		try {
+			Integer integer = Integer.parseInt(n.getNotChild().getLabel());			
+			String output = "";
+			int regi = findEmptyReg(-1);
+			if (integer != 0) {
+				integer = 0;
+			} else {
+				integer = 1;
+			}
+			output = "# NOT...\n";
+			output += "\tmov  " + register[regi] + ", " + integer;
+			System.out.println(output);
+			return regi;
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
 		return null;
 	}
 
 	@Override
 	public Integer visit(NotEqual n) {
-		// TODO Auto-generated method stub
+		Integer lhs = (Integer)n.getLeftOperand().accept(this);
+		Integer rhs = (Integer)n.getRightOperand().accept(this);
+		String output = "";
+		int label = getLabel();
+		output += "# Not Equal...\n";
+		output += "\tcmp  " + register[lhs] + ", " + register[rhs] + "\n";
+		output += "\tje  .L" + label + "\n";
+		System.out.println(output);
+		freeReg(lhs);
+		freeReg(rhs);
 		return null;
 	}
 
 	@Override
 	public Integer visit(OR n) {
-		// TODO Auto-generated method stub
+		Integer lhs = (Integer)n.getLeftOperand().accept(this);
+		Integer rhs = (Integer)n.getRightOperand().accept(this);
+		String output = "";
+		int ifLabel = getLabel();
+		output += "# OR...\n";
+		output += "\tcmp  " + register[lhs] + ", 0\n";
+		output += "\tjne  .L" + ifLabel + "\n";
+		incrementLabel();
+		int elseLabel = getLabel();
+		output += "\tcmp  " + register[rhs] + ", 0\n";
+		output += "\tje   .L" + elseLabel;
+		System.out.println(output);
+		freeReg(lhs);
+		freeReg(rhs);
 		return null;
 	}
 
@@ -429,9 +629,9 @@ public class CodeVisitor implements Visitor<Integer> {
 			output += "\tadd  %esp, 4\n";
 			// Subtract top two values on the float stack
 			output += "\tfsub %st(0), %st(1)\n";
-			output += "\tsub %esp, 4\n";
+			output += "\tsub  %esp, 4\n";
 			output += "\tfstp dword ptr[%esp]\n";
-			output += "\tpop " + register[lhs] + "\n";
+			output += "\tpop  " + register[lhs] + "\n";
 			// Free the float stack
 			output += "\tsub  %esp, 4\n";
 			output += "\tfstp dword ptr[%esp]\n";
@@ -441,7 +641,7 @@ public class CodeVisitor implements Visitor<Integer> {
 		}
 		System.out.println(output);
 		freeReg(rhs);
-		return null;
+		return lhs;
 	}
 
 	@Override
@@ -494,8 +694,8 @@ public class CodeVisitor implements Visitor<Integer> {
 	@Override
 	public Integer visit(Write n) {
 		String output = "";
+		int regi = findEmptyReg(-1);
 		if (n.getOutput() instanceof ConstantFloat) {			
-			int regi = findEmptyReg(-1);
 			ConstantFloat cf = (ConstantFloat)n.getOutput();
 			output += "# Float Constant...\n";
 			output += "\tsub  %esp, 8\n";
@@ -504,32 +704,41 @@ public class CodeVisitor implements Visitor<Integer> {
 			output += "\tfstp qword ptr [%esp]\n";
 			output += "\tpush [offset flat:.io_format + 0]\n";
 			output += "\tcall printf\n";
-			output += "\tadd  %esp, 12\n";
-			freeReg(regi);
+			output += "\tadd  %esp, 12";
 		} else if (n.getOutput() instanceof ConstantInteger) {
 			ConstantInteger ci = (ConstantInteger)n.getOutput();
 			output += "# Integer Constant...\n";
-			output += "\tpush " + ci.getInteger() + "\n";
+			output += "\tmov  " + register[regi] + ", " + ci.getInteger() + "\n";
+			output += "\tpush " + register[regi] + "\n";
 			output += "\tpush [offset flat:.io_format + 4]\n";
 			output += "\tcall printf\n";
-			output += "\tadd  %esp, 8\n";
+			output += "\tadd  %esp, 8";
 		} else if (n.getOutput() instanceof ConstantCharacter) {
 			ConstantCharacter cc = (ConstantCharacter)n.getOutput();
 			output += "# Character Constant...\n";
-			output += "\tpush " + (int)cc.getCharacter().charAt(1) + " #" + cc.getCharacter() + "\n";
+			output += "\tmov  " + register[regi] + ", " + (int)cc.getCharacter().charAt(1) + " #" + cc.getCharacter() + "\n";
+			output += "\tpush " + register[regi] + "\n";
 			output += "\tpush [offset flat:.io_format + 8]\n";
 			output += "\tcall printf\n";
-			output += "\tadd  %esp, 8\n";
+			output += "\tadd  %esp, 8";
 		} else if (n.getOutput() instanceof ConstantString) {
 			ConstantString cs = (ConstantString)n.getOutput();
 			output += "# String Constant...\n";
 			output += "\tpush [offset flat:_constant + " + MemoryVisitor.sortedConstMap.get(cs.getString()).getOffset() + "]\n";
 			output += "\tpush [offset flat:.io_format + 12]\n";
 			output += "\tcall printf\n";
-			output += "\tadd  %esp, " + (cs.getString().length() - 1 + 4) + "\n";
+			output += "\tadd  %esp, " + (cs.getString().length() - 1 + 4);
+		} else if (n.getOutput() instanceof NOT) {
+			NOT not = (NOT)n.getOutput();
+			Integer regj = (Integer)not.accept(this);
+			output += "# NOT Ouptut...\n";
+			output += "\tpush " + register[regj] + "\n";
+			output += "\tpush [offset flat:.io_format + 4]\n";
+			output += "\tcall printf\n";
+			output += "\tadd %esp, 4";
+			freeReg(regj);
 		} else if (n.getOutput() instanceof IdRef) {
 			IdRef idRef = (IdRef)n.getOutput();
-			int regi = findEmptyReg(-1);
 			if (n.getOutput().getRealType() == TypeTable.FLOAT) {
 				output += "# Float Reference...\n";
 				output += "\tmov  " + register[regi] + ", dword ptr [%ebp - " + idRef.getOffset() + "] \n";
@@ -540,18 +749,23 @@ public class CodeVisitor implements Visitor<Integer> {
 				output += "\tfstp qword ptr [%esp]\n";
 				output += "\tpush [offset flat:.io_format + 0]\n";
 				output += "\tcall printf\n";
-				output += "\tadd  %esp, 12\n";
+				output += "\tadd  %esp, 12";
 			} else if (n.getOutput().getRealType() == TypeTable.INTEGER) {
 				output += "# Integer Reference...\n";
 				output += "\tmov  " + register[regi] + ", dword ptr [%ebp - " + idRef.getOffset() + "]\n";
+				output += "\tpush " + register[regi] + "\n";
 				output += "\tpush [offset flat:.io_format + 4]\n";
 				output += "\tcall printf\n";
-				output += "\tadd  %esp, 8\n";
+				output += "\tadd  %esp, 8";
 			} else if (n.getOutput().getRealType() == TypeTable.CHARACTER) {
 				output += "# Character Reference...\n";
-				output += "\tmov  ";
+				output += "\tmov  " + register[regi] + ", dword ptr [%ebp - " + idRef.getOffset() + "]\n";
+				output += "\tpush " + register[regi] + "\n";
+				output += "\tpush [offset flat:.io_format + 8]\n";
+				output += "\tcall printf\n";
+				output += "\tadd  %esp, 8";
 			}
-			freeReg(regi);
+			// TODO -------------
 		} else if (n.getOutput() instanceof ArrayRef) {
 			if (n.getOutput().getRealType() == TypeTable.FLOAT) {
 				
@@ -564,25 +778,35 @@ public class CodeVisitor implements Visitor<Integer> {
 			output += "# Expression...\n";
 			
 			BinaryExpression binaryExpression = (BinaryExpression)n.getOutput();
-			Integer regi = (Integer)binaryExpression.accept(this);
+			Integer regj = (Integer)binaryExpression.accept(this);
 			
 			if (binaryExpression.getRealType() == TypeTable.FLOAT) {
 				output += "# Float Expression Reference...\n";
-				output += "\tpush " + register[regi] + "\n";
+				output += "\tpush " + register[regj] + "\n";
 				output += "\tfld  dword ptr [%esp]\n";
 				output += "\tadd  %esp, 4\n";
 				output += "\tsub  %esp, 8\n";
 				output += "\tfstp qword ptr [%esp]\n";
 				output += "\tpush [offset flat:.io_format + 0]\n";
 				output += "\tcall printf\n";
-				output += "\tadd  %esp, 12\n";
+				output += "\tadd  %esp, 12";
 			} else if (binaryExpression.getRealType() == TypeTable.INTEGER) {
-				
+				output += "# Integer Expression Reference...\n";
+				output += "\tpush " + register[regj] + "\n";
+				output += "\tpush [offset flat:.io_format + 4]\n";
+				output += "\tcall printf\n";
+				output += "\tadd  %esp, 8";
 			} else if (binaryExpression.getRealType() == TypeTable.CHARACTER) {
-				
+				output += "# Character Expression Reference...\n";
+				output += "\tpush " + register[regj] + "\n";
+				output += "\tpush [offset flat:.io_format + 8]\n";
+				output += "\tcall printf\n";
+				output += "\tadd  %esp, 8";
 			}
+			freeReg(regj);
 			
 		}
+		freeReg(regi);
 		System.out.println(output);
 		return null;
 	}
