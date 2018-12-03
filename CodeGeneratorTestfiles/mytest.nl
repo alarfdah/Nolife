@@ -1,13 +1,12 @@
 
 PROGRAM Flow;
- VAR a, b:INTEGER;
-
+VAR a, b:INTEGER;
 BEGIN
-	a := 1;
+	a := 1.0;
 	b := 5;
     WRITE('Enter: ');	
 	READ(a);
-	CASE a OF
+	CASE b OF
 	    1,2: WRITE(0);
 	    3,4: WRITE(1);
 	    5  : WRITE(2) 

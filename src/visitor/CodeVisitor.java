@@ -72,7 +72,12 @@ public class CodeVisitor implements Visitor<Object> {
 		if (n.getRealType() != n.getConvertedType()) {
 			if (n.getConvertedType() == TypeTable.FLOAT) {
 				output += "\n# Add Integer to Float...\n";
-				output += "";
+				output += "\tpush    " + register[lhs] + "\n";
+				output += "\tfild    dword ptr [%esp]\n";
+				output += "\tadd     %esp, 4\n";
+				output += "\tsub     %esp, 4\n";
+				output += "\tfstp    dword ptr [%esp]\n";
+				output += "\tpop     " + register[lhs];
 			} else if (n.getConvertedType() == TypeTable.INTEGER) {
 				output += "\n# Add Float to Integer...\n";
 				output += "\tpush   " + register[lhs] + "\n";
@@ -242,11 +247,11 @@ public class CodeVisitor implements Visitor<Object> {
 		String output = "";
 		output += "# Constant Float...\n";
 		output += "\tmov    " + register[regi] + ", [offset flat:_constant + " + n.getOffset() + "]\n";
-		output += "\tmov    " + register[regi] + ", dword ptr[" + register[regi] + "]";
+		output += "\tmov    " + register[regi] + ", dword ptr [" + register[regi] + "]";
 		if (n.getRealType() != n.getConvertedType()) {
 			output += "\n# Float to Integer...\n";
 			output += "\tpush    " + register[regi] + "\n";
-			output += "\tfld     dword ptr [%esp]";
+			output += "\tfld     dword ptr [%esp]\n";
 			output += "\tadd     %esp, 4\n";
 			output += "\tsub     %esp, 4\n";
 			output += "\tfisttp  dword ptr [%esp]\n";
@@ -659,7 +664,12 @@ public class CodeVisitor implements Visitor<Object> {
 		if (n.getRealType() != n.getConvertedType()) {
 			if (n.getConvertedType() == TypeTable.FLOAT) {
 				output += "\n# Multiply Integer to Float...\n";
-				output += "";
+				output += "\tpush    " + register[lhs] + "\n";
+				output += "\tfild    dword ptr [%esp]\n";
+				output += "\tadd     %esp, 4\n";
+				output += "\tsub     %esp, 4\n";
+				output += "\tfstp    dword ptr [%esp]\n";
+				output += "\tpop     " + register[lhs];
 			} else if (n.getConvertedType() == TypeTable.INTEGER) {
 				output += "\n# Multiply Float to Integer...\n";
 				output += "\tpush   " + register[lhs] + "\n";
@@ -670,6 +680,7 @@ public class CodeVisitor implements Visitor<Object> {
 				output += "\tpop    " + register[lhs];
 			}
 		}
+		
 		
 		System.out.println(output);
 		freeReg(rhs);
@@ -906,7 +917,12 @@ public class CodeVisitor implements Visitor<Object> {
 		if (n.getRealType() != n.getConvertedType()) {
 			if (n.getConvertedType() == TypeTable.FLOAT) {
 				output += "\n# Subtract Integer to Float...\n";
-				output += "";
+				output += "\tpush    " + register[lhs] + "\n";
+				output += "\tfild    dword ptr [%esp]\n";
+				output += "\tadd     %esp, 4\n";
+				output += "\tsub     %esp, 4\n";
+				output += "\tfstp    dword ptr [%esp]\n";
+				output += "\tpop     " + register[lhs];
 			} else if (n.getConvertedType() == TypeTable.INTEGER) {
 				output += "\n# Subtract Float to Integer...\n";
 				output += "\tpush   " + register[lhs] + "\n";
@@ -917,6 +933,7 @@ public class CodeVisitor implements Visitor<Object> {
 				output += "\tpop    " + register[lhs];
 			}
 		}
+		
 		
 		
 		System.out.println(output);
