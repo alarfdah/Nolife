@@ -205,7 +205,6 @@ public class TypeVisitor implements Visitor<Integer> {
 		n.getLhs().setConvertedType(resolvedType);
 		n.getRhs().setConvertedType(resolvedType);
 		
-		
 		if (resolvedType == TypeTable.ANYTYPE && lhs != TypeTable.ANYTYPE && rhs != TypeTable.ANYTYPE) {
 			System.err.println("Cannot assign type " + TypeTable.getTypeName(rhs) 
 			+ " to type " + TypeTable.getTypeName(lhs) + "!");

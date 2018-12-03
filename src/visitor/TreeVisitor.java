@@ -350,6 +350,9 @@ public class TreeVisitor implements Visitor<Object> {
 	public Object visit(NOT n) {
 		src += "NOT";
 		src += "\n";
+		addSpace();
+		n.getNotChild().accept(this);
+		removeSpace();
 		return null;
 	}
 

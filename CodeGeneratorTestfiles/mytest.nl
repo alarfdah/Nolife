@@ -1,18 +1,21 @@
+
 PROGRAM Flow;
- VAR a,b:INTEGER;
+ VAR a, b:INTEGER;
 
 BEGIN
-
-     
-    a := 0;
-	b := 1;
-	IF (1 AND NOT 0) THEN
-		WRITE(NOT 0)
-	ELSE
-		WRITE(0);
-
-	IF (b >= a) THEN
-		WRITE(1)
-	ELSE
-		WRITE(0)
+	a := 1;
+	b := 5;
+    WRITE('Enter: ');	
+	READ(a);
+	CASE a OF
+	    1,2: WRITE(0);
+	    3,4: WRITE(1);
+	    5  : WRITE(2) 
+	END;
+	
+	CASE b OF
+	    1,2: WRITE(0);
+	    3,4: WRITE(1);
+	    5  : WRITE(2) 
+	END
 END

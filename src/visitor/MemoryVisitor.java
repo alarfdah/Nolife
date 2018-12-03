@@ -247,9 +247,11 @@ public class MemoryVisitor implements Visitor {
 	@Override
 	public Object visit(ConstantFloat n) {
 		n.setRealType(TypeTable.FLOAT);
-		n.setOffset(getConstOffset());
-		constantMap.put(n.getLabel(), n);
-		incrementConstOffset(4);
+		if (!constantMap.containsKey(n.getLabel())) {
+			n.setOffset(getConstOffset());
+			constantMap.put(n.getLabel(), n);
+			incrementConstOffset(4);			
+		}
 		return null;
 	}
 
@@ -262,9 +264,11 @@ public class MemoryVisitor implements Visitor {
 	@Override
 	public Object visit(ConstantString n) {
 		n.setRealType(TypeTable.STRING);
-		n.setOffset(getConstOffset());
-		constantMap.put(n.getLabel(), n);
-		incrementConstOffset(n.getLabel().length() - 2 + 1);
+		if (!constantMap.containsKey(n.getLabel())) {
+			n.setOffset(getConstOffset());
+			constantMap.put(n.getLabel(), n);
+			incrementConstOffset(n.getLabel().length() - 2 + 1);			
+		}
 		return null;
 	}
 
