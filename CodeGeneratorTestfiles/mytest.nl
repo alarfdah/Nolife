@@ -1,11 +1,16 @@
-{ The sample program from the Oard document }
+PROGRAM proc;
 
-PROGRAM example;
-VAR x, z, f: FLOAT;
+VAR c: INTEGER;
+	a: ARRAY[1..2] OF INTEGER; 
 
-	y: ARRAY[1..10] OF INTEGER;
+PROCEDURE b(x:FLOAT);
+
+  BEGIN
+    x:=1.0
+  END;
 
 BEGIN
-	y[2] := 5;
-	WRITE(y[2])
+  b(1.0);
+  b(c);
+  b(a[1])
 END

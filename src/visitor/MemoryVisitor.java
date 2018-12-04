@@ -1,6 +1,5 @@
 package visitor;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -8,12 +7,9 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Stack;
 
 import ast.*;
-import util.MemoryTable;
-import util.MemoryValue;
 import util.TypeTable;
 
 public class MemoryVisitor implements Visitor {
@@ -127,18 +123,15 @@ public class MemoryVisitor implements Visitor {
 		String minBound = "";
 		String maxBound = "";
 		int offset = 0;
-		int type = 0;
 		boolean local = false;
 		boolean param = false;
 		if (scopeStack.peek().containsKey(id)) {
 			minBound = scopeStack.peek().get(id).getMinimumBound();
 			maxBound = scopeStack.peek().get(id).getMaximumBound();
 			offset = scopeStack.peek().get(id).getOffset();
-			type = scopeStack.peek().get(id).getRealType();
 			local = scopeStack.peek().get(id).isLocal();
 			param = scopeStack.peek().get(id).isParam();
 			n.setOffset(offset);
-			n.setRealType(type);
 			n.setLocal(local);
 			n.setParam(param);
 			n.setMinimumBound(minBound);
@@ -147,11 +140,9 @@ public class MemoryVisitor implements Visitor {
 			minBound = scopeStack.peek().get(id).getMinimumBound();
 			maxBound = scopeStack.peek().get(id).getMaximumBound();
 			offset = scopeStack.peek().get(id).getOffset();
-			type = scopeStack.peek().get(id).getRealType();
 			local = scopeStack.peek().get(id).isLocal();
 			param = scopeStack.peek().get(id).isParam();
 			n.setOffset(offset);
-			n.setRealType(type);
 			n.setLocal(local);
 			n.setParam(param);
 			n.setMinimumBound(minBound);
@@ -167,7 +158,6 @@ public class MemoryVisitor implements Visitor {
 		n.getSubscriptExpression().accept(this);
 		String id = n.getId();
 		int offset = 0;
-		int type = 0;
 		String minBound = "";
 		String maxBound = "";
 		boolean local = false;
@@ -176,11 +166,9 @@ public class MemoryVisitor implements Visitor {
 			minBound = scopeStack.peek().get(id).getMinimumBound();
 			maxBound = scopeStack.peek().get(id).getMaximumBound();
 			offset = scopeStack.peek().get(id).getOffset();
-			type = scopeStack.peek().get(id).getRealType();
 			local = scopeStack.peek().get(id).isLocal();
 			param = scopeStack.peek().get(id).isParam();
 			n.setOffset(offset);
-			n.setRealType(type);
 			n.setLocal(local);
 			n.setParam(param);
 			n.setMinimumBound(minBound);
@@ -189,11 +177,9 @@ public class MemoryVisitor implements Visitor {
 			minBound = scopeStack.peek().get(id).getMinimumBound();
 			maxBound = scopeStack.peek().get(id).getMaximumBound();
 			offset = scopeStack.peek().get(id).getOffset();
-			type = scopeStack.peek().get(id).getRealType();
 			local = scopeStack.peek().get(id).isLocal();
 			param = scopeStack.peek().get(id).isParam();
 			n.setOffset(offset);
-			n.setRealType(type);
 			n.setLocal(local);
 			n.setParam(param);
 			n.setMinimumBound(minBound);
@@ -260,13 +246,11 @@ public class MemoryVisitor implements Visitor {
 
 	@Override
 	public Object visit(ConstantCharacter n) {
-		n.setRealType(TypeTable.CHARACTER);
 		return null;
 	}
 
 	@Override
 	public Object visit(ConstantFloat n) {
-		n.setRealType(TypeTable.FLOAT);
 		if (!constantMap.containsKey(n.getLabel())) {
 			n.setOffset(getConstOffset());
 			constantMap.put(n.getLabel(), n);
@@ -279,13 +263,11 @@ public class MemoryVisitor implements Visitor {
 
 	@Override
 	public Object visit(ConstantInteger n) {
-		n.setRealType(TypeTable.INTEGER);
 		return null;
 	}
 
 	@Override
 	public Object visit(ConstantString n) {
-		n.setRealType(TypeTable.STRING);
 		if (!constantMap.containsKey(n.getLabel())) {
 			n.setOffset(getConstOffset());
 			constantMap.put(n.getLabel(), n);
@@ -361,35 +343,25 @@ public class MemoryVisitor implements Visitor {
 	public Object visit(IdDef n) {
 		String id = n.getId();
 		int offset = 0;
-		int type = 0;
 		boolean local = false;
 		boolean param = false;
 		if (scopeStack.peek().containsKey(id)) {
 			offset = scopeStack.peek().get(id).getOffset();
-			type = scopeStack.peek().get(id).getRealType();
 			local = scopeStack.peek().get(id).isLocal();
 			param = scopeStack.peek().get(id).isParam();
 			n.setOffset(offset);
-			n.setRealType(type);
 			n.setLocal(local);
 			n.setParam(param);
 		} else if (scopeStack.get(0).containsKey(n.getId())) {
 			offset = scopeStack.get(0).get(id).getOffset();
-			type = scopeStack.peek().get(id).getRealType();
 			local = scopeStack.peek().get(id).isLocal();
 			param = scopeStack.peek().get(id).isParam();
 			n.setOffset(offset);
-			n.setRealType(type);
 			n.setLocal(local);
 			n.setParam(param);
 		} else {
 			System.out.println("variable '" + id + "' never declared!");
 		}
-
-//		System.out.println("Defined Variable: " + id + ", Type: " 
-//		+ n.getRealType() + ", Offset: " + n.getOffset()
-//		+ ", " + (scopeStack.size() == 1 ? "Global" : "Local"));
-		
 		return null;
 	}
 
@@ -397,34 +369,25 @@ public class MemoryVisitor implements Visitor {
 	public Object visit(IdRef n) {
 		String id = n.getId();
 		int offset = 0;
-		int type = 0;
 		boolean local = false;
 		boolean param = false;
 		if (scopeStack.peek().containsKey(id)) {
 			offset = scopeStack.peek().get(id).getOffset();
-			type = scopeStack.peek().get(id).getRealType();
 			local = scopeStack.peek().get(id).isLocal();
 			param = scopeStack.peek().get(id).isParam();
 			n.setOffset(offset);
-			n.setRealType(type);
 			n.setLocal(local);
 			n.setParam(param);
 		} else if (scopeStack.get(0).containsKey(n.getId())) {
 			offset = scopeStack.get(0).get(id).getOffset();
-			type = scopeStack.peek().get(id).getRealType();
 			local = scopeStack.peek().get(id).isLocal();
 			param = scopeStack.peek().get(id).isParam();
 			n.setOffset(offset);
-			n.setRealType(type);
 			n.setLocal(local);
 			n.setParam(param);
 		} else {
 			System.out.println("variable '" + id + "' never declared!");
 		}
-//		System.out.println("Referenced Variable: " + id + ", Type: " 
-//		+ n.getRealType() + ", Offset: " + n.getOffset()
-//		+ ", " + (scopeStack.size() == 1 ? "Global" : "Local"));
-		
 		return null;
 	}
 
@@ -489,45 +452,60 @@ public class MemoryVisitor implements Visitor {
 	@Override
 	public Object visit(Parameters n) {
 		resetParamOffset();
-		Declaration decl;
-		Type type;
-		IdDecl idDecl;
-		ArrayDecl arrDecl;
-		int strType = 0;
-		for (ASTNode declNode : n.getParameters()) { // For each declaration
-			decl = (Declaration)declNode;
-			for (ASTNode typeNode : decl.getChildren()) { // For each type
-				
-				type = (Type)typeNode;
-				if (type instanceof TypeInteger) {
-					strType = TypeTable.INTEGER;
-				} else if (type instanceof TypeCharacter) {
-					strType = TypeTable.CHARACTER;
-				} else if (type instanceof TypeFloat) {
-					strType = TypeTable.FLOAT;
+		for (ASTNode node : n.getParameters()) {
+			if (node instanceof Declaration) { // Params in function signature
+				Declaration decl = (Declaration)node;
+				for (ASTNode typeNode : decl.getChildren()) { // For each type
+					if (typeNode.getChild(0) instanceof IdDecl) {
+						IdDecl idDecl = (IdDecl)typeNode.getChild(0);
+						idDecl.setOffset(paramOffset);
+						idDecl.setLocal(true);
+						idDecl.setParam(true);
+						scopeStack.peek().put(idDecl.getId(), idDecl);
+					} else if (typeNode.getChild(0) instanceof ArrayDecl) {
+						ArrayDecl arrDecl = (ArrayDecl)typeNode.getChild(0);
+						arrDecl.setOffset(paramOffset);
+						arrDecl.setLocal(true);
+						arrDecl.setParam(true);
+						arrDecl.setMinimumBound(arrDecl.getMinBound().getLabel());
+						arrDecl.setMaximumBound(arrDecl.getMaxBound().getLabel());
+						scopeStack.peek().put(arrDecl.getId(), arrDecl);
+					}
+					incrementParamOffset(4);
 				}
-				
-				if (type.getChild() instanceof IdDecl) {
-					idDecl = (IdDecl)type.getChild();
-					idDecl.setOffset(paramOffset);
-					idDecl.setRealType(strType);
-					idDecl.setLocal(true);
-					idDecl.setParam(true);
-					scopeStack.peek().put(idDecl.getId(), idDecl);
-				} else if (type.getChild() instanceof ArrayDecl) {
-					arrDecl = (ArrayDecl)type.getChild();
-					arrDecl.setOffset(paramOffset);
-					arrDecl.setRealType(strType);
-					arrDecl.setLocal(true);
-					arrDecl.setParam(true);
-					arrDecl.setMinimumBound(arrDecl.getMinBound().getLabel());
-					arrDecl.setMaximumBound(arrDecl.getMaxBound().getLabel());
-					scopeStack.peek().put(arrDecl.getId(), arrDecl);
-				}
+			} else { // Params in a call
+				node.setOffset(paramOffset);
+				node.setLocal(true);
+				node.setParam(true);
+				scopeStack.peek().put(node.getLabel(), node);
 				incrementParamOffset(4);
 			}
-				
 		}
+//		Declaration decl;
+//		IdDecl idDecl;
+//		ArrayDecl arrDecl;
+//		for (ASTNode declNode : n.getParameters()) { // For each declaration
+//			decl = (Declaration)declNode;
+//			for (ASTNode typeNode : decl.getChildren()) { // For each type
+//				if (typeNode.getChild(0) instanceof IdDecl) {
+//					idDecl = (IdDecl)typeNode.getChild(0);
+//					idDecl.setOffset(paramOffset);
+//					idDecl.setLocal(true);
+//					idDecl.setParam(true);
+//					scopeStack.peek().put(idDecl.getId(), idDecl);
+//				} else if (typeNode.getChild(0) instanceof ArrayDecl) {
+//					arrDecl = (ArrayDecl)typeNode.getChild(0);
+//					arrDecl.setOffset(paramOffset);
+//					arrDecl.setLocal(true);
+//					arrDecl.setParam(true);
+//					arrDecl.setMinimumBound(arrDecl.getMinBound().getLabel());
+//					arrDecl.setMaximumBound(arrDecl.getMaxBound().getLabel());
+//					scopeStack.peek().put(arrDecl.getId(), arrDecl);
+//				}
+//				incrementParamOffset(4);
+//			}
+//				
+//		}
 		return null;
 	}
 
@@ -588,21 +566,18 @@ public class MemoryVisitor implements Visitor {
 
 	@Override
 	public Object visit(TypeCharacter n) {
-		n.getChild().setRealType(TypeTable.CHARACTER);
 		n.getChild().accept(this);
 		return null;
 	}
 
 	@Override
 	public Object visit(TypeFloat n) {
-		n.getChild().setRealType(TypeTable.FLOAT);
 		n.getChild().accept(this);
 		return null;
 	}
 
 	@Override
 	public Object visit(TypeInteger n) {
-		n.getChild().setRealType(TypeTable.INTEGER);
 		n.getChild().accept(this);
 		return null;
 	}
