@@ -14,6 +14,24 @@ public abstract class ASTNode {
 	protected int offset;
 	protected boolean local;
 	protected boolean param = false;
+	protected String minimumBound;
+	protected String maximumBound;
+	
+	public void setMinimumBound(String minBound) {
+		this.minimumBound = minBound;
+	}
+
+	public void setMaximumBound(String maxBound) {
+		this.maximumBound = maxBound;
+	}
+	
+	public String getMinimumBound() {
+		return minimumBound;
+	}
+	
+	public String getMaximumBound() {
+		return maximumBound;
+	}
 	
 	public void setLabel(String l) {
 		label = l;

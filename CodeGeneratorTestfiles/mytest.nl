@@ -1,20 +1,11 @@
+{ The sample program from the Oard document }
 
-PROGRAM Flow;
-VAR a, b:INTEGER;
+PROGRAM example;
+VAR x, z, f: FLOAT;
+
+	y: ARRAY[1..10] OF INTEGER;
+
 BEGIN
-	a := 1.0;
-	b := 5;
-    WRITE('Enter: ');	
-	READ(a);
-	CASE b OF
-	    1,2: WRITE(0);
-	    3,4: WRITE(1);
-	    5  : WRITE(2) 
-	END;
-	
-	CASE b OF
-	    1,2: WRITE(0);
-	    3,4: WRITE(1);
-	    5  : WRITE(2) 
-	END
+	y[2] := 5;
+	WRITE(y[2])
 END

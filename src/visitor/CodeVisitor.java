@@ -99,50 +99,120 @@ public class CodeVisitor implements Visitor<Object> {
 		Integer lhs = (Integer)n.getLeftOperand().accept(this);
 		Integer rhs = (Integer)n.getRightOperand().accept(this);
 		String output = "";
-		int elseLabel = getLabel();
+		incrementLabel();
+		int labelLeftOp = getLabel();
+		incrementLabel();
+		int labelRightOp = getLabel();
+		incrementLabel();
+		int labelDone = getLabel();
+		
 		output += "# AND...\n";
-		output += "\tcmp    " + register[lhs] + ", 0\n";
-		output += "\tje     .L" + elseLabel + "\n";
-		output += "\tcmp    " + register[rhs] + ", 0\n";
-		output += "\tje     .L" + elseLabel;
+		if (n.getRealType() == TypeTable.INTEGER) {
+			output += "\tcmp    " + register[lhs] + ", 0\n";
+			output += "\tje     .L" + labelLeftOp + "\n";
+
+			output += "\tcmp    " + register[rhs] + ", 0\n";
+			output += "\tje     .L" + labelRightOp + "\n";
+		} else if (n.getRealType() == TypeTable.FLOAT) {
+			// Push the left Op
+			output += "\tpush   " + register[lhs] + "\n";
+			output += "\tfld    dword ptr [%esp]\n";
+			output += "\tadd    %esp, 4\n";
+			// Push a zero
+			output += "\tpush   0\n";
+			output += "\tfld    dword ptr [%esp]\n";
+			output += "\tadd    %esp, 4\n";
+			// Compare
+			output += "\tfcomip %st(0), %st(1)\n";
+			output += "\tfstp   %st(0)\n"; // Clear the stack
+			
+			output += "\tje     .L" + labelLeftOp + "\n";
+			
+			
+			// Push the right Op
+			output += "\tpush   " + register[rhs] + "\n";
+			output += "\tfld    dword ptr [%esp]\n";
+			output += "\tadd    %esp, 4\n";
+			// Push a zero
+			output += "\tpush   0\n";
+			output += "\tfld    dword ptr [%esp]\n";
+			output += "\tadd    %esp, 4\n";
+			// Compare
+			output += "\tfcomip %st(0), %st(1)\n";
+			output += "\tfstp   %st(0)\n"; // Clear the stack
+						
+			output += "\tje     .L" + labelRightOp + "\n";
+		}
+		output += "\tmov    " + register[lhs] + ", 1\n";
+		output += "\tjmp    .L" + labelDone + "\n";
+		
+		output += ".L" + labelLeftOp + ":\n";
+		output += "\tmov    " + register[lhs] + ", 0\n";
+		output += "\tjmp    .L" + labelDone + "\n";
+		
+		output += ".L" + labelRightOp + ":\n";
+		output += "\tmov    " + register[lhs] + ", 0\n";
+		output += "\tjmp    .L" + labelDone + "\n";
+		
+		output += ".L" + labelDone + ":";
 		System.out.println(output);
-		freeReg(lhs);
 		freeReg(rhs);
-		return null;
+		return lhs;
 	}
 
 	@Override
 	public Object visit(ArrayDecl n) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public Object visit(ArrayDef n) {
-		// TODO Auto-generated method stub
-		return null;
+		Integer regi = (Integer)n.getSubscriptExpression().accept(this);
+		int minBound = Integer.parseInt(n.getMinimumBound());
+		int regj = findEmptyReg(-1);
+		String output = "";
+		output += "# Array Definition...\n";
+		output += "\tsub    " + register[regi] + ", " + minBound + "\n";
+		output += "\timul   " + register[regi] + ", 4\n";
+		
+		output += "\tmov    " + register[regj] + ", %ebp\n";
+		output += "\tsub    " + register[regj] + ", " + n.getOffset() + "\n";
+		
+		output += "\tadd    " + register[regj] + ", " + register[regi];
+		System.out.println(output);
+		freeReg(regi);
+		return regj;
 	}
 
 	@Override
 	public Object visit(ArrayRef n) {
-		// TODO Auto-generated method stub
-		return null;
+		Integer regi = (Integer)n.getSubscriptExpression().accept(this);
+		int minBound = Integer.parseInt(n.getMinimumBound());
+		int regj = findEmptyReg(-1);
+		String output = "";
+		output += "# Array Reference...\n";
+		output += "\tsub    " + register[regi] + ", " + minBound + "\n";
+		output += "\timul   " + register[regi] + ", 4\n";
+		
+		output += "\tmov    " + register[regj] + ", %ebp\n";
+		output += "\tsub    " + register[regj] + ", " + n.getOffset() + "\n";
+		
+		output += "\tadd    " + register[regj] + ", " + register[regi];
+		System.out.println(output);
+		freeReg(regi);
+		return regj;
 	}
 
 	@Override
 	public Object visit(Assignment n) {
-		String output = "";	
-		output += "# Assignment...\n";
-		
+		Integer lhs = (Integer)n.getLhs().accept(this);
 		Integer rhs = (Integer)n.getRhs().accept(this);
-		
-		if (n.getLhs() instanceof IdDef) {
-			IdDef idDef = (IdDef)n.getLhs();
-			output += "\tmov    dword ptr [%ebp - " + idDef.getOffset() + "], " + register[rhs]; 					
-		} else if (n.getLhs() instanceof ArrayDef) {
-			ArrayDef arrDef = (ArrayDef)n.getLhs();
-		}
+		String output = "";	
+				
+		output += "# Assignment...\n";
+		output += "\tmov    dword ptr [" + register[lhs] + "], " + register[rhs];
 		System.out.println(output);
+		freeReg(lhs);
 		freeReg(rhs);
 		return null;
 	}
@@ -284,8 +354,8 @@ public class CodeVisitor implements Visitor<Object> {
 	public Object visit(ConstantString n) {
 		int regi = findEmptyReg(-1);
 		String output = "";
-		output += "\tmov    " + register[regi] + ", [offset flat:_constant + " + n.getOffset() + "]\n";
-		output += "\tmov    " + register[regi] + ", dword ptr[" + register[regi] + "]";
+		output += "# Constant String...\n";
+		output += "\tmov    " + register[regi] + ", [offset flat:_constant + " + n.getOffset() + "] #" + n.getString();
 		System.out.println(output);
 		return regi;
 	}
@@ -311,10 +381,24 @@ public class CodeVisitor implements Visitor<Object> {
 		int labelDone = getLabel();
 		
 		output += "# Equal Equal...\n";
-		output += "\tcmp    " + register[lhs] + ", " + register[rhs] + "\n";
-		
-		output += "\tje    .L" + labelEqualEqual + "\n";
-		output += "\tjmp    .L" + labelNotEqual + "\n";
+		if (n.getRealType() == TypeTable.INTEGER) {
+			output += "\tcmp    " + register[lhs] + ", " + register[rhs] + "\n";
+			
+			output += "\tje     .L" + labelEqualEqual + "\n";
+			output += "\tjmp    .L" + labelNotEqual + "\n";
+		} else if (n.getRealType() == TypeTable.FLOAT) {
+			output += "\tpush   " + register[lhs] + "\n";
+			output += "\tfld    dword ptr [%esp]\n";
+			output += "\tadd    %esp, 4\n";
+			output += "\tpush   " + register[rhs] + "\n";
+			output += "\tfld    dword ptr [%esp]\n";
+			output += "\tadd    %esp, 4\n";
+			output += "\tfcomip %st(0), %st(1)\n";
+			output += "\tfstp   %st(0)\n"; // Clear the stack
+			
+			output += "\tje     .L" + labelEqualEqual + "\n";
+			output += "\tjmp    .L" + labelNotEqual;
+		}
 		
 		output += ".L" + labelEqualEqual + ":\n";
 		output += "\tmov    " + register[lhs] + ", 1\n";
@@ -350,10 +434,24 @@ public class CodeVisitor implements Visitor<Object> {
 		int labelDone = getLabel();
 		
 		output += "# Greater Than...\n";
-		output += "\tcmp    " + register[lhs] + ", " + register[rhs] + "\n";
-		
-		output += "\tjg     .L" + labelGreaterThan + "\n";
-		output += "\tjmp    .L" + labelLessThanEqual + "\n";
+		if (n.getRealType() == TypeTable.INTEGER) {
+			output += "\tcmp    " + register[lhs] + ", " + register[rhs] + "\n";
+			
+			output += "\tjg     .L" + labelGreaterThan + "\n";
+			output += "\tjmp    .L" + labelLessThanEqual + "\n";
+		} else if (n.getRealType() == TypeTable.FLOAT) {
+			output += "\tpush   " + register[lhs] + "\n";
+			output += "\tfld    dword ptr [%esp]\n";
+			output += "\tadd    %esp, 4\n";
+			output += "\tpush   " + register[rhs] + "\n";
+			output += "\tfld    dword ptr [%esp]\n";
+			output += "\tadd    %esp, 4\n";
+			output += "\tfcomip %st(0), %st(1)\n";
+			output += "\tfstp   %st(0)\n"; // Clear the stack
+			
+			output += "\tja     .L" + labelGreaterThan + "\n";
+			output += "\tjmp    .L" + labelLessThanEqual;
+		}
 		
 		output += ".L" + labelGreaterThan + ":\n";
 		output += "\tmov    " + register[lhs] + ", 1\n";
@@ -382,10 +480,25 @@ public class CodeVisitor implements Visitor<Object> {
 		int labelDone = getLabel();
 		
 		output += "# Greater Than Equal...\n";
-		output += "\tcmp    " + register[lhs] + ", " + register[rhs] + "\n";
+		if (n.getRealType() == TypeTable.INTEGER) {
+			output += "\tcmp    " + register[lhs] + ", " + register[rhs] + "\n";
+			
+			output += "\tjge    .L" + labelGreaterThanEqual + "\n";
+			output += "\tjmp    .L" + labelLessThan + "\n";
+		} else if (n.getRealType() == TypeTable.FLOAT) {
+			output += "\tpush   " + register[lhs] + "\n";
+			output += "\tfld    dword ptr [%esp]\n";
+			output += "\tadd    %esp, 4\n";
+			output += "\tpush   " + register[rhs] + "\n";
+			output += "\tfld    dword ptr [%esp]\n";
+			output += "\tadd    %esp, 4\n";
+			output += "\tfcomip %st(0), %st(1)\n";
+			output += "\tfstp   %st(0)\n"; // Clear the stack
+			
+			output += "\tjae    .L" + labelGreaterThanEqual + "\n";
+			output += "\tjmp    .L" + labelLessThan;
+		}
 		
-		output += "\tjge    .L" + labelGreaterThanEqual + "\n";
-		output += "\tjmp    .L" + labelLessThan + "\n";
 		
 		output += ".L" + labelGreaterThanEqual + ":\n";
 		output += "\tmov    " + register[lhs] + ", 1\n";
@@ -408,7 +521,13 @@ public class CodeVisitor implements Visitor<Object> {
 
 	@Override
 	public Object visit(IdDef n) {
-		return null;
+		String output = "";
+		int regi = findEmptyReg(-1);
+		output += "# IdRef...\n";
+		output += "\tmov    " + register[regi] + ", %ebp\n";
+		output += "\tsub    " + register[regi] + ", " + n.getOffset();
+		System.out.println(output);
+		return regi;
 	}
 
 	@Override
@@ -445,12 +564,13 @@ public class CodeVisitor implements Visitor<Object> {
 		String output = "";
 		int labelFalse = -1;
 		int labelDone = -1;
+		Integer regi = (Integer)n.getIfExpression().accept(this);
+		
 		output += "# If Statement...";
 		System.out.println(output);
 		output = "";
 		if (n.getIfExpression() instanceof ConstantInteger
 				|| n.getIfExpression() instanceof ConstantCharacter) {
-			Integer regi = (Integer)n.getIfExpression().accept(this);
 			incrementLabel();
 			labelFalse = getLabel();
 			incrementLabel();
@@ -467,12 +587,7 @@ public class CodeVisitor implements Visitor<Object> {
 			// Skip to else
 			output += ".L" + labelFalse + ":";
 			System.out.println(output);
-			freeReg(regi);
-		} else if (n.getIfExpression() instanceof ConstantFloat) {
-			Integer regi = (Integer)n.getIfExpression().accept(this);
-			
 		} else if (n.getIfExpression() instanceof IdRef) {
-			Integer regi = (Integer)n.getIfExpression().accept(this);
 			incrementLabel();
 			labelFalse = getLabel();
 			incrementLabel();
@@ -490,29 +605,7 @@ public class CodeVisitor implements Visitor<Object> {
 			output += ".L" + labelFalse + ":";
 			System.out.println(output);
 			
-			freeReg(regi);
-		} else if (n.getIfExpression() instanceof OR) { // OR can bypass the second condition if the first is met
-			incrementLabel();
-			labelFalse = getLabel();
-			n.getIfExpression().accept(this);
-			
-			output = ".L" + labelFalse + ":";
-			System.out.println(output);
-			// If true then
-			n.getThenStatement().accept(this);
-			labelFalse = getLabel();
-			incrementLabel();
-			labelDone = getLabel();
-			
-			// Skip else
-			output = "\tjmp    .L" + labelDone + "\n";
-			// Skip to else
-			output += ".L" + labelFalse + ":";
-			System.out.println(output);
 		} else if (n.getIfExpression() instanceof BinaryExpression) {
-			BinaryExpression be = (BinaryExpression)n.getIfExpression();
-			Integer regi = (Integer)be.accept(this);
-			
 			incrementLabel();
 			labelFalse = getLabel();
 			output += "\tcmp    " + register[regi] + ", 0\n";
@@ -527,9 +620,7 @@ public class CodeVisitor implements Visitor<Object> {
 			output += ".L" + labelFalse + ":";
 			System.out.println(output);
 			
-			freeReg(regi);
 		} else if (n.getIfExpression() instanceof NOT) {
-			Integer regi = (Integer)n.getIfExpression().accept(this);
 			incrementLabel();
 			labelFalse = getLabel();
 			incrementLabel();
@@ -550,6 +641,7 @@ public class CodeVisitor implements Visitor<Object> {
 		}
 		output = ".L" + labelDone + ":";
 		System.out.println(output);
+		freeReg(regi);
 		return null;
 	}
 
@@ -566,10 +658,25 @@ public class CodeVisitor implements Visitor<Object> {
 		int labelDone = getLabel();
 		
 		output += "# Less Than...\n";
-		output += "\tcmp    " + register[lhs] + ", " + register[rhs] + "\n";
+		if (n.getRealType() == TypeTable.INTEGER) {
+			output += "\tcmp    " + register[lhs] + ", " + register[rhs] + "\n";
+			
+			output += "\tjl     .L" + labelLessThan + "\n";
+			output += "\tjmp    .L" + labelGreaterThanEqual + "\n";
+		} else if (n.getRealType() == TypeTable.FLOAT) {
+			output += "\tpush   " + register[lhs] + "\n";
+			output += "\tfld    dword ptr [%esp]\n";
+			output += "\tadd    %esp, 4\n";
+			output += "\tpush   " + register[rhs] + "\n";
+			output += "\tfld    dword ptr [%esp]\n";
+			output += "\tadd    %esp, 4\n";
+			output += "\tfcomip %st(0), %st(1)\n";
+			output += "\tfstp   %st(0)\n"; // Clear the stack
+			
+			output += "\tjb     .L" + labelLessThan + "\n";
+			output += "\tjmp    .L" + labelGreaterThanEqual;
+		}
 		
-		output += "\tjl     .L" + labelLessThan + "\n";
-		output += "\tjmp    .L" + labelGreaterThanEqual + "\n";
 		
 		output += ".L" + labelLessThan + ":\n";
 		output += "\tmov    " + register[lhs] + ", 1\n";
@@ -598,10 +705,24 @@ public class CodeVisitor implements Visitor<Object> {
 		int labelDone = getLabel();
 		
 		output += "# Less Than Equal...\n";
-		output += "\tcmp    " + register[lhs] + ", " + register[rhs] + "\n";
-		
-		output += "\tjle    .L" + labelLessThanEqual + "\n";
-		output += "\tjmp    .L" + labelGreaterThan + "\n";
+		if (n.getRealType() == TypeTable.INTEGER) {
+			output += "\tcmp    " + register[lhs] + ", " + register[rhs] + "\n";
+			
+			output += "\tjle     .L" + labelLessThanEqual + "\n";
+			output += "\tjmp    .L" + labelGreaterThan + "\n";
+		} else if (n.getRealType() == TypeTable.FLOAT) {
+			output += "\tpush   " + register[lhs] + "\n";
+			output += "\tfld    dword ptr [%esp]\n";
+			output += "\tadd    %esp, 4\n";
+			output += "\tpush   " + register[rhs] + "\n";
+			output += "\tfld    dword ptr [%esp]\n";
+			output += "\tadd    %esp, 4\n";
+			output += "\tfcomip %st(0), %st(1)\n";
+			output += "\tfstp   %st(0)\n"; // Clear the stack
+			
+			output += "\tjbe     .L" + labelLessThanEqual + "\n";
+			output += "\tjmp    .L" + labelGreaterThan;
+		}
 		
 		output += ".L" + labelLessThanEqual + ":\n";
 		output += "\tmov    " + register[lhs] + ", 1\n";
@@ -623,14 +744,16 @@ public class CodeVisitor implements Visitor<Object> {
 		Integer rhs = (Integer)n.getRightOperand().accept(this);
 		String output = "";
 		int eax = findEmptyReg(0);
+		int edx = findEmptyReg(5);
 		output += "# Modulo...\n";
 		output += "\tmov    " + register[eax] + ", " + lhs;
 		output += "\tcdq\n";
 		output += "\tidiv   " + register[rhs] + "\n";
-		output += "\tmov    " + register[lhs] + ", %edx\n";
+		output += "\tmov    " + register[lhs] + ", " + register[edx] + "n";
 		System.out.println(output);
 		freeReg(rhs);
 		freeReg(eax);
+		freeReg(edx);
 		return lhs;
 	}
 
@@ -689,36 +812,25 @@ public class CodeVisitor implements Visitor<Object> {
 
 	@Override
 	public Object visit(NOT n) {
-		int regi = -1;
 		String output = "";
 		output = "# NOT...\n";
-		if (n.getNotChild() instanceof ConstantInteger) {
-			Integer integer = Integer.parseInt(n.getNotChild().getLabel());			
-			regi = findEmptyReg(-1);
-			if (integer != 0) {
-				integer = 0;
-			} else {
-				integer = 1;
-			}
-			output += "\tmov    " + register[regi] + ", " + integer;
-		} else if (n.getNotChild() instanceof IdRef) {
-			Integer regj = (Integer)n.getNotChild().accept(this);
-			incrementLabel();
-			int isZero = getLabel();
-			incrementLabel();
-			int notZero = getLabel();
-			output += "\tcmp    " + register[regj] + ", 0\n";
-			output += "\tje     .L" + isZero + "\n";
-			output += "\tjmp    .L" + notZero + "\n";
-			
-			output += ".L" + isZero + ":\n";
-			output += "\tmov    " + register[regj] + ", 1\n";
-			
-			output += ".L" + notZero + ":\n";
-			output += "\tmov    " + register[regj] + ", 0\n";
-			
-			regi = regj;
-		}
+		Integer regi = (Integer)n.getNotChild().accept(this);
+		
+		incrementLabel();
+		int isZero = getLabel();
+		incrementLabel();
+		int notZero = getLabel();
+		
+		output += "\tcmp    " + register[regi] + ", 0\n";
+		output += "\tje     .L" + isZero + "\n";
+		output += "\tjmp    .L" + notZero + "\n";
+		
+		output += ".L" + isZero + ":\n";
+		output += "\tmov    " + register[regi] + ", 1\n";
+		
+		output += ".L" + notZero + ":\n";
+		output += "\tmov    " + register[regi] + ", 0\n";
+		
 		System.out.println(output);
 		return regi;
 	}
@@ -736,10 +848,24 @@ public class CodeVisitor implements Visitor<Object> {
 		int labelDone = getLabel();
 		
 		output += "# Equal Equal...\n";
-		output += "\tcmp    " + register[lhs] + ", " + register[rhs] + "\n";
-		
-		output += "\tjne    .L" + labelNotEqual + "\n";
-		output += "\tjmp    .L" + labelEqualEqual + "\n";
+		if (n.getRealType() == TypeTable.INTEGER) {
+			output += "\tcmp    " + register[lhs] + ", " + register[rhs] + "\n";
+			
+			output += "\tjne     .L" + labelNotEqual + "\n";
+			output += "\tjmp    .L" + labelEqualEqual + "\n";
+		} else if (n.getRealType() == TypeTable.FLOAT) {
+			output += "\tpush   " + register[lhs] + "\n";
+			output += "\tfld    dword ptr [%esp]\n";
+			output += "\tadd    %esp, 4\n";
+			output += "\tpush   " + register[rhs] + "\n";
+			output += "\tfld    dword ptr [%esp]\n";
+			output += "\tadd    %esp, 4\n";
+			output += "\tfcomip %st(0), %st(1)\n";
+			output += "\tfstp   %st(0)\n"; // Clear the stack
+			
+			output += "\tjne     .L" + labelNotEqual + "\n";
+			output += "\tjmp    .L" + labelEqualEqual;
+		}
 		
 		output += ".L" + labelNotEqual + ":\n";
 		output += "\tmov    " + register[lhs] + ", 1\n";
@@ -761,29 +887,63 @@ public class CodeVisitor implements Visitor<Object> {
 		Integer rhs = (Integer)n.getRightOperand().accept(this);
 		String output = "";
 		incrementLabel();
-		int labelNotEqual = getLabel();
+		int labelLeftOp = getLabel();
 		incrementLabel();
-		int labelEqualEqual = getLabel();
+		int labelRightOp = getLabel();
 		incrementLabel();
 		int labelDone = getLabel();
 		
-		output += "# Not Equal...\n";
-		output += "\tcmp    " + register[lhs] + ", " + register[rhs] + "\n";
+		output += "# OR...\n";
+		if (n.getRealType() == TypeTable.INTEGER) {
+			output += "\tcmp    " + register[lhs] + ", 0\n";
+			output += "\tjne    .L" + labelLeftOp + "\n";
+
+			output += "\tcmp    " + register[rhs] + ", 0\n";
+			output += "\tje     .L" + labelRightOp + "\n";
+		} else if (n.getRealType() == TypeTable.FLOAT) {
+			// Push the left Op
+			output += "\tpush   " + register[lhs] + "\n";
+			output += "\tfld    dword ptr [%esp]\n";
+			output += "\tadd    %esp, 4\n";
+			// Push a zero
+			output += "\tpush   0\n";
+			output += "\tfld    dword ptr [%esp]\n";
+			output += "\tadd    %esp, 4\n";
+			// Compare
+			output += "\tfcomip %st(0), %st(1)\n";
+			output += "\tfstp   %st(0)\n"; // Clear the stack
+			
+			output += "\tjne     .L" + labelLeftOp + "\n";
+			
+			
+			// Push the right Op
+			output += "\tpush   " + register[rhs] + "\n";
+			output += "\tfld    dword ptr [%esp]\n";
+			output += "\tadd    %esp, 4\n";
+			// Push a zero
+			output += "\tpush   0\n";
+			output += "\tfld    dword ptr [%esp]\n";
+			output += "\tadd    %esp, 4\n";
+			// Compare
+			output += "\tfcomip %st(0), %st(1)\n";
+			output += "\tfstp   %st(0)\n"; // Clear the stack
+						
+			output += "\tje     .L" + labelRightOp + "\n";
+		}
 		
-		output += "\tjne    .L" + labelNotEqual + "\n";
-		output += "\tjmp    .L" + labelEqualEqual + "\n";
-		
-		output += ".L" + labelNotEqual + ":\n";
 		output += "\tmov    " + register[lhs] + ", 1\n";
 		output += "\tjmp    .L" + labelDone + "\n";
 		
-		output += ".L" + labelEqualEqual + ":\n";
+		output += ".L" + labelLeftOp + ":\n";
+		output += "\tmov    " + register[lhs] + ", 1\n";
+		output += "\tjmp    .L" + labelDone + "\n";
+		
+		output += ".L" + labelRightOp + ":\n";
 		output += "\tmov    " + register[lhs] + ", 0\n";
 		output += "\tjmp    .L" + labelDone + "\n";
 		
 		output += ".L" + labelDone + ":";
 		System.out.println(output);
-		n.setLabel("je");
 		freeReg(rhs);
 		return lhs;
 	}
@@ -991,55 +1151,51 @@ public class CodeVisitor implements Visitor<Object> {
 	@Override
 	public Object visit(Write n) {
 		String output = "";
-		int regi = findEmptyReg(-1);
-		if (n.getOutput() instanceof ConstantFloat) {			
-			ConstantFloat cf = (ConstantFloat)n.getOutput();
+		int regi = (Integer)n.getOutput().accept(this);
+		if (n.getOutput() instanceof ConstantFloat) {
 			output += "# Print Float Constant...\n";
 			output += "\tsub    %esp, 8\n";
-			output += "\tmov    " + register[regi] + ", [offset flat:_constant + " + MemoryVisitor.sortedConstMap.get(cf.getFloat()).getOffset() + "]\n";
-			output += "\tfld    dword ptr [" + register[regi] + "]\n";
+			output += "\tpush     " + register[regi] + "\n";
+			output += "\tfld    dword ptr [%esp]\n";
+			output += "\tadd    %esp, 4\n";
+			output += "\tsub    %esp, 4\n";
 			output += "\tfstp   qword ptr [%esp]\n";
 			output += "\tpush   [offset flat:.io_format + 0]\n";
 			output += "\tcall   printf\n";
 			output += "\tadd    %esp, 12";
 		} else if (n.getOutput() instanceof ConstantInteger) {
-			ConstantInteger ci = (ConstantInteger)n.getOutput();
 			output += "# Print Integer Constant...\n";
-			output += "\tmov    " + register[regi] + ", " + ci.getInteger() + "\n";
 			output += "\tpush   " + register[regi] + "\n";
 			output += "\tpush   [offset flat:.io_format + 4]\n";
 			output += "\tcall   printf\n";
 			output += "\tadd    %esp, 8";
 		} else if (n.getOutput() instanceof ConstantCharacter) {
-			ConstantCharacter cc = (ConstantCharacter)n.getOutput();
 			output += "# Print Character Constant...\n";
-			output += "\tmov    " + register[regi] + ", " + (int)cc.getCharacter().charAt(1) + " #" + cc.getCharacter() + "\n";
 			output += "\tpush   " + register[regi] + "\n";
 			output += "\tpush   [offset flat:.io_format + 8]\n";
 			output += "\tcall   printf\n";
 			output += "\tadd    %esp, 8";
 		} else if (n.getOutput() instanceof ConstantString) {
-			ConstantString cs = (ConstantString)n.getOutput();
 			output += "# Print String Constant...\n";
-			output += "\tpush   [offset flat:_constant + " + MemoryVisitor.sortedConstMap.get(cs.getString()).getOffset() + "]\n";
+			output += "\tpush   " + register[regi] + "\n";
+			
 			output += "\tpush   [offset flat:.io_format + 12]\n";
 			output += "\tcall   printf\n";
 			output += "\tadd    %esp, 8";
 		} else if (n.getOutput() instanceof NOT) {
-			NOT not = (NOT)n.getOutput();
-			Integer regj = (Integer)not.accept(this);
 			output += "# Print NOT Ouptut...\n";
-			output += "\tpush   " + register[regj] + "\n";
+			output += "\tpush   " + register[regi] + "\n";
 			output += "\tpush   [offset flat:.io_format + 4]\n";
 			output += "\tcall   printf\n";
 			output += "\tadd    %esp, 4";
-			freeReg(regj);
-		} else if (n.getOutput() instanceof IdRef) {
-			IdRef idRef = (IdRef)n.getOutput();
+		} else if (n.getOutput() instanceof IdRef || n.getOutput() instanceof ArrayRef) {
 			if (n.getOutput().getRealType() == TypeTable.FLOAT) {
 				output += "# Print Float Reference...\n";
-				output += "\tmov    " + register[regi] + ", dword ptr [%ebp - " + idRef.getOffset() + "] \n";
-				output += "\tpush   " + register[regi] + "\n";
+				if (n.getOutput() instanceof ArrayRef) {
+					output += "\tpush   dword ptr [" + register[regi] + "]\n";
+				} else {
+					output += "\tpush   " + register[regi] + "\n";					
+				}
 				output += "\tfld    dword ptr [%esp]\n";
 				output += "\tadd    %esp, 4\n";
 				output += "\tsub    %esp, 8\n";
@@ -1049,37 +1205,30 @@ public class CodeVisitor implements Visitor<Object> {
 				output += "\tadd    %esp, 12";
 			} else if (n.getOutput().getRealType() == TypeTable.INTEGER) {
 				output += "# Print Integer Reference...\n";
-				output += "\tmov    " + register[regi] + ", dword ptr [%ebp - " + idRef.getOffset() + "]\n";
-				output += "\tpush   " + register[regi] + "\n";
+				if (n.getOutput() instanceof ArrayRef) {
+					output += "\tpush   dword ptr [" + register[regi] + "]\n";
+				} else {
+					output += "\tpush   " + register[regi] + "\n";					
+				}
 				output += "\tpush   [offset flat:.io_format + 4]\n";
 				output += "\tcall   printf\n";
 				output += "\tadd    %esp, 8";
 			} else if (n.getOutput().getRealType() == TypeTable.CHARACTER) {
 				output += "# Print Character Reference...\n";
-				output += "\tmov    " + register[regi] + ", dword ptr [%ebp - " + idRef.getOffset() + "]\n";
-				output += "\tpush   " + register[regi] + "\n";
+				if (n.getOutput() instanceof ArrayRef) {
+					output += "\tpush   dword ptr [" + register[regi] + "]\n";
+				} else {
+					output += "\tpush   " + register[regi] + "\n";					
+				}
 				output += "\tpush   [offset flat:.io_format + 8]\n";
 				output += "\tcall   printf\n";
 				output += "\tadd    %esp, 8";
 			}
-			// TODO -------------
-		} else if (n.getOutput() instanceof ArrayRef) {
-			if (n.getOutput().getRealType() == TypeTable.FLOAT) {
-				
-			} else if (n.getOutput().getRealType() == TypeTable.INTEGER) {
-				
-			} else if (n.getOutput().getRealType() == TypeTable.CHARACTER) {
-				
-			}
 		} else if (n.getOutput() instanceof BinaryExpression) {
 			output += "# Expression...\n";
-			
-			BinaryExpression binaryExpression = (BinaryExpression)n.getOutput();
-			Integer regj = (Integer)binaryExpression.accept(this);
-			
-			if (binaryExpression.getRealType() == TypeTable.FLOAT) {
+			if (n.getOutput().getRealType() == TypeTable.FLOAT) {
 				output += "# Float Expression Reference...\n";
-				output += "\tpush   " + register[regj] + "\n";
+				output += "\tpush   " + register[regi] + "\n";
 				output += "\tfld    dword ptr [%esp]\n";
 				output += "\tadd    %esp, 4\n";
 				output += "\tsub    %esp, 8\n";
@@ -1087,20 +1236,19 @@ public class CodeVisitor implements Visitor<Object> {
 				output += "\tpush   [offset flat:.io_format + 0]\n";
 				output += "\tcall   printf\n";
 				output += "\tadd    %esp, 12";
-			} else if (binaryExpression.getRealType() == TypeTable.INTEGER) {
+			} else if (n.getOutput().getRealType() == TypeTable.INTEGER) {
 				output += "# Print Integer Expression Reference...\n";
-				output += "\tpush   " + register[regj] + "\n";
+				output += "\tpush   " + register[regi] + "\n";
 				output += "\tpush   [offset flat:.io_format + 4]\n";
 				output += "\tcall   printf\n";
 				output += "\tadd    %esp, 8";
-			} else if (binaryExpression.getRealType() == TypeTable.CHARACTER) {
+			} else if (n.getOutput().getRealType() == TypeTable.CHARACTER) {
 				output += "# Print Character Expression Reference...\n";
-				output += "\tpush   " + register[regj] + "\n";
+				output += "\tpush   " + register[regi] + "\n";
 				output += "\tpush   [offset flat:.io_format + 8]\n";
 				output += "\tcall   printf\n";
 				output += "\tadd    %esp, 8";
 			}
-			freeReg(regj);
 			
 		}
 		freeReg(regi);

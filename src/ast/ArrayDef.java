@@ -4,16 +4,6 @@ import visitor.Visitor;
 
 public class ArrayDef extends ASTNode {
 	
-	private String minBound;
-	private String maxBound;
-	
-	public void setMinBound(String minBound) {
-		this.minBound = minBound;
-	}
-
-	public void setMaxBound(String maxBound) {
-		this.maxBound = maxBound;
-	}
 	
 	public String getId() {
 		return getLabel();

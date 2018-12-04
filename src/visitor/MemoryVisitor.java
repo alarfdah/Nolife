@@ -124,11 +124,15 @@ public class MemoryVisitor implements Visitor {
 	public Object visit(ArrayDef n) {
 		n.getSubscriptExpression().accept(this);
 		String id = n.getId();
+		String minBound = "";
+		String maxBound = "";
 		int offset = 0;
 		int type = 0;
 		boolean local = false;
 		boolean param = false;
 		if (scopeStack.peek().containsKey(id)) {
+			minBound = scopeStack.peek().get(id).getMinimumBound();
+			maxBound = scopeStack.peek().get(id).getMaximumBound();
 			offset = scopeStack.peek().get(id).getOffset();
 			type = scopeStack.peek().get(id).getRealType();
 			local = scopeStack.peek().get(id).isLocal();
@@ -137,8 +141,12 @@ public class MemoryVisitor implements Visitor {
 			n.setRealType(type);
 			n.setLocal(local);
 			n.setParam(param);
+			n.setMinimumBound(minBound);
+			n.setMaximumBound(maxBound);
 		} else if (scopeStack.get(0).containsKey(n.getId())) {
-			offset = scopeStack.get(0).get(id).getOffset();
+			minBound = scopeStack.peek().get(id).getMinimumBound();
+			maxBound = scopeStack.peek().get(id).getMaximumBound();
+			offset = scopeStack.peek().get(id).getOffset();
 			type = scopeStack.peek().get(id).getRealType();
 			local = scopeStack.peek().get(id).isLocal();
 			param = scopeStack.peek().get(id).isParam();
@@ -146,6 +154,8 @@ public class MemoryVisitor implements Visitor {
 			n.setRealType(type);
 			n.setLocal(local);
 			n.setParam(param);
+			n.setMinimumBound(minBound);
+			n.setMaximumBound(maxBound);
 		} else {
 			System.out.println("array '" + id + "' never declared!");
 		}
@@ -158,9 +168,13 @@ public class MemoryVisitor implements Visitor {
 		String id = n.getId();
 		int offset = 0;
 		int type = 0;
+		String minBound = "";
+		String maxBound = "";
 		boolean local = false;
 		boolean param = false;
 		if (scopeStack.peek().containsKey(id)) {
+			minBound = scopeStack.peek().get(id).getMinimumBound();
+			maxBound = scopeStack.peek().get(id).getMaximumBound();
 			offset = scopeStack.peek().get(id).getOffset();
 			type = scopeStack.peek().get(id).getRealType();
 			local = scopeStack.peek().get(id).isLocal();
@@ -169,8 +183,12 @@ public class MemoryVisitor implements Visitor {
 			n.setRealType(type);
 			n.setLocal(local);
 			n.setParam(param);
+			n.setMinimumBound(minBound);
+			n.setMaximumBound(maxBound);
 		} else if (scopeStack.get(0).containsKey(n.getId())) {
-			offset = scopeStack.get(0).get(id).getOffset();
+			minBound = scopeStack.peek().get(id).getMinimumBound();
+			maxBound = scopeStack.peek().get(id).getMaximumBound();
+			offset = scopeStack.peek().get(id).getOffset();
 			type = scopeStack.peek().get(id).getRealType();
 			local = scopeStack.peek().get(id).isLocal();
 			param = scopeStack.peek().get(id).isParam();
@@ -178,6 +196,8 @@ public class MemoryVisitor implements Visitor {
 			n.setRealType(type);
 			n.setLocal(local);
 			n.setParam(param);
+			n.setMinimumBound(minBound);
+			n.setMaximumBound(maxBound);
 		} else {
 			System.out.println("array '" + id + "' never declared!");
 		}
@@ -251,6 +271,8 @@ public class MemoryVisitor implements Visitor {
 			n.setOffset(getConstOffset());
 			constantMap.put(n.getLabel(), n);
 			incrementConstOffset(4);			
+		} else {
+			n.setOffset(constantMap.get(n.getLabel()).getOffset());
 		}
 		return null;
 	}
@@ -268,6 +290,8 @@ public class MemoryVisitor implements Visitor {
 			n.setOffset(getConstOffset());
 			constantMap.put(n.getLabel(), n);
 			incrementConstOffset(n.getLabel().length() - 2 + 1);			
+		} else {
+			n.setOffset(constantMap.get(n.getLabel()).getOffset());
 		}
 		return null;
 	}

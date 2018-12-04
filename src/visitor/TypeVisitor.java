@@ -369,24 +369,28 @@ public class TypeVisitor implements Visitor<Integer> {
 	@Override
 	public Integer visit(ConstantCharacter n) {
 		n.setRealType(TypeTable.CHARACTER);
+		n.setConvertedType(TypeTable.CHARACTER);
 		return n.getRealType();
 	}
 
 	@Override
 	public Integer visit(ConstantFloat n) {
 		n.setRealType(TypeTable.FLOAT);
+		n.setConvertedType(TypeTable.FLOAT);
 		return n.getRealType();
 	}
 
 	@Override
 	public Integer visit(ConstantInteger n) {
 		n.setRealType(TypeTable.INTEGER);
+		n.setConvertedType(TypeTable.INTEGER);
 		return n.getRealType();
 	}
 
 	@Override
 	public Integer visit(ConstantString n) {
 		n.setRealType(TypeTable.STRING);
+		n.setConvertedType(TypeTable.STRING);
 		return n.getRealType();
 	}
 
@@ -414,6 +418,7 @@ public class TypeVisitor implements Visitor<Integer> {
 		Integer resolvedType = TypeTable.relationalOperators[lOp][rOp];
 		
 		n.setRealType(resolvedType);
+		n.setConvertedType(TypeTable.INTEGER);
 		
 		// Set converted type of children
 		n.getLeftOperand().setConvertedType(resolvedType);
@@ -453,6 +458,7 @@ public class TypeVisitor implements Visitor<Integer> {
 		Integer resolvedType = TypeTable.relationalOperators[lOp][rOp];
 		
 		n.setRealType(resolvedType);
+		n.setConvertedType(TypeTable.INTEGER);
 		
 		// Set converted type of children
 		n.getLeftOperand().setConvertedType(resolvedType);
@@ -474,6 +480,7 @@ public class TypeVisitor implements Visitor<Integer> {
 	Integer resolvedType = TypeTable.relationalOperators[lOp][rOp];
 	
 	n.setRealType(resolvedType);
+	n.setConvertedType(TypeTable.INTEGER);
 	
 	// Set converted type of children
 	n.getLeftOperand().setConvertedType(resolvedType);
@@ -599,6 +606,7 @@ public class TypeVisitor implements Visitor<Integer> {
 		Integer resolvedType = TypeTable.relationalOperators[lOp][rOp];
 		
 		n.setRealType(resolvedType);
+		n.setConvertedType(TypeTable.INTEGER);
 		
 		// Set converted type of children
 		n.getLeftOperand().setConvertedType(resolvedType);
@@ -621,6 +629,7 @@ public class TypeVisitor implements Visitor<Integer> {
 		Integer resolvedType = TypeTable.modOperator[lOp][rOp];
 		
 		n.setRealType(resolvedType);
+		n.setConvertedType(TypeTable.INTEGER);
 		
 		// Set converted type of children
 		n.getLeftOperand().setConvertedType(resolvedType);
@@ -679,6 +688,7 @@ public class TypeVisitor implements Visitor<Integer> {
 		Integer resolvedType = TypeTable.relationalOperators[lOp][rOp];
 		
 		n.setRealType(resolvedType);
+		n.setConvertedType(TypeTable.INTEGER);
 		
 		// Set converted type of children
 		n.getLeftOperand().setConvertedType(resolvedType);
