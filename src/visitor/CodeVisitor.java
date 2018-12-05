@@ -50,23 +50,23 @@ public class CodeVisitor implements Visitor<Object> {
 		
 		if (n.getRealType() == TypeTable.FLOAT) {
 			// Push lhs and rhs onto the stack and pass their address
-			output += "\tpush    " + register[lhs] + "\n";
-			output += "\tfld     dword ptr[%esp]\n";
-			output += "\tadd     %esp, 4\n";
-			output += "\tpush    " + register[rhs] + "\n";
-			output += "\tfld     dword ptr[%esp]\n";
-			output += "\tadd     %esp, 4\n";
+			output += "\tpush   " + register[lhs] + "\n";
+			output += "\tfld    dword ptr[%esp]\n";
+			output += "\tadd    %esp, 4\n";
+			output += "\tpush   " + register[rhs] + "\n";
+			output += "\tfld    dword ptr[%esp]\n";
+			output += "\tadd    %esp, 4\n";
 			// Add top two values on the float stack
-			output += "\tfadd    %st(0), %st(1)\n";
-			output += "\tsub     %esp, 4\n";
-			output += "\tfstp    dword ptr[%esp]\n";
-			output += "\tpop     " + register[lhs] + "\n";
+			output += "\tfadd   %st(0), %st(1)\n";
+			output += "\tsub    %esp, 4\n";
+			output += "\tfstp   dword ptr[%esp]\n";
+			output += "\tpop    " + register[lhs] + "\n";
 			// Free the float stack
-			output += "\tsub     %esp, 4\n";
-			output += "\tfstp    dword ptr[%esp]\n";
-			output += "\tadd     %esp, 4";
+			output += "\tsub    %esp, 4\n";
+			output += "\tfstp   dword ptr[%esp]\n";
+			output += "\tadd    %esp, 4";
 		} else {
-			output += "\tadd   " + register[lhs] + ", " + register[rhs] + "\n";			
+			output += "\tadd    " + register[lhs] + ", " + register[rhs] + "\n";			
 		}
 		
 		if (n.getRealType() != n.getConvertedType()) {
@@ -176,7 +176,11 @@ public class CodeVisitor implements Visitor<Object> {
 		output += "\timul   " + register[regi] + ", 4\n";
 		
 		output += "\tmov    " + register[regj] + ", %ebp\n";
-		output += "\tsub    " + register[regj] + ", " + n.getOffset() + "\n";
+		if (n.isParam()) {
+			output += "\tadd    " + register[regj] + ", " + n.getOffset() + "\n";
+		} else {
+			output += "\tsub    " + register[regj] + ", " + n.getOffset() + "\n";			
+		}
 		
 		output += "\tadd    " + register[regj] + ", " + register[regi];
 		System.out.println(output);
@@ -195,7 +199,11 @@ public class CodeVisitor implements Visitor<Object> {
 		output += "\timul   " + register[regi] + ", 4\n";
 		
 		output += "\tmov    " + register[regj] + ", %ebp\n";
-		output += "\tsub    " + register[regj] + ", " + n.getOffset() + "\n";
+		if (n.isParam()) {
+			output += "\tadd    " + register[regj] + ", " + n.getOffset() + "\n";
+		} else {
+			output += "\tsub    " + register[regj] + ", " + n.getOffset() + "\n";			
+		}
 		
 		output += "\tadd    " + register[regj] + ", " + register[regi] + "\n";
 		
@@ -210,8 +218,7 @@ public class CodeVisitor implements Visitor<Object> {
 	public Object visit(Assignment n) {
 		Integer lhs = (Integer)n.getLhs().accept(this);
 		Integer rhs = (Integer)n.getRhs().accept(this);
-		String output = "";	
-				
+		String output = "";
 		output += "# Assignment...\n";
 		output += "\tmov    dword ptr [" + register[lhs] + "], " + register[rhs];
 		System.out.println(output);
@@ -222,18 +229,51 @@ public class CodeVisitor implements Visitor<Object> {
 
 	@Override
 	public Object visit(CallFunction n) {
-		// TODO Auto-generated method stub
+		String output = "";
+		Integer regi = -1;
+		int paramCount = 0;
+		output += "# Call Procedure...";
+		System.out.println(output);
+		
+		if (null != n.getCallArguments()) {
+			Parameters params = (Parameters)n.getCallArguments();
+			for (ASTNode node : params.getParameters()) {
+				regi = (Integer)node.accept(this);
+				output = "\tpush   " + register[regi];
+				System.out.println(output);
+				paramCount++;
+				freeReg(regi);				
+			}
+		}
+		
+		output = "\tcall   " + n.getId() + "\n";
+		output += "\tadd    %esp, " + (paramCount * 4);
+		System.out.println(output);
 		return null;
 	}
 
 	@Override
 	public Object visit(CallProcedure n) {
 		String output = "";
-		output += "# Call Procedure...\n";
+		Integer regi = -1;
+		int paramCount = 0;
+		output += "# Call Procedure...";
 		System.out.println(output);
-		n.getCallArguments().accept(this);
 		
+		if (null != n.getCallArguments()) {
+			Parameters params = (Parameters)n.getCallArguments();
+			for (ASTNode node : params.getParameters()) {
+				regi = (Integer)node.accept(this);
+				output = "\tpush   " + register[regi];
+				System.out.println(output);
+				paramCount++;
+				freeReg(regi);				
+			}
+		}
 		
+		output = "\tcall   " + n.getId() + "\n";
+		output += "\tadd    %esp, " + (paramCount * 4);
+		System.out.println(output);
 		return null;
 	}
 
@@ -425,7 +465,27 @@ public class CodeVisitor implements Visitor<Object> {
 
 	@Override
 	public Object visit(Function n) {
-		// TODO Auto-generated method stub
+		String output = "";
+		Integer subEsp = -1;
+		
+		for (Statement statement : n.getStatements()) {
+			if (statement instanceof VariableDeclarations) {
+				subEsp = (Integer)statement.accept(this);
+			} else if (statement instanceof CompoundStatement) {
+				output = n.getId() + ":\n";
+				output += "\tpush   %ebp\n";
+				output += "\tmov    %ebp, %esp";
+				output += "\tsub    %esp, " + subEsp * 4;
+				System.out.println(output);
+				statement.accept(this);
+			} else {
+				statement.accept(this);
+			}
+		}
+		
+		output = "\tleave\n";
+		output += "\tret\n";
+		System.out.println(output);
 		return null;
 	}
 
@@ -531,9 +591,13 @@ public class CodeVisitor implements Visitor<Object> {
 	public Object visit(IdDef n) {
 		String output = "";
 		int regi = findEmptyReg(-1);
-		output += "# IdRef...\n";
+		output += "# IdDef...\n";
 		output += "\tmov    " + register[regi] + ", %ebp\n";
-		output += "\tsub    " + register[regi] + ", " + n.getOffset();
+		if (n.isParam()) {
+			output += "\tadd    " + register[regi] + ", " + n.getOffset();				
+		} else {
+			output += "\tsub    " + register[regi] + ", " + n.getOffset();			
+		}
 		System.out.println(output);
 		return regi;
 	}
@@ -543,7 +607,11 @@ public class CodeVisitor implements Visitor<Object> {
 		int regi = findEmptyReg(-1);
 		String output = "";
 		output += "# IdRef...\n";
-		output += "\tmov    " + register[regi] + ", dword ptr [%ebp - " + n.getOffset() + "]";			
+		if (n.isParam()) {
+			output += "\tmov    " + register[regi] + ", dword ptr [%ebp + " + n.getOffset() + "]";						
+		} else {
+			output += "\tmov    " + register[regi] + ", dword ptr [%ebp - " + n.getOffset() + "]";							
+		}
 		if (n.getRealType() != n.getConvertedType()) {
 			if (n.getConvertedType() == TypeTable.FLOAT) {
 				output += "\n# Integer to Float...\n";
@@ -958,19 +1026,39 @@ public class CodeVisitor implements Visitor<Object> {
 
 	@Override
 	public Object visit(Parameters n) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public Object visit(Procedure n) {
-		// TODO Auto-generated method stub
+		String output = "";
+		Integer subEsp = -1;
+		
+		for (Statement statement : n.getStatements()) {
+			if (statement instanceof VariableDeclarations) {
+				subEsp = (Integer)statement.accept(this);
+			} else if (statement instanceof CompoundStatement) {
+				output = n.getId() + ":\n";
+				output += "\tpush   %ebp\n";
+				output += "\tmov    %ebp, %esp";
+				output += "\tsub    %esp, " + subEsp * 4;
+				System.out.println(output);
+				statement.accept(this);
+			} else {
+				statement.accept(this);
+			}
+		}
+		
+		output = "\tleave\n";
+		output += "\tret\n";
+		System.out.println(output);
 		return null;
 	}
 
 	@Override
 	public Object visit(Program n) {
 		String output = "";
+		Integer subEsp = -1;
 		output += "\t.intel_syntax\n";
 		output += "\t.section .rodata\n";
 		output += ".io_format:\n";
@@ -994,13 +1082,21 @@ public class CodeVisitor implements Visitor<Object> {
 				output += "\t.string \"" + node.getLabel().substring(1, node.getLabel().length() - 1) + "\"\n";
 			}
 		}
-		output += "main:\n";
-		output += "\tpush   %ebp\n";
-		output += "\tmov    %ebp, %esp";
 		System.out.println(output);
 		
 		for (Statement statement : n.getStatements()) {
-			statement.accept(this);
+			if (statement instanceof VariableDeclarations) {
+				subEsp = (Integer)statement.accept(this);
+			} else if (statement instanceof CompoundStatement) {
+				output = "main:\n";
+				output += "\tpush   %ebp\n";
+				output += "\tmov    %ebp, %esp";
+				output += "\tsub    %esp, " + subEsp * 4;
+				System.out.println(output);
+				statement.accept(this);
+			} else {
+				statement.accept(this);
+			}
 		}
 		output = "\tleave\n";
 		output += "\tret\n";
@@ -1062,7 +1158,7 @@ public class CodeVisitor implements Visitor<Object> {
 		Integer lhs = (Integer)n.getLeftOperand().accept(this);
 		Integer rhs = (Integer)n.getRightOperand().accept(this);
 		String output = "";
-		output += "# Add...\n";
+		output += "# Subtract...\n";
 		if (n.getRealType() == TypeTable.FLOAT) {
 			// Push lhs and rhs onto the stack and pass their address
 			output += "\tpush   " + register[lhs] + "\n";
@@ -1087,12 +1183,12 @@ public class CodeVisitor implements Visitor<Object> {
 		if (n.getRealType() != n.getConvertedType()) {
 			if (n.getConvertedType() == TypeTable.FLOAT) {
 				output += "\n# Subtract Integer to Float...\n";
-				output += "\tpush    " + register[lhs] + "\n";
-				output += "\tfild    dword ptr [%esp]\n";
-				output += "\tadd     %esp, 4\n";
-				output += "\tsub     %esp, 4\n";
-				output += "\tfstp    dword ptr [%esp]\n";
-				output += "\tpop     " + register[lhs];
+				output += "\tpush   " + register[lhs] + "\n";
+				output += "\tfild   dword ptr [%esp]\n";
+				output += "\tadd    %esp, 4\n";
+				output += "\tsub    %esp, 4\n";
+				output += "\tfstp   dword ptr [%esp]\n";
+				output += "\tpop    " + register[lhs];
 			} else if (n.getConvertedType() == TypeTable.INTEGER) {
 				output += "\n# Subtract Float to Integer...\n";
 				output += "\tpush   " + register[lhs] + "\n";
@@ -1131,7 +1227,6 @@ public class CodeVisitor implements Visitor<Object> {
 
 	@Override
 	public Object visit(VariableDeclarations n) {
-		String output = "";
 		int subEsp = 0;
 		
 		for (ASTNode node : n.getDecls()) {
@@ -1147,9 +1242,7 @@ public class CodeVisitor implements Visitor<Object> {
 			}
 			node.accept(this);
 		}
-		output = "\tsub    %esp, " + (subEsp * 4) + "\n";
-		System.out.println(output);
-		return null;
+		return subEsp;
 	}
 
 	@Override

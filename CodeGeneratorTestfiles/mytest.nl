@@ -1,16 +1,14 @@
 PROGRAM proc;
 
-VAR c: INTEGER;
-	a: ARRAY[1..2] OF INTEGER; 
+VAR i, c: INTEGER;
 
-PROCEDURE b(x:FLOAT);
-
+PROCEDURE b(x:INTEGER);
+  VAR y: INTEGER;
   BEGIN
-    x:=1.0
+  	x := 1;
+  	WRITE(x)
   END;
 
 BEGIN
-  b(1.0);
-  b(c);
-  b(a[1])
+	b(1)
 END

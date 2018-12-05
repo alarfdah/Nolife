@@ -18,7 +18,7 @@ public class MemoryVisitor implements Visitor {
 	
 	private int constOffset = 0;
 	private int varOffset = 4;
-	private int paramOffset = 8;
+	private int paramOffset = 12;
 	
 	private HashMap<String, ASTNode> constantMap = new HashMap<>();
 	private Stack<HashMap<String, ASTNode>> scopeStack = new Stack<>();
@@ -45,7 +45,7 @@ public class MemoryVisitor implements Visitor {
 	}
 	
 	public void resetParamOffset() {
-		paramOffset = 8;
+		paramOffset = 12;
 	}
 	
 	public int getConstOffset() {

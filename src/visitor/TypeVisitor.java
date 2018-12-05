@@ -258,7 +258,10 @@ public class TypeVisitor implements Visitor<Integer> {
 			
 			// Check if each param matches
 			for (i = 0; i < paramsOfCall.size(); i++) {
-				if (paramsOfCall.get(i) != TypeTable.ANYTYPE && paramsOfCall.get(i) != paramsOfId.get(i)) {
+				if (paramsOfCall.get(i) != TypeTable.ANYTYPE 
+						&& (paramsOfCall.get(i) != TypeTable.INTEGER && paramsOfId.get(i) != TypeTable.FLOAT)
+						&& (paramsOfCall.get(i) != TypeTable.FLOAT && paramsOfId.get(i) != TypeTable.INTEGER)
+						&& paramsOfCall.get(i) != paramsOfId.get(i)) {
 					if (!printed) {
 						System.err.println("Parameters for the FUNCTION " + id + " do not match:");
 						printed = true;
@@ -317,7 +320,10 @@ public class TypeVisitor implements Visitor<Integer> {
 			
 			// Check if each param matches
 			for (i = 0; i < paramsOfCall.size(); i++) {
-				if (paramsOfCall.get(i) != TypeTable.ANYTYPE && paramsOfCall.get(i) != paramsOfId.get(i)) {
+				if (paramsOfCall.get(i) != TypeTable.ANYTYPE 
+						&& (paramsOfCall.get(i) != TypeTable.INTEGER && paramsOfId.get(i) != TypeTable.FLOAT)
+						&& (paramsOfCall.get(i) != TypeTable.FLOAT && paramsOfId.get(i) != TypeTable.INTEGER)
+						&& paramsOfCall.get(i) != paramsOfId.get(i)) {
 					if (!printed) {
 						System.err.println("Parameters for the PROCEDURE " + id + " do not match:");
 						printed = true;
