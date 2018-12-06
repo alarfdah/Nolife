@@ -1,5 +1,7 @@
 package visitor;
 
+import java.util.ArrayList;
+
 import ast.*;
 import util.TypeTable;
 
@@ -74,6 +76,7 @@ public class CodeVisitor implements Visitor<Object> {
 			output += "\tadd    %esp, 4";
 		} else {
 			output += "\tadd    " + register[lhs] + ", " + register[rhs] + "\n";			
+			
 		}
 		
 		if (n.getRealType() != n.getConvertedType()) {
@@ -270,41 +273,95 @@ public class CodeVisitor implements Visitor<Object> {
 	public Object visit(CallProcedure n) {
 		String output = "";
 		Integer regi = -1;
+		ASTNode paramNode;
 		int paramCount = 0;
+		int stackPushes = 0;
 		int minBound = -1;
 		int maxBound = -1;
+		int i = 0;
+		ArrayList<ASTNode> arrayParams = new ArrayList<ASTNode>();
+		ArrayList<Integer> paramReg = new ArrayList<Integer>();
+		
 		output += "# Call Procedure...";
 		System.out.println(output);
+		output = "";
 		
+		// Add all parameters to arraylist
 		if (null != n.getCallArguments()) {
 			Parameters params = (Parameters)n.getCallArguments();
 			for (ASTNode node : params.getParameters()) {
-				regi = (Integer)node.accept(this);
-				if (node instanceof IdRef || node instanceof ArrayRef) {
-					output = "\tpush   " + register[regi];			
-				} else if (node instanceof BinaryExpression) {
-					output = "\tpush   " + register[regi] + "\n";
-					output += "\tmov    " + register[regi] + ", %esp\n";
-					output += "\tpush   " + register[regi];
-					paramCount++;
-				} else {
-					System.err.println("PLEASE HANDLE CASE... callProcedure type " + n.getClass().getName());
-				}
-				System.out.println(output);
-				if (node instanceof IdRef && node.isArray()) {
-					maxBound = Integer.parseInt(node.getMaximumBound());
-					minBound = Integer.parseInt(node.getMinimumBound());
-					paramCount += maxBound - minBound + 1;
-				} else {
-					paramCount++;					
-				}
-				freeReg(regi);				
+				arrayParams.add(node);				
 			}
 		}
 		
+		for (i = (arrayParams.size() - 1); i >= 0; i--) {
+			if (arrayParams.get(i) instanceof BinaryExpression) {
+				regi = (Integer)arrayParams.get(i).accept(this);
+				output = "\tpush   " + register[regi] + "\n";
+				System.out.println(output);
+				stackPushes++;
+			}
+		}
+		
+		for (i = (arrayParams.size() - 1); i >= 0; i--) {
+			paramNode = arrayParams.get(i);
+			if (paramNode instanceof IdRef || paramNode instanceof ArrayRef) {
+				regi = (Integer)paramNode.accept(this);
+				output = "\tpush   " + register[regi] + "\n";
+				System.out.println(output);
+				freeReg(regi);
+			} else if (paramNode instanceof BinaryExpression) {
+				
+				System.out.println(output);
+			}
+			// Calculate the amount needed to be added back for array params
+			if (paramNode instanceof IdRef && paramNode.isArray()) {
+				maxBound = Integer.parseInt(paramNode.getMaximumBound());
+				minBound = Integer.parseInt(paramNode.getMinimumBound());
+				paramCount += maxBound - minBound + 1;
+			} else {
+				paramCount++;		
+			}
+		}
+		
+//		// Push BinaryExpression (Constant)
+//		for (i = (arrayParams.size() - 1); i >= 0 ;i--) {
+//			paramNode = arrayParams.get(i);
+//			regi = (Integer)paramNode.accept(this);
+//			if (paramNode instanceof BinaryExpression) {
+//				output = "\tpush   " + register[regi] + "\n";
+//				System.out.println(output);
+//				paramReg.add(regi);
+//			}
+//		}
+//		// Push IdRef addresses
+//		for (i = (arrayParams.size() - 1); i >= 0 ;i--) {
+//			paramNode = arrayParams.get(i);
+//			regi = (Integer)paramNode.accept(this);
+//			if (paramNode instanceof IdRef || paramNode instanceof ArrayRef) {
+//				output = "\tpush   " + register[regi] + "\n";
+//				System.out.println(output);
+//				freeReg(regi);
+//			}
+//			// Calculate the amount needed to be added back for array params
+//			if (paramNode instanceof IdRef && paramNode.isArray()) {
+//				maxBound = Integer.parseInt(paramNode.getMaximumBound());
+//				minBound = Integer.parseInt(paramNode.getMinimumBound());
+//				paramCount += maxBound - minBound + 1;
+//			} else {
+//				paramCount++;			
+//			}
+//		}
+//		// To push the constant put by BinaryExpression nodes as addresses instead of constants
+//		for (i = 0; i < paramReg.size(); i++) {
+//			output = "\tpush   " + register[paramReg.get(i)];
+//			System.out.println(output);
+//			freeReg(paramReg.get(i));
+//		}
 		output = "\tcall   " + n.getId() + "\n";
+		stackPushes += paramCount;
 		if (paramCount != 0) {
-			output += "\tadd    %esp, " + (paramCount * 4);			
+			output += "\tadd    %esp, " + (stackPushes * 4);			
 		}
 		System.out.println(output);
 		return null;

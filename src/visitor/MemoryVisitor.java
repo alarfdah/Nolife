@@ -416,27 +416,6 @@ public class MemoryVisitor implements Visitor<Object> {
 			n.setMinimumBound(minBound);
 			n.setMaximumBound(maxBound);
 		}
-//		int offset = 0;
-//		boolean local = false;
-//		boolean param = false;
-//		if (scopeStack.peek().containsKey(id)) {
-//			offset = scopeStack.peek().get(id).getOffset();
-//			local = scopeStack.peek().get(id).isLocal();
-//			param = scopeStack.peek().get(id).isParam();
-//			n.setOffset(offset);
-//			n.setLocal(local);
-//			n.setParam(param);
-//		} else if (scopeStack.get(0).containsKey(n.getId())) {
-//			offset = scopeStack.get(0).get(id).getOffset();
-//			local = scopeStack.get(0).get(id).isLocal();
-//			param = scopeStack.get(0).get(id).isParam();
-//			n.setOffset(offset);
-//			n.setLocal(local);
-//			n.setParam(param);
-//		} else {
-//			System.out.println("variable '" + id + "' never declared!");
-//		}
-		
 		return null;
 	}
 

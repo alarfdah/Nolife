@@ -1,16 +1,15 @@
 PROGRAM foo;
-  VAR a:INTEGER;
+  VAR x,y,z:INTEGER;
 
-PROCEDURE decls(a:INTEGER);
+PROCEDURE decls(a,b :INTEGER);
 BEGIN
   WRITE(a);
-  IF (a > 0) THEN
-    decls(a - 1)
-  ELSE
-    a := 0
+  WRITE(b)
 END;
 
 BEGIN
-  a := 5;
-  decls(a)
+  x := 1;
+  y := 5;
+  z := 6;
+  decls(x + y, z)
 END
