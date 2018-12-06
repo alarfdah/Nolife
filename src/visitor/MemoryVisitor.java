@@ -12,13 +12,13 @@ import java.util.Stack;
 import ast.*;
 import util.TypeTable;
 
-public class MemoryVisitor implements Visitor {
+public class MemoryVisitor implements Visitor<Object> {
 
 	// TODO Check reset offset
 	
 	private int constOffset = 0;
 	private int varOffset = 4;
-	private int paramOffset = 12;
+	private int paramOffset = 8;
 	
 	private HashMap<String, ASTNode> constantMap = new HashMap<>();
 	private Stack<HashMap<String, ASTNode>> scopeStack = new Stack<>();
@@ -45,7 +45,7 @@ public class MemoryVisitor implements Visitor {
 	}
 	
 	public void resetParamOffset() {
-		paramOffset = 12;
+		paramOffset = 8;
 	}
 	
 	public int getConstOffset() {
@@ -69,17 +69,20 @@ public class MemoryVisitor implements Visitor {
 	}
 	
 	public void printConstantMap() {
-		System.out.println("*****Constant Map*****");
-		for(ASTNode n : constantMap.values()) {
+		if (constantMap.size() == 0) {
+			System.out.println("NO CONSTANTS.");
+		}
+		for (ASTNode n : constantMap.values()) {
 			System.out.println("Value: " + n.getLabel() 
 			+ ", Type: " + TypeTable.getTypeName(n.getRealType()) + ", Offset: " + n.getOffset());
-		}	
+		}
 	}
 	
 	public void printVariableMap() {
-		System.out.println("*****Variable Map*****");
-		System.out.println("Global scope");
-		for(ASTNode n : scopeStack.get(0).values()) {
+		if (scopeStack.peek().size() == 0) {
+			System.out.println("NO VARIABLES.");
+		}
+		for (ASTNode n : scopeStack.peek().values()) {
 			System.out.println("Variable: " + n.getLabel() 
 			+ ", Type: " + TypeTable.getTypeName(n.getRealType()) + ", Offset: " + n.getOffset());
 		}
@@ -104,6 +107,7 @@ public class MemoryVisitor implements Visitor {
 		String minBound = n.getMinBound().getLabel();
 		String maxBound = n.getMaxBound().getLabel();
 		n.setOffset(getVarOffset());
+		n.setArray(true); // Needed for passing arrays without subscripts
 		n.setMinimumBound(minBound);
 		n.setMaximumBound(maxBound);
 		if (scopeStack.size() == 2)
@@ -125,26 +129,31 @@ public class MemoryVisitor implements Visitor {
 		int offset = 0;
 		boolean local = false;
 		boolean param = false;
+		boolean array = false;
 		if (scopeStack.peek().containsKey(id)) {
 			minBound = scopeStack.peek().get(id).getMinimumBound();
 			maxBound = scopeStack.peek().get(id).getMaximumBound();
 			offset = scopeStack.peek().get(id).getOffset();
 			local = scopeStack.peek().get(id).isLocal();
 			param = scopeStack.peek().get(id).isParam();
+			array = scopeStack.peek().get(id).isArray();
 			n.setOffset(offset);
 			n.setLocal(local);
 			n.setParam(param);
+			n.setArray(array);
 			n.setMinimumBound(minBound);
 			n.setMaximumBound(maxBound);
 		} else if (scopeStack.get(0).containsKey(n.getId())) {
-			minBound = scopeStack.peek().get(id).getMinimumBound();
-			maxBound = scopeStack.peek().get(id).getMaximumBound();
-			offset = scopeStack.peek().get(id).getOffset();
-			local = scopeStack.peek().get(id).isLocal();
-			param = scopeStack.peek().get(id).isParam();
+			minBound = scopeStack.get(0).get(id).getMinimumBound();
+			maxBound = scopeStack.get(0).get(id).getMaximumBound();
+			offset = scopeStack.get(0).get(id).getOffset();
+			local = scopeStack.get(0).get(id).isLocal();
+			param = scopeStack.get(0).get(id).isParam();
+			array = scopeStack.get(0).get(id).isArray();
 			n.setOffset(offset);
 			n.setLocal(local);
 			n.setParam(param);
+			n.setArray(array);
 			n.setMinimumBound(minBound);
 			n.setMaximumBound(maxBound);
 		} else {
@@ -162,26 +171,31 @@ public class MemoryVisitor implements Visitor {
 		String maxBound = "";
 		boolean local = false;
 		boolean param = false;
+		boolean array = false;
 		if (scopeStack.peek().containsKey(id)) {
 			minBound = scopeStack.peek().get(id).getMinimumBound();
 			maxBound = scopeStack.peek().get(id).getMaximumBound();
 			offset = scopeStack.peek().get(id).getOffset();
 			local = scopeStack.peek().get(id).isLocal();
 			param = scopeStack.peek().get(id).isParam();
+			array = scopeStack.peek().get(id).isArray();
 			n.setOffset(offset);
 			n.setLocal(local);
 			n.setParam(param);
+			n.setArray(array);
 			n.setMinimumBound(minBound);
 			n.setMaximumBound(maxBound);
 		} else if (scopeStack.get(0).containsKey(n.getId())) {
-			minBound = scopeStack.peek().get(id).getMinimumBound();
-			maxBound = scopeStack.peek().get(id).getMaximumBound();
-			offset = scopeStack.peek().get(id).getOffset();
-			local = scopeStack.peek().get(id).isLocal();
-			param = scopeStack.peek().get(id).isParam();
+			minBound = scopeStack.get(0).get(id).getMinimumBound();
+			maxBound = scopeStack.get(0).get(id).getMaximumBound();
+			offset = scopeStack.get(0).get(id).getOffset();
+			local = scopeStack.get(0).get(id).isLocal();
+			param = scopeStack.get(0).get(id).isParam();
+			array = scopeStack.get(0).get(id).isArray();
 			n.setOffset(offset);
 			n.setLocal(local);
 			n.setParam(param);
+			n.setArray(array);
 			n.setMinimumBound(minBound);
 			n.setMaximumBound(maxBound);
 		} else {
@@ -300,11 +314,15 @@ public class MemoryVisitor implements Visitor {
 			// Can have no parameters. So null node.
 			if (node != null) {
 				if (node instanceof Parameters) {
-					node.setLabel(id);;
+					node.setLabel(id);
 				}
 				node.accept(this);
 			}
 		}
+		
+		System.out.println("*****FUNCTION(" + n.getId() + ")******");
+		printVariableMap();
+		System.out.println("----------------------");
 		return null;
 	}
 
@@ -325,6 +343,7 @@ public class MemoryVisitor implements Visitor {
 	@Override
 	public Object visit(IdDecl n) {
 		n.setOffset(getVarOffset());
+		n.setArray(false);
 		if (scopeStack.size() == 2)
 			n.setLocal(true);
 		else
@@ -332,10 +351,6 @@ public class MemoryVisitor implements Visitor {
 		
 		scopeStack.peek().put(n.getId(), n);
 		incrementVarOffset(4);
-		
-//		System.out.println("Declared Variable: " + n.getId() + ", Type: " 
-//		+ n.getRealType() + ", Offset: " + n.getOffset()
-//		+ ", " + (scopeStack.size() == 1 ? "Global" : "Local"));
 		return null;
 	}
 
@@ -354,8 +369,8 @@ public class MemoryVisitor implements Visitor {
 			n.setParam(param);
 		} else if (scopeStack.get(0).containsKey(n.getId())) {
 			offset = scopeStack.get(0).get(id).getOffset();
-			local = scopeStack.peek().get(id).isLocal();
-			param = scopeStack.peek().get(id).isParam();
+			local = scopeStack.get(0).get(id).isLocal();
+			param = scopeStack.get(0).get(id).isParam();
 			n.setOffset(offset);
 			n.setLocal(local);
 			n.setParam(param);
@@ -367,27 +382,61 @@ public class MemoryVisitor implements Visitor {
 
 	@Override
 	public Object visit(IdRef n) {
+		int offset = -1;
 		String id = n.getId();
-		int offset = 0;
-		boolean local = false;
+		String maxBound = "";
+		String minBound = "";
+		boolean array = false;
 		boolean param = false;
+		boolean local = false;
 		if (scopeStack.peek().containsKey(id)) {
+			minBound = scopeStack.peek().get(id).getMinimumBound();
+			maxBound = scopeStack.peek().get(id).getMaximumBound();
 			offset = scopeStack.peek().get(id).getOffset();
 			local = scopeStack.peek().get(id).isLocal();
 			param = scopeStack.peek().get(id).isParam();
-			n.setOffset(offset);
+			array = scopeStack.peek().get(id).isArray();
 			n.setLocal(local);
 			n.setParam(param);
-		} else if (scopeStack.get(0).containsKey(n.getId())) {
+			n.setArray(array);
+			n.setOffset(offset);
+			n.setMinimumBound(minBound);
+			n.setMaximumBound(maxBound);
+		} else if (scopeStack.get(0).containsKey(id)) {
+			minBound = scopeStack.get(0).get(id).getMinimumBound();
+			maxBound = scopeStack.get(0).get(id).getMaximumBound();
 			offset = scopeStack.get(0).get(id).getOffset();
-			local = scopeStack.peek().get(id).isLocal();
-			param = scopeStack.peek().get(id).isParam();
-			n.setOffset(offset);
+			local = scopeStack.get(0).get(id).isLocal();
+			param = scopeStack.get(0).get(id).isParam();
+			array = scopeStack.get(0).get(id).isArray();
 			n.setLocal(local);
 			n.setParam(param);
-		} else {
-			System.out.println("variable '" + id + "' never declared!");
+			n.setArray(array);
+			n.setOffset(offset);
+			n.setMinimumBound(minBound);
+			n.setMaximumBound(maxBound);
 		}
+//		int offset = 0;
+//		boolean local = false;
+//		boolean param = false;
+//		if (scopeStack.peek().containsKey(id)) {
+//			offset = scopeStack.peek().get(id).getOffset();
+//			local = scopeStack.peek().get(id).isLocal();
+//			param = scopeStack.peek().get(id).isParam();
+//			n.setOffset(offset);
+//			n.setLocal(local);
+//			n.setParam(param);
+//		} else if (scopeStack.get(0).containsKey(n.getId())) {
+//			offset = scopeStack.get(0).get(id).getOffset();
+//			local = scopeStack.get(0).get(id).isLocal();
+//			param = scopeStack.get(0).get(id).isParam();
+//			n.setOffset(offset);
+//			n.setLocal(local);
+//			n.setParam(param);
+//		} else {
+//			System.out.println("variable '" + id + "' never declared!");
+//		}
+		
 		return null;
 	}
 
@@ -452,6 +501,7 @@ public class MemoryVisitor implements Visitor {
 	@Override
 	public Object visit(Parameters n) {
 		resetParamOffset();
+		
 		for (ASTNode node : n.getParameters()) {
 			if (node instanceof Declaration) { // Params in function signature
 				Declaration decl = (Declaration)node;
@@ -461,51 +511,24 @@ public class MemoryVisitor implements Visitor {
 						idDecl.setOffset(paramOffset);
 						idDecl.setLocal(true);
 						idDecl.setParam(true);
+						idDecl.setArray(true);
 						scopeStack.peek().put(idDecl.getId(), idDecl);
 					} else if (typeNode.getChild(0) instanceof ArrayDecl) {
 						ArrayDecl arrDecl = (ArrayDecl)typeNode.getChild(0);
 						arrDecl.setOffset(paramOffset);
 						arrDecl.setLocal(true);
 						arrDecl.setParam(true);
+						arrDecl.setArray(true);
 						arrDecl.setMinimumBound(arrDecl.getMinBound().getLabel());
 						arrDecl.setMaximumBound(arrDecl.getMaxBound().getLabel());
 						scopeStack.peek().put(arrDecl.getId(), arrDecl);
 					}
 					incrementParamOffset(4);
 				}
-			} else { // Params in a call
-				node.setOffset(paramOffset);
-				node.setLocal(true);
-				node.setParam(true);
-				scopeStack.peek().put(node.getLabel(), node);
-				incrementParamOffset(4);
+			} else { // Parameters in call functions
+				node.accept(this);
 			}
 		}
-//		Declaration decl;
-//		IdDecl idDecl;
-//		ArrayDecl arrDecl;
-//		for (ASTNode declNode : n.getParameters()) { // For each declaration
-//			decl = (Declaration)declNode;
-//			for (ASTNode typeNode : decl.getChildren()) { // For each type
-//				if (typeNode.getChild(0) instanceof IdDecl) {
-//					idDecl = (IdDecl)typeNode.getChild(0);
-//					idDecl.setOffset(paramOffset);
-//					idDecl.setLocal(true);
-//					idDecl.setParam(true);
-//					scopeStack.peek().put(idDecl.getId(), idDecl);
-//				} else if (typeNode.getChild(0) instanceof ArrayDecl) {
-//					arrDecl = (ArrayDecl)typeNode.getChild(0);
-//					arrDecl.setOffset(paramOffset);
-//					arrDecl.setLocal(true);
-//					arrDecl.setParam(true);
-//					arrDecl.setMinimumBound(arrDecl.getMinBound().getLabel());
-//					arrDecl.setMaximumBound(arrDecl.getMaxBound().getLabel());
-//					scopeStack.peek().put(arrDecl.getId(), arrDecl);
-//				}
-//				incrementParamOffset(4);
-//			}
-//				
-//		}
 		return null;
 	}
 
@@ -518,6 +541,9 @@ public class MemoryVisitor implements Visitor {
 				resetParamOffset();
 			}
 		}
+		System.out.println("*****PROCEDURE(" + n.getId() + ")******");
+		printVariableMap();
+		System.out.println("------------------------");
 		return null;
 	}
 
@@ -527,8 +553,13 @@ public class MemoryVisitor implements Visitor {
 		for (Statement statement : n.getStatements()) {
 			statement.accept(this);
 		}
+		System.out.println("*****Constant Map*****");
 		printConstantMap();
+		System.out.println("----------------------");
+		
+		System.out.println("*****GLOBAL SCOPE*****");
 		printVariableMap();
+		System.out.println("----------------------");
 		popFrame();
 		sortedConstMap = sortMap(constantMap);
 		

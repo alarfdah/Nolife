@@ -1,14 +1,16 @@
-PROGRAM proc;
+PROGRAM foo;
+  VAR a:INTEGER;
 
-VAR i, c: INTEGER;
-
-PROCEDURE b(x:INTEGER);
-  VAR y: INTEGER;
-  BEGIN
-  	x := 1;
-  	WRITE(x)
-  END;
+PROCEDURE decls(a:INTEGER);
+BEGIN
+  WRITE(a);
+  IF (a > 0) THEN
+    decls(a - 1)
+  ELSE
+    a := 0
+END;
 
 BEGIN
-	b(1)
+  a := 5;
+  decls(a)
 END

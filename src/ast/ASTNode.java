@@ -14,6 +14,7 @@ public abstract class ASTNode {
 	protected int offset;
 	protected boolean local;
 	protected boolean param = false;
+	protected boolean array = false;
 	protected String minimumBound;
 	protected String maximumBound;
 	
@@ -107,5 +108,13 @@ public abstract class ASTNode {
 		this.param = param;
 	}
 
+	public boolean isArray() {
+		return array;
+	}
+
+	public void setArray(boolean array) {
+		this.array = array;
+	}
+	
 	public abstract Object accept(Visitor visitor);
 }

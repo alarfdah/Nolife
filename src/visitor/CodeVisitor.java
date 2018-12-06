@@ -48,6 +48,13 @@ public class CodeVisitor implements Visitor<Object> {
 		String output = "";
 		output += "# Add...\n";
 		
+		// Dereference
+		if (n.getLeftOperand() instanceof IdRef || n.getLeftOperand() instanceof ArrayRef) {
+			output += "\tmov    " + register[lhs] + ", dword ptr [" + register[lhs] + "]\n";
+		}
+		if (n.getRightOperand() instanceof IdRef || n.getRightOperand() instanceof ArrayRef) {
+			output += "\tmov    " + register[rhs] + ", dword ptr [" + register[rhs] + "]\n";
+		}
 		if (n.getRealType() == TypeTable.FLOAT) {
 			// Push lhs and rhs onto the stack and pass their address
 			output += "\tpush   " + register[lhs] + "\n";
@@ -107,6 +114,13 @@ public class CodeVisitor implements Visitor<Object> {
 		int labelDone = getLabel();
 		
 		output += "# AND...\n";
+		// Dereference
+		if (n.getLeftOperand() instanceof IdRef || n.getLeftOperand() instanceof ArrayRef) {
+			output += "\tmov    " + register[lhs] + ", dword ptr [" + register[lhs] + "]\n";
+		}
+		if (n.getRightOperand() instanceof IdRef || n.getRightOperand() instanceof ArrayRef) {
+			output += "\tmov    " + register[rhs] + ", dword ptr [" + register[rhs] + "]\n";
+		}
 		if (n.getRealType() == TypeTable.INTEGER) {
 			output += "\tcmp    " + register[lhs] + ", 0\n";
 			output += "\tje     .L" + labelLeftOp + "\n";
@@ -178,6 +192,7 @@ public class CodeVisitor implements Visitor<Object> {
 		output += "\tmov    " + register[regj] + ", %ebp\n";
 		if (n.isParam()) {
 			output += "\tadd    " + register[regj] + ", " + n.getOffset() + "\n";
+			output += "\tmov    " + register[regi] + ", dword ptr [" + register[regi] + "]";
 		} else {
 			output += "\tsub    " + register[regj] + ", " + n.getOffset() + "\n";			
 		}
@@ -201,14 +216,13 @@ public class CodeVisitor implements Visitor<Object> {
 		output += "\tmov    " + register[regj] + ", %ebp\n";
 		if (n.isParam()) {
 			output += "\tadd    " + register[regj] + ", " + n.getOffset() + "\n";
+			output += "\tmov    " + register[regi] + ", dword ptr [" + register[regi] + "]";
 		} else {
 			output += "\tsub    " + register[regj] + ", " + n.getOffset() + "\n";			
 		}
 		
 		output += "\tadd    " + register[regj] + ", " + register[regi] + "\n";
 		
-		// Dereference
-		output += "\tmov    " + register[regj] + ", dword ptr [" + register[regj] + "]";
 		System.out.println(output);
 		freeReg(regi);
 		return regj;
@@ -257,6 +271,8 @@ public class CodeVisitor implements Visitor<Object> {
 		String output = "";
 		Integer regi = -1;
 		int paramCount = 0;
+		int minBound = -1;
+		int maxBound = -1;
 		output += "# Call Procedure...";
 		System.out.println(output);
 		
@@ -264,15 +280,32 @@ public class CodeVisitor implements Visitor<Object> {
 			Parameters params = (Parameters)n.getCallArguments();
 			for (ASTNode node : params.getParameters()) {
 				regi = (Integer)node.accept(this);
-				output = "\tpush   " + register[regi];
+				if (node instanceof IdRef || node instanceof ArrayRef) {
+					output = "\tpush   " + register[regi];			
+				} else if (node instanceof BinaryExpression) {
+					output = "\tpush   " + register[regi] + "\n";
+					output += "\tmov    " + register[regi] + ", %esp\n";
+					output += "\tpush   " + register[regi];
+					paramCount++;
+				} else {
+					System.err.println("PLEASE HANDLE CASE... callProcedure type " + n.getClass().getName());
+				}
 				System.out.println(output);
-				paramCount++;
+				if (node instanceof IdRef && node.isArray()) {
+					maxBound = Integer.parseInt(node.getMaximumBound());
+					minBound = Integer.parseInt(node.getMinimumBound());
+					paramCount += maxBound - minBound + 1;
+				} else {
+					paramCount++;					
+				}
 				freeReg(regi);				
 			}
 		}
 		
 		output = "\tcall   " + n.getId() + "\n";
-		output += "\tadd    %esp, " + (paramCount * 4);
+		if (paramCount != 0) {
+			output += "\tadd    %esp, " + (paramCount * 4);			
+		}
 		System.out.println(output);
 		return null;
 	}
@@ -300,6 +333,10 @@ public class CodeVisitor implements Visitor<Object> {
 		String output = "";
 		
 		Integer regi = (Integer)n.getCaseExpression().accept(this);
+		// Dereference
+		if (n.getCaseExpression() instanceof IdRef || n.getCaseExpression() instanceof ArrayRef) {
+			output += "\tmov    " + register[regi] + ", dword ptr [" + register[regi] + "]\n";
+		}
 		
 		String[] clauseLabels;
 		int i = 0;
@@ -429,6 +466,13 @@ public class CodeVisitor implements Visitor<Object> {
 		int labelDone = getLabel();
 		
 		output += "# Equal Equal...\n";
+		// Dereference
+		if (n.getLeftOperand() instanceof IdRef || n.getLeftOperand() instanceof ArrayRef) {
+			output += "\tmov    " + register[lhs] + ", dword ptr [" + register[lhs] + "]\n";
+		}
+		if (n.getRightOperand() instanceof IdRef || n.getRightOperand() instanceof ArrayRef) {
+			output += "\tmov    " + register[rhs] + ", dword ptr [" + register[rhs] + "]\n";
+		}
 		if (n.getRealType() == TypeTable.INTEGER) {
 			output += "\tcmp    " + register[lhs] + ", " + register[rhs] + "\n";
 			
@@ -474,8 +518,10 @@ public class CodeVisitor implements Visitor<Object> {
 			} else if (statement instanceof CompoundStatement) {
 				output = n.getId() + ":\n";
 				output += "\tpush   %ebp\n";
-				output += "\tmov    %ebp, %esp";
-				output += "\tsub    %esp, " + subEsp * 4;
+				output += "\tmov    %ebp, %esp\n";
+				if (subEsp != -1) {
+					output += "\tsub    %esp, " + subEsp * 4;					
+				}
 				System.out.println(output);
 				statement.accept(this);
 			} else {
@@ -493,6 +539,7 @@ public class CodeVisitor implements Visitor<Object> {
 	public Object visit(GreaterThan n) {
 		Integer lhs = (Integer)n.getLeftOperand().accept(this);
 		Integer rhs = (Integer)n.getRightOperand().accept(this);
+		
 		String output = "";
 		incrementLabel();
 		int labelGreaterThan = getLabel();
@@ -502,6 +549,13 @@ public class CodeVisitor implements Visitor<Object> {
 		int labelDone = getLabel();
 		
 		output += "# Greater Than...\n";
+		// Dereference
+		if (n.getLeftOperand() instanceof IdRef || n.getLeftOperand() instanceof ArrayRef) {
+			output += "\tmov    " + register[lhs] + ", dword ptr [" + register[lhs] + "]\n";
+		}
+		if (n.getRightOperand() instanceof IdRef || n.getRightOperand() instanceof ArrayRef) {
+			output += "\tmov    " + register[rhs] + ", dword ptr [" + register[rhs] + "]\n";
+		}
 		if (n.getRealType() == TypeTable.INTEGER) {
 			output += "\tcmp    " + register[lhs] + ", " + register[rhs] + "\n";
 			
@@ -548,6 +602,13 @@ public class CodeVisitor implements Visitor<Object> {
 		int labelDone = getLabel();
 		
 		output += "# Greater Than Equal...\n";
+		// Dereference
+		if (n.getLeftOperand() instanceof IdRef || n.getLeftOperand() instanceof ArrayRef) {
+			output += "\tmov    " + register[lhs] + ", dword ptr [" + register[lhs] + "]\n";
+		}
+		if (n.getRightOperand() instanceof IdRef || n.getRightOperand() instanceof ArrayRef) {
+			output += "\tmov    " + register[rhs] + ", dword ptr [" + register[rhs] + "]\n";
+		}
 		if (n.getRealType() == TypeTable.INTEGER) {
 			output += "\tcmp    " + register[lhs] + ", " + register[rhs] + "\n";
 			
@@ -594,7 +655,8 @@ public class CodeVisitor implements Visitor<Object> {
 		output += "# IdDef...\n";
 		output += "\tmov    " + register[regi] + ", %ebp\n";
 		if (n.isParam()) {
-			output += "\tadd    " + register[regi] + ", " + n.getOffset();				
+			output += "\tadd    " + register[regi] + ", " + n.getOffset() + "\n";
+			output += "\tmov    " + register[regi] + ", dword ptr [" + register[regi] + "]";
 		} else {
 			output += "\tsub    " + register[regi] + ", " + n.getOffset();			
 		}
@@ -607,28 +669,32 @@ public class CodeVisitor implements Visitor<Object> {
 		int regi = findEmptyReg(-1);
 		String output = "";
 		output += "# IdRef...\n";
-		if (n.isParam()) {
-			output += "\tmov    " + register[regi] + ", dword ptr [%ebp + " + n.getOffset() + "]";						
+		output += "\tmov    " + register[regi] + ", %ebp\n";
+		if (n.isParam()) { // This is an address
+			output += "\tadd    " + register[regi] + ", " + n.getOffset() + "\n";
+			output += "\tmov    " + register[regi] + ", dword ptr [" + register[regi] + "]";
 		} else {
-			output += "\tmov    " + register[regi] + ", dword ptr [%ebp - " + n.getOffset() + "]";							
+			output += "\tsub    " + register[regi] + ", " + n.getOffset();			
 		}
 		if (n.getRealType() != n.getConvertedType()) {
 			if (n.getConvertedType() == TypeTable.FLOAT) {
 				output += "\n# Integer to Float...\n";
-				output += "\tpush   " + register[regi] + "\n";
+				output += "\tpush   dword ptr [" + register[regi] + "]\n";
 				output += "\tfild   dword ptr [%esp]\n";
 				output += "\tadd    %esp, 4\n";
 				output += "\tsub    %esp, 4\n";
 				output += "\tfstp   dword ptr [%esp]\n";
-				output += "\tpop    " + register[regi];
+				output += "\tmov    " + register[regi] + ", %esp\n";
+				output += "\tadd    %esp, 4";
 			} else if (n.getConvertedType() == TypeTable.INTEGER) {
 				output += "\n# Float to Integer...\n";
-				output += "\tpush   " + register[regi] + "\n";
+				output += "\tpush   dword ptr [" + register[regi] + "]\n";
 				output += "\tfld    dword ptr [%esp]\n";
 				output += "\tadd    %esp, 4\n";
 				output += "\tsub    %esp, 4\n";
 				output += "\tfisttp dword ptr [%esp]\n";
-				output += "\tpop    " + register[regi];
+				output += "\tmov    " + register[regi] + ", %esp\n";
+				output += "\tadd    %esp, 4";
 			}
 		}
 		System.out.println(output);
@@ -669,7 +735,7 @@ public class CodeVisitor implements Visitor<Object> {
 			incrementLabel();
 			labelDone = getLabel();
 			
-			output += "\tcmp    " + register[regi] + ", 0\n";
+			output += "\tcmp    dword ptr [" + register[regi] + "], 0\n";
 			output += "\tje     .L" + labelFalse;
 			System.out.println(output);
 			
@@ -734,6 +800,13 @@ public class CodeVisitor implements Visitor<Object> {
 		int labelDone = getLabel();
 		
 		output += "# Less Than...\n";
+		// Dereference
+		if (n.getLeftOperand() instanceof IdRef || n.getLeftOperand() instanceof ArrayRef) {
+			output += "\tmov    " + register[lhs] + ", dword ptr [" + register[lhs] + "]\n";
+		}
+		if (n.getRightOperand() instanceof IdRef || n.getRightOperand() instanceof ArrayRef) {
+			output += "\tmov    " + register[rhs] + ", dword ptr [" + register[rhs] + "]\n";
+		}
 		if (n.getRealType() == TypeTable.INTEGER) {
 			output += "\tcmp    " + register[lhs] + ", " + register[rhs] + "\n";
 			
@@ -781,6 +854,13 @@ public class CodeVisitor implements Visitor<Object> {
 		int labelDone = getLabel();
 		
 		output += "# Less Than Equal...\n";
+		// Dereference
+		if (n.getLeftOperand() instanceof IdRef || n.getLeftOperand() instanceof ArrayRef) {
+			output += "\tmov    " + register[lhs] + ", dword ptr [" + register[lhs] + "]\n";
+		}
+		if (n.getRightOperand() instanceof IdRef || n.getRightOperand() instanceof ArrayRef) {
+			output += "\tmov    " + register[rhs] + ", dword ptr [" + register[rhs] + "]\n";
+		}
 		if (n.getRealType() == TypeTable.INTEGER) {
 			output += "\tcmp    " + register[lhs] + ", " + register[rhs] + "\n";
 			
@@ -821,6 +901,13 @@ public class CodeVisitor implements Visitor<Object> {
 		String output = "";
 		int eax = findEmptyReg(0);
 		int edx = findEmptyReg(5);
+		// Dereference
+		if (n.getLeftOperand() instanceof IdRef || n.getLeftOperand() instanceof ArrayRef) {
+			output += "\tmov    " + register[lhs] + ", dword ptr [" + register[lhs] + "]\n";
+		}
+		if (n.getRightOperand() instanceof IdRef || n.getRightOperand() instanceof ArrayRef) {
+			output += "\tmov    " + register[rhs] + ", dword ptr [" + register[rhs] + "]\n";
+		}
 		output += "# Modulo...\n";
 		output += "\tmov    " + register[eax] + ", " + lhs;
 		output += "\tcdq\n";
@@ -839,6 +926,13 @@ public class CodeVisitor implements Visitor<Object> {
 		Integer rhs = (Integer)n.getRightOperand().accept(this);
 		String output = "";
 		output += "# Multiply...\n";
+		// Dereference
+		if (n.getLeftOperand() instanceof IdRef || n.getLeftOperand() instanceof ArrayRef) {
+			output += "\tmov    " + register[lhs] + ", dword ptr [" + register[lhs] + "]\n";
+		}
+		if (n.getRightOperand() instanceof IdRef || n.getRightOperand() instanceof ArrayRef) {
+			output += "\tmov    " + register[rhs] + ", dword ptr [" + register[rhs] + "]\n";
+		}
 		if (n.getRealType() == TypeTable.FLOAT) {
 			// Push lhs and rhs onto the stack and pass their address
 			output += "\tpush   " + register[lhs] + "\n";
@@ -891,7 +985,10 @@ public class CodeVisitor implements Visitor<Object> {
 		String output = "";
 		output = "# NOT...\n";
 		Integer regi = (Integer)n.getNotChild().accept(this);
-		
+		// Dereference
+		if (n.getNotChild() instanceof IdRef || n.getNotChild() instanceof ArrayRef) {
+			output += "\tmov    " + register[regi] + ", dword ptr [" + register[regi] + "]\n";
+		}
 		incrementLabel();
 		int isZero = getLabel();
 		incrementLabel();
@@ -924,6 +1021,13 @@ public class CodeVisitor implements Visitor<Object> {
 		int labelDone = getLabel();
 		
 		output += "# Equal Equal...\n";
+		// Dereference
+		if (n.getLeftOperand() instanceof IdRef || n.getLeftOperand() instanceof ArrayRef) {
+			output += "\tmov    " + register[lhs] + ", dword ptr [" + register[lhs] + "]\n";
+		}
+		if (n.getRightOperand() instanceof IdRef || n.getRightOperand() instanceof ArrayRef) {
+			output += "\tmov    " + register[rhs] + ", dword ptr [" + register[rhs] + "]\n";
+		}
 		if (n.getRealType() == TypeTable.INTEGER) {
 			output += "\tcmp    " + register[lhs] + ", " + register[rhs] + "\n";
 			
@@ -970,6 +1074,13 @@ public class CodeVisitor implements Visitor<Object> {
 		int labelDone = getLabel();
 		
 		output += "# OR...\n";
+		// Dereference
+		if (n.getLeftOperand() instanceof IdRef || n.getLeftOperand() instanceof ArrayRef) {
+			output += "\tmov    " + register[lhs] + ", dword ptr [" + register[lhs] + "]\n";
+		}
+		if (n.getRightOperand() instanceof IdRef || n.getRightOperand() instanceof ArrayRef) {
+			output += "\tmov    " + register[rhs] + ", dword ptr [" + register[rhs] + "]\n";
+		}
 		if (n.getRealType() == TypeTable.INTEGER) {
 			output += "\tcmp    " + register[lhs] + ", 0\n";
 			output += "\tjne    .L" + labelLeftOp + "\n";
@@ -1040,8 +1151,10 @@ public class CodeVisitor implements Visitor<Object> {
 			} else if (statement instanceof CompoundStatement) {
 				output = n.getId() + ":\n";
 				output += "\tpush   %ebp\n";
-				output += "\tmov    %ebp, %esp";
-				output += "\tsub    %esp, " + subEsp * 4;
+				output += "\tmov    %ebp, %esp\n";
+				if (subEsp != -1) {
+					output += "\tsub    %esp, " + subEsp * 4;					
+				}
 				System.out.println(output);
 				statement.accept(this);
 			} else {
@@ -1090,8 +1203,10 @@ public class CodeVisitor implements Visitor<Object> {
 			} else if (statement instanceof CompoundStatement) {
 				output = "main:\n";
 				output += "\tpush   %ebp\n";
-				output += "\tmov    %ebp, %esp";
-				output += "\tsub    %esp, " + subEsp * 4;
+				output += "\tmov    %ebp, %esp\n";
+				if (subEsp != -1) {
+					output += "\tsub    %esp, " + subEsp * 4;					
+				}
 				System.out.println(output);
 				statement.accept(this);
 			} else {
@@ -1159,6 +1274,13 @@ public class CodeVisitor implements Visitor<Object> {
 		Integer rhs = (Integer)n.getRightOperand().accept(this);
 		String output = "";
 		output += "# Subtract...\n";
+		// Dereference
+		if (n.getLeftOperand() instanceof IdRef || n.getLeftOperand() instanceof ArrayRef) {
+			output += "\tmov    " + register[lhs] + ", dword ptr [" + register[lhs] + "]\n";
+		}
+		if (n.getRightOperand() instanceof IdRef || n.getRightOperand() instanceof ArrayRef) {
+			output += "\tmov    " + register[rhs] + ", dword ptr [" + register[rhs] + "]\n";
+		}
 		if (n.getRealType() == TypeTable.FLOAT) {
 			// Push lhs and rhs onto the stack and pass their address
 			output += "\tpush   " + register[lhs] + "\n";
@@ -1269,7 +1391,10 @@ public class CodeVisitor implements Visitor<Object> {
 		
 		// Run the loop check
 		Integer regi = (Integer)n.getWhileExpression().accept(this);
-		
+		// Dereference
+		if (n.getWhileExpression() instanceof IdRef || n.getWhileExpression() instanceof ArrayRef) {
+			output += "\tmov    " + register[regi] + ", dword ptr [" + register[regi] + "]\n";
+		}
 		// Compare the value given back form the check
 		// If not equal, run loop again
 		output = "\tcmp    " + register[regi] + ", 0\n";
@@ -1287,7 +1412,7 @@ public class CodeVisitor implements Visitor<Object> {
 		if (n.getOutput() instanceof ConstantFloat) {
 			output += "# Print Float Constant...\n";
 			output += "\tsub    %esp, 8\n";
-			output += "\tpush     " + register[regi] + "\n";
+			output += "\tpush   " + register[regi] + "\n";
 			output += "\tfld    dword ptr [%esp]\n";
 			output += "\tadd    %esp, 4\n";
 			output += "\tsub    %esp, 4\n";
@@ -1310,7 +1435,6 @@ public class CodeVisitor implements Visitor<Object> {
 		} else if (n.getOutput() instanceof ConstantString) {
 			output += "# Print String Constant...\n";
 			output += "\tpush   " + register[regi] + "\n";
-			
 			output += "\tpush   [offset flat:.io_format + 12]\n";
 			output += "\tcall   printf\n";
 			output += "\tadd    %esp, 8";
@@ -1323,7 +1447,7 @@ public class CodeVisitor implements Visitor<Object> {
 		} else if (n.getOutput() instanceof IdRef || n.getOutput() instanceof ArrayRef) {
 			if (n.getOutput().getRealType() == TypeTable.FLOAT) {
 				output += "# Print Float Reference...\n";
-				output += "\tpush   " + register[regi] + "\n";					
+				output += "\tpush   dword ptr [" + register[regi] + "]\n";					
 				output += "\tfld    dword ptr [%esp]\n";
 				output += "\tadd    %esp, 4\n";
 				output += "\tsub    %esp, 8\n";
@@ -1333,13 +1457,13 @@ public class CodeVisitor implements Visitor<Object> {
 				output += "\tadd    %esp, 12";
 			} else if (n.getOutput().getRealType() == TypeTable.INTEGER) {
 				output += "# Print Integer Reference...\n";
-				output += "\tpush   " + register[regi] + "\n";					
+				output += "\tpush   dword ptr [" + register[regi] + "]\n";					
 				output += "\tpush   [offset flat:.io_format + 4]\n";
 				output += "\tcall   printf\n";
 				output += "\tadd    %esp, 8";
 			} else if (n.getOutput().getRealType() == TypeTable.CHARACTER) {
 				output += "# Print Character Reference...\n";
-				output += "\tpush   " + register[regi] + "\n";
+				output += "\tpush   dword ptr [" + register[regi] + "]\n";
 				output += "\tpush   [offset flat:.io_format + 8]\n";
 				output += "\tcall   printf\n";
 				output += "\tadd    %esp, 8";
