@@ -144,6 +144,7 @@ public class TypeVisitor implements Visitor<Integer> {
 		if (!SymbolTable.isDeclaredLocal(id) && !SymbolTable.isDeclaredGlobal(id)) {
 			System.err.println("ARRAY " + id + " is not declared!");
 			n.setRealType(TypeTable.ANYTYPE);
+			n.setConvertedType(TypeTable.ANYTYPE);
 		} else {
 			String expr = "";
 			
@@ -154,6 +155,7 @@ public class TypeVisitor implements Visitor<Integer> {
 			if (SymbolTable.getVarType(id).equals("VARIABLE")) {
 				System.err.println("Incorrect number of dimensions of variable " + id);
 				n.setRealType(TypeTable.ANYTYPE);
+				n.setConvertedType(TypeTable.ANYTYPE);
 			// If variable
 			} else {
 				// If constant valued expression then check bounds
@@ -187,6 +189,7 @@ public class TypeVisitor implements Visitor<Integer> {
 
 				// Set type of ArrayDef from type of ArrayDecl
 				n.setRealType(SymbolTable.getDeclaredType(id));
+				n.setConvertedType(SymbolTable.getDeclaredType(id));
 			}
 			
 		}
@@ -555,6 +558,7 @@ public class TypeVisitor implements Visitor<Integer> {
 			
 			// Set the type to ANYTYPE
 			n.setRealType(TypeTable.ANYTYPE);
+			n.setConvertedType(TypeTable.ANYTYPE);
 		} else {
 			
 			// It is referenced
@@ -564,10 +568,12 @@ public class TypeVisitor implements Visitor<Integer> {
 			if (checkArraySubscript && SymbolTable.getVarType(id).equals("ARRAY")) {
 				System.err.println("Incorrect number of dimensions of array " + id);
 				n.setRealType(TypeTable.ANYTYPE);
+				n.setConvertedType(TypeTable.ANYTYPE);
 			// If variable
 			} else {
 				// Set the type of IdRef from declaration
 				n.setRealType(SymbolTable.getDeclaredType(id));				
+				n.setConvertedType(SymbolTable.getDeclaredType(id));
 			}
 		}
 		return n.getRealType();

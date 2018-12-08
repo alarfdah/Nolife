@@ -46,6 +46,13 @@ END;
 {*main*}
 BEGIN
 	init(x);
+	writearray(x);
+	i:=1;
+	WHILE i<=10 DO BEGIN
+	  x[i]:= x[i]*i;
+	  inc(x[i]); 
+	  i:=i+1
+	END;
 	writearray(x)
 
 

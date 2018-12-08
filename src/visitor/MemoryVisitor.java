@@ -126,9 +126,9 @@ public class MemoryVisitor implements Visitor<Object> {
 		
 		scopeStack.peek().put(n.getId(), n);
 		if (isInteger(maxBound) && isInteger(minBound)) {
-			incrementVarOffset((Integer.parseInt(maxBound) - Integer.parseInt(minBound)) * 4);			
+			incrementVarOffset((Integer.parseInt(maxBound) - Integer.parseInt(minBound) + 1) * 4);			
 		} else {
-			incrementVarOffset((maxBound.charAt(1) - minBound.charAt(1)) * 4);						
+			incrementVarOffset((maxBound.charAt(1) - minBound.charAt(1) + 1) * 4);						
 		}
 		return null;
 	}

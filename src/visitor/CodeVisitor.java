@@ -172,9 +172,10 @@ public class CodeVisitor implements Visitor<Object> {
 	public Object visit(ArrayDef n) {
 		Integer regi = (Integer)n.getSubscriptExpression().accept(this);
 		int minBound = Integer.parseInt(n.getMinimumBound());
+		int maxBound = Integer.parseInt(n.getMaximumBound());
 		int regj = findEmptyReg(-1);
 		String output = "";
-		output += "# Array Definition(" + n.getId() + ")...\n";
+		output += "# ArrayDef(" + n.getId() + ")...\n";
 		
 		output += "\tsub    " + register[regi] + ", " + minBound + "\n";
 		output += "\timul   " + register[regi] + ", 4\n";
@@ -191,10 +192,10 @@ public class CodeVisitor implements Visitor<Object> {
 			output += "\tadd    " + register[regj] + ", " + n.getOffset() + "\n";
 			output += "\tmov    " + register[regj] + ", dword ptr [" + register[regj] + "]\n";
 		} else {
-			output += "\tsub    " + register[regj] + ", " + n.getOffset() + "\n";			
+			output += "\tsub    " + register[regj] + ", " + (((maxBound - minBound) * 4) + n.getOffset()) + "\n";			
 		}
 		
-		output += "\tsub    " + register[regj] + ", " + register[regi];
+		output += "\tadd    " + register[regj] + ", " + register[regi];
 		System.out.println(output);
 		freeReg(regi);
 		return regj;
@@ -204,10 +205,11 @@ public class CodeVisitor implements Visitor<Object> {
 	public Object visit(ArrayRef n) {
 		Integer regi = (Integer)n.getSubscriptExpression().accept(this);
 		int minBound = Integer.parseInt(n.getMinimumBound());
+		int maxBound = Integer.parseInt(n.getMaximumBound());
 		int regj = findEmptyReg(-1);
 		String output = "";
 		
-		output += "# Array Reference(" + n.getId() + ")...\n";
+		output += "# ArrayRef(" + n.getId() + ")...\n";
 		
 		output += "\tsub    " + register[regi] + ", " + minBound + "\n";
 		output += "\timul   " + register[regi] + ", 4\n";
@@ -224,10 +226,10 @@ public class CodeVisitor implements Visitor<Object> {
 			output += "\tadd    " + register[regj] + ", " + n.getOffset() + "\n";
 			output += "\tmov    " + register[regj] + ", dword ptr [" + register[regj] + "]\n";
 		} else {
-			output += "\tsub    " + register[regj] + ", " + n.getOffset() + "\n";			
+			output += "\tsub    " + register[regj] + ", " + (((maxBound - minBound) * 4) + n.getOffset()) + "\n";			
 		}
 		
-		output += "\tsub    " + register[regj] + ", " + register[regi] + "\n";
+		output += "\tadd    " + register[regj] + ", " + register[regi] + "\n";
 		output += "\tmov    " + register[regj] + ", dword ptr [" + register[regj] + "]\n";
 		
 		if (n.getRealType() != n.getConvertedType()) {
@@ -269,10 +271,17 @@ public class CodeVisitor implements Visitor<Object> {
 		return null;
 	}
 
+	/**
+	 *  Please read CallProcedure's explanation as they are pretty similar
+	 *  The only difference is that callFunction expects a return value from eax
+	 *  which it stores into a separate register after the call has been done.
+	 *  Then frees(%eax) 
+	 */
 	@Override
 	public Object visit(CallFunction n) {
 		String output = "";
 		Integer regi = -1;
+		Integer regj = -1;
 		ASTNode paramNode;
 		int paramCount = 0;
 		int stackPushes = 0;
@@ -280,94 +289,6 @@ public class CodeVisitor implements Visitor<Object> {
 		int maxBound = -1;
 		int i = 0, j = 0;
 		
-		ArrayList<ASTNode> arrayParams = new ArrayList<ASTNode>();		// Parameters of call
-		ArrayList<Integer> stackPushOffset = new ArrayList<Integer>();	// Constant's offset
-		
-		output += "# Call Function...";
-		System.out.println(output);
-		output = "";
-		
-		// Add all parameters to arraylist
-		if (null != n.getCallArguments()) {
-			Parameters params = (Parameters)n.getCallArguments();
-			for (ASTNode node : params.getParameters()) {
-				arrayParams.add(node);				
-			}
-		}
-		
-		// Save parameters
-		output = "\tpush   %ebx\n";
-		output += "\tpush   %ecx\n";
-		output += "\tpush   %edx\n";
-		output += "\tpush   %edi\n";
-		output += "\tpush   %esi\n";
-		System.out.println(output);
-		
-		for (i = (arrayParams.size() - 1); i >= 0; i--) {
-			System.out.println("# CONSTANT VALUED PARAMS\n");
-			regi = (Integer)arrayParams.get(i).accept(this);
-			output = "\tpush   " + register[regi] + "\n";
-			System.out.println(output);
-			stackPushes++;
-			stackPushOffset.add(stackPushes);
-			freeReg(regi);
-			
-		}
-		
-		for (i = (arrayParams.size() - 1); i >= 0; i--) {
-			paramNode = arrayParams.get(i);
-			regi = findEmptyReg(-1);
-			output = "\tmov    " + register[regi] + ", %esp\n";
-			output += "# offset = " + stackPushOffset.get(j) + "\n";
-			output += "\tadd    " + register[regi] + ", " 
-			+ (((stackPushes - stackPushOffset.get(j++)) + paramCount) * 4) + "\n";
-			output += "\tpush   " + register[regi];
-			System.out.println(output);
-			freeReg(regi);
-		
-			// Calculate the amount needed to be added back for array params
-			if (paramNode instanceof IdRef && paramNode.isArray()) {
-				maxBound = Integer.parseInt(paramNode.getMaximumBound());
-				minBound = Integer.parseInt(paramNode.getMinimumBound());
-				paramCount += maxBound - minBound + 1;
-			} else {
-				paramCount++;
-			}
-		}
-		
-		
-		output = "\tcall   " + n.getId() + "\n";
-		
-		
-		stackPushes += paramCount;
-		if (paramCount != 0) {
-			output += "\tadd    %esp, " + (stackPushes * 4) + "\n";			
-		}
-		output += "\tpop   %esi\n";
-		output += "\tpop   %edi\n";
-		output += "\tpop   %edx\n";
-		output += "\tpop   %ecx\n";
-		output += "\tpop   %ebx\n";
-		System.out.println(output);
-		
-		// Since I get back a result in eax
-		regi = findEmptyReg(-1);
-		output = "\tmov    " + register[regi] + ", %eax\n";
-		System.out.println(output);
-		freeReg(0);
-		return regi;
-	}
-
-	@Override
-	public Object visit(CallProcedure n) {
-		String output = "";
-		Integer regi = -1;
-		ASTNode paramNode;
-		int paramCount = 0;
-		int stackPushes = 0;
-		int minBound = -1;
-		int maxBound = -1;
-		int i = 0, j = 0;
 		
 		ArrayList<ASTNode> arrayParams = new ArrayList<ASTNode>();		// Parameters of call
 		ArrayList<Integer> stackPushOffset = new ArrayList<Integer>();	// Constant's offset
@@ -393,48 +314,303 @@ public class CodeVisitor implements Visitor<Object> {
 		System.out.println(output);
 		
 		for (i = (arrayParams.size() - 1); i >= 0; i--) {
+			paramNode = arrayParams.get(i);
 			System.out.println("# CONSTANT VALUED PARAMS\n");
-			regi = (Integer)arrayParams.get(i).accept(this);
-			output = "\tpush   " + register[regi] + "\n";
-			System.out.println(output);
-			stackPushes++;
-			stackPushOffset.add(stackPushes);
-			freeReg(regi);
+			// If the IdRef is an array, do not push as a constant
+			if (paramNode instanceof IdRef && paramNode.getRealType() == paramNode.getConvertedType()) {
+				// DO NOTHING
+			} else if (paramNode instanceof ArrayRef && paramNode.getRealType() == paramNode.getConvertedType()) {
+				// DO NOTHING
+			} else if (paramNode instanceof IdRef && paramNode.isArray()) {
+				// DO NOTHING
+			}else { // Push constant values
+				regi = (Integer)paramNode.accept(this);
+				output = "\tpush   " + register[regi] + "\n";
+				System.out.println(output);
+				stackPushes++;
+				stackPushOffset.add(stackPushes);
+				freeReg(regi);				
+			}
 		
 		}
 		
 		for (i = (arrayParams.size() - 1); i >= 0; i--) {
 			paramNode = arrayParams.get(i);
-			regi = findEmptyReg(-1);
-			output = "\tmov    " + register[regi] + ", %esp\n";
-			output += "# offset = " + stackPushOffset.get(j) + "\n";
-			output += "\tadd    " + register[regi] + ", " 
-			+ (((stackPushes - stackPushOffset.get(j++)) + paramCount) * 4) + "\n";
-			output += "\tpush   " + register[regi];
-			System.out.println(output);
-			freeReg(regi);
-		
-			// Calculate the amount needed to be added back for array params
-			if (paramNode instanceof IdRef && paramNode.isArray()) {
-				maxBound = Integer.parseInt(paramNode.getMaximumBound());
+			// Should be the same type. If not then what was returned was a constant
+			if (paramNode instanceof IdRef && paramNode.getRealType() == paramNode.getConvertedType()) {
+				regi = findEmptyReg(-1);
+				
+				
+				if (paramNode.isLocal()) {
+					output = "\tmov    " + register[regi] + ", %ebp\n";
+				} else {
+					output = "# GLOBAL ACCESS\n";
+					output += "\tmov    " + register[regi] + ", offset flat:_main_ebp\n";
+					output += "\tmov    " + register[regi] + ", dword ptr [" + register[regi] +"]\n";
+				}
+				
+				if (paramNode.isParam()) { // This is an address
+					output += "\tadd    " + register[regi] + ", " + paramNode.getOffset() + "\n";
+					output += "\tmov    " + register[regi] + ", dword ptr [" + register[regi] + "]\n";
+				} else {
+					if (paramNode.isArray()) {
+						minBound = Integer.parseInt(paramNode.getMinimumBound());
+						maxBound = Integer.parseInt(paramNode.getMaximumBound());
+						output += "\tsub    " + register[regi] + ", " + (((maxBound - minBound) * 4) + paramNode.getOffset()) + "\n";
+					} else {
+						output += "\tsub    " + register[regi] + ", " + paramNode.getOffset() + "\n";			
+					}
+				}
+				output += "\tpush   " + register[regi] + "\n";
+				freeReg(regi);
+			} else if (paramNode instanceof ArrayRef && paramNode.getRealType() == paramNode.getConvertedType()) {
+				regi = (Integer)((ArrayRef)paramNode).getSubscriptExpression().accept(this);
 				minBound = Integer.parseInt(paramNode.getMinimumBound());
-				paramCount += maxBound - minBound + 1;
-			} else {
-				paramCount++;
+				maxBound = Integer.parseInt(paramNode.getMaximumBound());
+				regj = findEmptyReg(-1);
+				
+				output = "\tsub    " + register[regi] + ", " + minBound + "\n";
+				output += "\timul   " + register[regi] + ", 4\n";
+				
+				if (paramNode.isLocal()) {
+					output += "\tmov    " + register[regj] + ", %ebp\n";
+				} else {
+					output += "# GLOBAL ACCESS\n";
+					output += "\tmov    " + register[regj] + ", offset flat:_main_ebp\n";
+					output += "\tmov    " + register[regj] + ", dword ptr [" + register[regj] +"]\n";
+				}
+				
+				if (paramNode.isParam()) {
+					output += "\tadd    " + register[regj] + ", " + paramNode.getOffset() + "\n";
+					output += "\tmov    " + register[regj] + ", dword ptr [" + register[regj] + "]\n";
+				} else {
+					output += "\tsub    " + register[regj] + ", " + (((maxBound - minBound) * 4) + paramNode.getOffset()) + "\n";			
+				}
+				
+				output += "\tadd    " + register[regj] + ", " + register[regi] + "\n";
+				output += "\tpush   " + register[regj] + "\n";
+				freeReg(regj);
+				freeReg(regi);
+			} else { // Push constant values
+				regi = findEmptyReg(-1);
+				output = "\tmov    " + register[regi] + ", %esp\n";
+				output += "# stackPushes = " + stackPushes + " stackPushoffset = " + stackPushOffset.get(j) + " paramCount = " + paramCount + "\n";
+				output += "\tadd    " + register[regi] + ", " 
+						+ (((stackPushes - stackPushOffset.get(j++)) + paramCount) * 4) + "\n";
+				output += "\tpush   " + register[regi];
+				freeReg(regi);			
 			}
+			paramCount++;
+			System.out.println(output);
 		}
 		
 		output = "\tcall   " + n.getId() + "\n";
-		
+		output += "# FINAL stackPushes = " + stackPushes + " paramCount = " + paramCount + "\n";
 		stackPushes += paramCount;
 		if (paramCount != 0) {
 			output += "\tadd    %esp, " + (stackPushes * 4) + "\n";		
 		}
-		output += "\tpop   %esi\n";
-		output += "\tpop   %edi\n";
-		output += "\tpop   %edx\n";
-		output += "\tpop   %ecx\n";
-		output += "\tpop   %ebx\n";
+		output += "\tpop    %esi\n";
+		output += "\tpop    %edi\n";
+		output += "\tpop    %edx\n";
+		output += "\tpop    %ecx\n";
+		output += "\tpop    %ebx\n";
+		System.out.println(output);
+		
+		// Since I get back a result in eax
+		regi = findEmptyReg(-1);
+		output = "\tmov    " + register[regi] + ", %eax\n";
+		System.out.println(output);
+		freeReg(0);
+		return regi;
+	}
+
+	/**
+	 *  I probably spent half the time on the rest of the this project
+	 *  and the other half on the CallProcedure and CallFunction methods.
+	 *  
+	 *  Explanation:
+	 *  	Since all my nodes return registers that contain CONSTANT values
+	 *  	but the parameters have to be passed by reference, then I must pass
+	 *  	an address to that constant.
+	 *  	
+	 *  	There are 3 things to take into consideration:
+	 *  		1. Parameters should be passed in reverse order.
+	 *  		2. Constant values should be pushed onto the stack
+	 *  			in reverse order, then, and only then, do we 
+	 *  			pass the references to them in reverse order.
+	 *  			e.x 
+	 *  				CONST 2
+	 *  				CONST 1
+	 *  				REF(CONST 2)
+	 *  				REF(CONST 1)
+	 *  		3. Addresses can point to variables on the stack, in which case
+	 *  			we cannot accept() IdRef or ArrayRef as they will return 
+	 *  			a constant. If we push that constant, we will have 2 copies
+	 *  			of the same number, one in the original variable (%ebp-x) and
+	 *  			another that has just been pushed beyond the scope of the local
+	 *  			variables.
+	 *  
+	 *  	To handle these issues:
+	 *  		1. Store all the parameters in an ArrayList
+	 *  		2. Two loops: 
+	 *  			1) Push anything that returns a constant.
+	 *  				Since IdRef can return constants that we don't need to store,
+	 *  				such as the conversion of an integer variable to a float,
+	 *  				we need to make sure that the IdRef node DOES have the DIFFERENT
+	 *  				realType and convertedType. If the realType and convertedType are
+	 *  				the same, then no conversion takes place. In such a case IdRef
+	 *  				will be pointing to a variable on the stack. If the types are
+	 *  				different, and type conversion takes place, we come out with a new
+	 *  				constant that was not previously on the stack. If the latter happens
+	 *  				we can push it onto the stack as one of our constants in the first loop.
+	 * 					Same thing goes for ArrayRefs.
+	 * 				2) Second loop goes through the parameters in reverse order.
+	 * 					If it is an IdRef/ArrayRef (AND realType == convertedType), does exactly
+	 * 					what the IdRef/ArrayRef node does, except for dereferencing the register.
+	 * 					So we now have an address to the actual variable on the stack.
+	 * 					If it's neither IdRef nor ArrayRef (or it is, but with different types),
+	 * 					then that means we already pushed its value on the stack as a constant.
+	 * 					In which case we create a reference to that value off of the constant on the stack.
+	 */
+	@Override
+	public Object visit(CallProcedure n) {
+		String output = "";
+		Integer regi = -1;
+		Integer regj = -1;
+		ASTNode paramNode;
+		int paramCount = 0;
+		int stackPushes = 0;
+		int minBound = -1;
+		int maxBound = -1;
+		int i = 0, j = 0;
+		
+		
+		ArrayList<ASTNode> arrayParams = new ArrayList<ASTNode>();		// Parameters of call
+		ArrayList<Integer> stackPushOffset = new ArrayList<Integer>();	// Constant's offset
+		
+		output += "# Call Procedure...";
+		System.out.println(output);
+		output = "";
+		
+		// Add all parameters to arraylist
+		if (null != n.getCallArguments()) {
+			Parameters params = (Parameters)n.getCallArguments();
+			for (ASTNode node : params.getParameters()) {
+				arrayParams.add(node);				
+			}
+		}
+		
+		// Save registers
+		output = "\tpush   %ebx\n";
+		output += "\tpush   %ecx\n";
+		output += "\tpush   %edx\n";
+		output += "\tpush   %edi\n";
+		output += "\tpush   %esi\n";
+		System.out.println(output);
+		
+		for (i = (arrayParams.size() - 1); i >= 0; i--) {
+			paramNode = arrayParams.get(i);
+			System.out.println("# CONSTANT VALUED PARAMS\n");
+			// If the IdRef is an array, do not push as a constant
+			if (paramNode instanceof IdRef && paramNode.getRealType() == paramNode.getConvertedType()) {
+				// DO NOTHING
+			} else if (paramNode instanceof ArrayRef && paramNode.getRealType() == paramNode.getConvertedType()) {
+				// DO NOTHING
+			} else if (paramNode instanceof IdRef && paramNode.isArray()) {
+				// DO NOTHING
+			} else { // Push constant values
+				regi = (Integer)paramNode.accept(this);
+				output = "\tpush   " + register[regi] + "\n";
+				System.out.println(output);
+				stackPushes++;
+				stackPushOffset.add(stackPushes);
+				freeReg(regi);				
+			}
+		
+		}
+		
+		for (i = (arrayParams.size() - 1); i >= 0; i--) {
+			paramNode = arrayParams.get(i);
+			// Should be the same type. If not then what was returned was a constant
+			if (paramNode instanceof IdRef && paramNode.getRealType() == paramNode.getConvertedType()) {
+				regi = findEmptyReg(-1);
+				
+				
+				if (paramNode.isLocal()) {
+					output = "\tmov    " + register[regi] + ", %ebp\n";
+				} else {
+					output = "# GLOBAL ACCESS\n";
+					output += "\tmov    " + register[regi] + ", offset flat:_main_ebp\n";
+					output += "\tmov    " + register[regi] + ", dword ptr [" + register[regi] +"]\n";
+				}
+				
+				if (paramNode.isParam()) { // This is an address
+					output += "\tadd    " + register[regi] + ", " + paramNode.getOffset() + "\n";
+					output += "\tmov    " + register[regi] + ", dword ptr [" + register[regi] + "]\n";
+				} else {
+					if (paramNode.isArray()) {
+						minBound = Integer.parseInt(paramNode.getMinimumBound());
+						maxBound = Integer.parseInt(paramNode.getMaximumBound());
+						output += "\tsub    " + register[regi] + ", " + (((maxBound - minBound) * 4) + paramNode.getOffset()) + "\n";
+					} else {
+						output += "\tsub    " + register[regi] + ", " + paramNode.getOffset() + "\n";			
+					}
+				}
+				output += "\tpush   " + register[regi] + "\n";
+				freeReg(regi);
+			} else if (paramNode instanceof ArrayRef && paramNode.getRealType() == paramNode.getConvertedType()) {
+				regi = (Integer)((ArrayRef)paramNode).getSubscriptExpression().accept(this);
+				minBound = Integer.parseInt(paramNode.getMinimumBound());
+				maxBound = Integer.parseInt(paramNode.getMaximumBound());
+				regj = findEmptyReg(-1);
+				
+				output = "\tsub    " + register[regi] + ", " + minBound + "\n";
+				output += "\timul   " + register[regi] + ", 4\n";
+				
+				if (paramNode.isLocal()) {
+					output += "\tmov    " + register[regj] + ", %ebp\n";
+				} else {
+					output += "# GLOBAL ACCESS\n";
+					output += "\tmov    " + register[regj] + ", offset flat:_main_ebp\n";
+					output += "\tmov    " + register[regj] + ", dword ptr [" + register[regj] +"]\n";
+				}
+				
+				if (paramNode.isParam()) {
+					output += "\tadd    " + register[regj] + ", " + paramNode.getOffset() + "\n";
+					output += "\tmov    " + register[regj] + ", dword ptr [" + register[regj] + "]\n";
+				} else {
+					output += "\tsub    " + register[regj] + ", " + (((maxBound - minBound) * 4) + paramNode.getOffset()) + "\n";			
+				}
+				
+				output += "\tadd    " + register[regj] + ", " + register[regi] + "\n";
+				output += "\tpush   " + register[regj] + "\n";
+				freeReg(regj);
+				freeReg(regi);
+			} else { // Push constant values
+				regi = findEmptyReg(-1);
+				output = "\tmov    " + register[regi] + ", %esp\n";
+				output += "# stackPushes = " + stackPushes + " stackPushoffset = " + stackPushOffset.get(j) + " paramCount = " + paramCount + "\n";
+				output += "\tadd    " + register[regi] + ", " 
+						+ (((stackPushes - stackPushOffset.get(j++)) + paramCount) * 4) + "\n";
+				output += "\tpush   " + register[regi];
+				freeReg(regi);			
+			}
+			paramCount++;
+			System.out.println(output);
+		}
+		
+		output = "\tcall   " + n.getId() + "\n";
+		output += "# FINAL stackPushes = " + stackPushes + " paramCount = " + paramCount + "\n";
+		stackPushes += paramCount;
+		if (paramCount != 0) {
+			output += "\tadd    %esp, " + (stackPushes * 4) + "\n";		
+		}
+		output += "\tpop    %esi\n";
+		output += "\tpop    %edi\n";
+		output += "\tpop    %edx\n";
+		output += "\tpop    %ecx\n";
+		output += "\tpop    %ebx\n";
 		System.out.println(output);
 		return null;
 	}
@@ -595,8 +771,8 @@ public class CodeVisitor implements Visitor<Object> {
 		if (n.getRealType() == TypeTable.INTEGER || n.getRealType() == TypeTable.CHARACTER) {
 			output += "\tcmp    " + register[lhs] + ", " + register[rhs] + "\n";
 			
-			output += "\tje     .L" + labelEqualEqual + "\n";
-			output += "\tjmp    .L" + labelNotEqual + "\n";
+			output += "\tje     .L_EQUAL_EQUAL_" + labelEqualEqual + "\n";
+			output += "\tjmp    .L_NOT_EQUAL_" + labelNotEqual + "\n";
 		} else if (n.getRealType() == TypeTable.FLOAT) {
 			output += "\tpush   " + register[lhs] + "\n";
 			output += "\tfld    dword ptr [%esp]\n";
@@ -607,19 +783,19 @@ public class CodeVisitor implements Visitor<Object> {
 			output += "\tfcomip %st(0), %st(1)\n";
 			output += "\tfstp   %st(0)\n"; // Clear the stack
 			
-			output += "\tje     .L" + labelEqualEqual + "\n";
-			output += "\tjmp    .L" + labelNotEqual;
+			output += "\tje     .L_EQUAL_EQUAL_" + labelEqualEqual + "\n";
+			output += "\tjmp    .L_NOT_EQUAL_" + labelNotEqual;
 		}
 		
-		output += ".L" + labelEqualEqual + ":\n";
+		output += ".L_EQUAL_EQUAL_" + labelEqualEqual + ":\n";
 		output += "\tmov    " + register[lhs] + ", 1\n";
-		output += "\tjmp    .L" + labelDone + "\n";
+		output += "\tjmp    .L_EQUAL_EQUAL_DONE_" + labelDone + "\n";
 		
-		output += ".L" + labelNotEqual + ":\n";
+		output += ".L_NOT_EQUAL_" + labelNotEqual + ":\n";
 		output += "\tmov    " + register[lhs] + ", 0\n";
-		output += "\tjmp    .L" + labelDone + "\n";
+		output += "\tjmp    .L_EQUAL_EQUAL_DONE_" + labelDone + "\n";
 		
-		output += ".L" + labelDone + ":";
+		output += ".L_EQUAL_EQUAL_DONE_" + labelDone + ":";
 		System.out.println(output);
 		n.setLabel("je");
 		freeReg(rhs);
@@ -674,8 +850,8 @@ public class CodeVisitor implements Visitor<Object> {
 		if (n.getRealType() == TypeTable.INTEGER || n.getRealType() == TypeTable.CHARACTER) {
 			output += "\tcmp    " + register[lhs] + ", " + register[rhs] + "\n";
 			
-			output += "\tjg     .L" + labelGreaterThan + "\n";
-			output += "\tjmp    .L" + labelLessThanEqual + "\n";
+			output += "\tjg     .L_GREATER_THAN_" + labelGreaterThan + "\n";
+			output += "\tjmp    .L_LESS_THAN_EQUAL_" + labelLessThanEqual + "\n";
 		} else if (n.getRealType() == TypeTable.FLOAT) {
 			output += "\tpush   " + register[lhs] + "\n";
 			output += "\tfld    dword ptr [%esp]\n";
@@ -686,19 +862,19 @@ public class CodeVisitor implements Visitor<Object> {
 			output += "\tfcomip %st(0), %st(1)\n";
 			output += "\tfstp   %st(0)\n"; // Clear the stack
 			
-			output += "\tja     .L" + labelGreaterThan + "\n";
-			output += "\tjmp    .L" + labelLessThanEqual;
+			output += "\tja     .L_GREATER_THAN_" + labelGreaterThan + "\n";
+			output += "\tjmp    .L_LESS_THAN_EQUAL_" + labelLessThanEqual;
 		}
 		
-		output += ".L" + labelGreaterThan + ":\n";
+		output += ".L_GREATER_THAN_" + labelGreaterThan + ":\n";
 		output += "\tmov    " + register[lhs] + ", 1\n";
-		output += "\tjmp    .L" + labelDone + "\n";
+		output += "\tjmp    .L_GREATER_THAN_DONE_" + labelDone + "\n";
 		
-		output += ".L" + labelLessThanEqual + ":\n";
+		output += ".L_LESS_THAN_EQUAL_" + labelLessThanEqual + ":\n";
 		output += "\tmov    " + register[lhs] + ", 0\n";
-		output += "\tjmp    .L" + labelDone + "\n";
+		output += "\tjmp    .L_GREATER_THAN_DONE_" + labelDone + "\n";
 		
-		output += ".L" + labelDone + ":";
+		output += ".L_GREATER_THAN_DONE_" + labelDone + ":";
 		System.out.println(output);
 		freeReg(rhs);
 		return lhs;
@@ -721,8 +897,8 @@ public class CodeVisitor implements Visitor<Object> {
 		if (n.getRealType() == TypeTable.INTEGER || n.getRealType() == TypeTable.CHARACTER) {
 			output += "\tcmp    " + register[lhs] + ", " + register[rhs] + "\n";
 			
-			output += "\tjge    .L" + labelGreaterThanEqual + "\n";
-			output += "\tjmp    .L" + labelLessThan + "\n";
+			output += "\tjge    .L_GREATER_THAN_EQUAL_" + labelGreaterThanEqual + "\n";
+			output += "\tjmp    .L_LESS_THAN_" + labelLessThan + "\n";
 		} else if (n.getRealType() == TypeTable.FLOAT) {
 			output += "\tpush   " + register[lhs] + "\n";
 			output += "\tfld    dword ptr [%esp]\n";
@@ -733,20 +909,20 @@ public class CodeVisitor implements Visitor<Object> {
 			output += "\tfcomip %st(0), %st(1)\n";
 			output += "\tfstp   %st(0)\n"; // Clear the stack
 			
-			output += "\tjae    .L" + labelGreaterThanEqual + "\n";
-			output += "\tjmp    .L" + labelLessThan;
+			output += "\tjae    .L_GREATER_THAN_EQUAL_" + labelGreaterThanEqual + "\n";
+			output += "\tjmp    .L_LESS_THAN_" + labelLessThan;
 		}
 		
 		
-		output += ".L" + labelGreaterThanEqual + ":\n";
+		output += ".L_GREATER_THAN_EQUAL_" + labelGreaterThanEqual + ":\n";
 		output += "\tmov    " + register[lhs] + ", 1\n";
-		output += "\tjmp    .L" + labelDone + "\n";
+		output += "\tjmp    .L_GREATER_THAN_EQUAL_DONE_" + labelDone + "\n";
 		
-		output += ".L" + labelLessThan + ":\n";
+		output += ".L_LESS_THAN_" + labelLessThan + ":\n";
 		output += "\tmov    " + register[lhs] + ", 0\n";
-		output += "\tjmp    .L" + labelDone + "\n";
+		output += "\tjmp    .L_GREATER_THAN_EQUAL_DONE_" + labelDone + "\n";
 		
-		output += ".L" + labelDone + ":";
+		output += ".L_GREATER_THAN_EQUAL_DONE_" + labelDone + ":";
 		System.out.println(output);
 		freeReg(rhs);
 		return lhs;
@@ -784,6 +960,8 @@ public class CodeVisitor implements Visitor<Object> {
 	@Override
 	public Object visit(IdRef n) {
 		int regi = findEmptyReg(-1);
+		// For passed arrays
+		
 		String output = "";
 		output += "# IdRef(" + n.getId() + ")...\n";
 		
@@ -799,7 +977,13 @@ public class CodeVisitor implements Visitor<Object> {
 			output += "\tadd    " + register[regi] + ", " + n.getOffset() + "\n";
 			output += "\tmov    " + register[regi] + ", dword ptr [" + register[regi] + "]\n";
 		} else {
-			output += "\tsub    " + register[regi] + ", " + n.getOffset() + "\n";			
+			if (n.isArray()) {
+				Integer minBound = Integer.parseInt(n.getMinimumBound());
+				Integer maxBound = Integer.parseInt(n.getMaximumBound());
+				output += "\tsub    " + register[regi] + ", " + (((maxBound - minBound) * 4) + n.getOffset()) + "\n";			
+			} else {
+				output += "\tsub    " + register[regi] + ", " + n.getOffset() + "\n";			
+			}
 		}
 		output += "\tmov    " + register[regi] + ", dword ptr [" + register[regi] + "]\n";
 		if (n.getRealType() != n.getConvertedType()) {
@@ -929,8 +1113,8 @@ public class CodeVisitor implements Visitor<Object> {
 		if (n.getRealType() == TypeTable.INTEGER || n.getRealType() == TypeTable.CHARACTER) {
 			output += "\tcmp    " + register[lhs] + ", " + register[rhs] + "\n";
 			
-			output += "\tjl     .L" + labelLessThan + "\n";
-			output += "\tjmp    .L" + labelGreaterThanEqual + "\n";
+			output += "\tjl     .L_LESS_THAN_" + labelLessThan + "\n";
+			output += "\tjmp    .L_GREATER_THAN_EQUAL_" + labelGreaterThanEqual + "\n";
 		} else if (n.getRealType() == TypeTable.FLOAT) {
 			output += "\tpush   " + register[lhs] + "\n";
 			output += "\tfld    dword ptr [%esp]\n";
@@ -941,20 +1125,20 @@ public class CodeVisitor implements Visitor<Object> {
 			output += "\tfcomip %st(0), %st(1)\n";
 			output += "\tfstp   %st(0)\n"; // Clear the stack
 			
-			output += "\tjb     .L" + labelLessThan + "\n";
-			output += "\tjmp    .L" + labelGreaterThanEqual;
+			output += "\tjb     .L_LESS_THAN_" + labelLessThan + "\n";
+			output += "\tjmp    .L_GREATER_THAN_EQUAL_" + labelGreaterThanEqual;
 		}
 		
 		
-		output += ".L" + labelLessThan + ":\n";
+		output += ".L_LESS_THAN_" + labelLessThan + ":\n";
 		output += "\tmov    " + register[lhs] + ", 1\n";
-		output += "\tjmp    .L" + labelDone + "\n";
+		output += "\tjmp    .L_LESS_THAN_DONE_" + labelDone + "\n";
 		
-		output += ".L" + labelGreaterThanEqual + ":\n";
+		output += ".L_GREATER_THAN_EQUAL_" + labelGreaterThanEqual + ":\n";
 		output += "\tmov    " + register[lhs] + ", 0\n";
-		output += "\tjmp    .L" + labelDone + "\n";
+		output += "\tjmp    .L_LESS_THAN_DONE_" + labelDone + "\n";
 		
-		output += ".L" + labelDone + ":";
+		output += ".L_LESS_THAN_DONE_" + labelDone + ":";
 		System.out.println(output);
 		freeReg(rhs);
 		return lhs;
@@ -977,8 +1161,8 @@ public class CodeVisitor implements Visitor<Object> {
 		if (n.getRealType() == TypeTable.INTEGER || n.getRealType() == TypeTable.CHARACTER) {
 			output += "\tcmp    " + register[lhs] + ", " + register[rhs] + "\n";
 			
-			output += "\tjle     .L" + labelLessThanEqual + "\n";
-			output += "\tjmp    .L" + labelGreaterThan + "\n";
+			output += "\tjle    .L_LESS_THAN_EQUAL_" + labelLessThanEqual + "\n";
+			output += "\tjmp    .L_GREATER_THAN_" + labelGreaterThan + "\n";
 		} else if (n.getRealType() == TypeTable.FLOAT) {
 			output += "\tpush   " + register[lhs] + "\n";
 			output += "\tfld    dword ptr [%esp]\n";
@@ -989,19 +1173,19 @@ public class CodeVisitor implements Visitor<Object> {
 			output += "\tfcomip %st(0), %st(1)\n";
 			output += "\tfstp   %st(0)\n"; // Clear the stack
 			
-			output += "\tjbe     .L" + labelLessThanEqual + "\n";
-			output += "\tjmp    .L" + labelGreaterThan;
+			output += "\tjbe    .L_LESS_THAN_EQUAL_" + labelLessThanEqual + "\n";
+			output += "\tjmp    .L_GREATER_THAN_" + labelGreaterThan;
 		}
 		
-		output += ".L" + labelLessThanEqual + ":\n";
+		output += ".L_LESS_THAN_EQUAL_" + labelLessThanEqual + ":\n";
 		output += "\tmov    " + register[lhs] + ", 1\n";
-		output += "\tjmp    .L" + labelDone + "\n";
+		output += "\tjmp    .L_LESS_THAN_EQUAL_DONE_" + labelDone + "\n";
 		
-		output += ".L" + labelGreaterThan + ":\n";
+		output += ".L_GREATER_THAN_" + labelGreaterThan + ":\n";
 		output += "\tmov    " + register[lhs] + ", 0\n";
-		output += "\tjmp    .L" + labelDone + "\n";
+		output += "\tjmp    .L_LESS_THAN_EQUAL_DONE_" + labelDone + "\n";
 		
-		output += ".L" + labelDone + ":";
+		output += ".L_LESS_THAN_EQUAL_DONE_" + labelDone + ":";
 		System.out.println(output);
 		freeReg(rhs);
 		return lhs;
@@ -1129,8 +1313,8 @@ public class CodeVisitor implements Visitor<Object> {
 		if (n.getRealType() == TypeTable.INTEGER || n.getRealType() == TypeTable.CHARACTER) {
 			output += "\tcmp    " + register[lhs] + ", " + register[rhs] + "\n";
 			
-			output += "\tjne     .L" + labelNotEqual + "\n";
-			output += "\tjmp    .L" + labelEqualEqual + "\n";
+			output += "\tjne    .L_NOT_EQUAL_" + labelNotEqual + "\n";
+			output += "\tjmp    .L_EQUAL_EQUAL_" + labelEqualEqual + "\n";
 		} else if (n.getRealType() == TypeTable.FLOAT) {
 			output += "\tpush   " + register[lhs] + "\n";
 			output += "\tfld    dword ptr [%esp]\n";
@@ -1141,19 +1325,19 @@ public class CodeVisitor implements Visitor<Object> {
 			output += "\tfcomip %st(0), %st(1)\n";
 			output += "\tfstp   %st(0)\n"; // Clear the stack
 			
-			output += "\tjne     .L" + labelNotEqual + "\n";
-			output += "\tjmp    .L" + labelEqualEqual;
+			output += "\tjne    .L_NOT_EQUAL_" + labelNotEqual + "\n";
+			output += "\tjmp    .L_EQUAL_EQUAL_" + labelEqualEqual;
 		}
 		
-		output += ".L" + labelNotEqual + ":\n";
+		output += ".L_NOT_EQUAL_" + labelNotEqual + ":\n";
 		output += "\tmov    " + register[lhs] + ", 1\n";
-		output += "\tjmp    .L" + labelDone + "\n";
+		output += "\tjmp    .L_NOT_EQUAL_DONE_" + labelDone + "\n";
 		
-		output += ".L" + labelEqualEqual + ":\n";
+		output += ".L_EQUAL_EQUAL_" + labelEqualEqual + ":\n";
 		output += "\tmov    " + register[lhs] + ", 0\n";
-		output += "\tjmp    .L" + labelDone + "\n";
+		output += "\tjmp    .L_NOT_EQUAL_DONE_" + labelDone + "\n";
 		
-		output += ".L" + labelDone + ":";
+		output += ".L_NOT_EQUAL_DONE_" + labelDone + ":";
 		System.out.println(output);
 		freeReg(rhs);
 		return lhs;
@@ -1321,8 +1505,6 @@ public class CodeVisitor implements Visitor<Object> {
 		String output = "";
 		output += "# Read...\n";
 		Integer regi  = (Integer)n.getInput().accept(this);
-		output += "\tmov    " + register[regi] + ", %ebp\n";
-		output += "\tsub    " + register[regi] + ", " + n.getInput().getOffset() + "\n";
 		output += "\tpush   " + register[regi] + "\n";
 		if (n.getInput().getRealType() == TypeTable.FLOAT) {
 			output += "\tpush   [offset flat:.io_format_in + 0]\n";
@@ -1465,15 +1647,15 @@ public class CodeVisitor implements Visitor<Object> {
 		
 		// Print the start label
 		output += "# While Statement...\n";
-		output += "\tjmp    .L" + labelLoopExpr + "\n";
-		output += ".L" + labelStatement + ":";
+		output += "\tjmp    .L_LOOP_EXPR_" + labelLoopExpr + "\n";
+		output += ".L_STATEMENT_" + labelStatement + ":";
 		System.out.println(output);
 		
 		// Print the statement code
 		n.getDoStatement().accept(this);
 		
 		// Print label for the loop check
-		output = ".L" + labelLoopExpr + ":";
+		output = ".L_LOOP_EXPR_" + labelLoopExpr + ":";
 		System.out.println(output);
 		
 		// Run the loop check
@@ -1482,7 +1664,7 @@ public class CodeVisitor implements Visitor<Object> {
 		// Compare the value given back form the check
 		// If not equal, run loop again
 		output = "\tcmp    " + register[regi] + ", 0\n";
-		output += "\tjne     .L" + labelStatement;
+		output += "\tjne     .L_STATEMENT_" + labelStatement;
 		System.out.println(output);
 		
 		freeReg(regi);
@@ -1491,7 +1673,7 @@ public class CodeVisitor implements Visitor<Object> {
 
 	@Override
 	public Object visit(Write n) {
-
+		
 		// TODO may need to save registers
 		String output = "";
 		int regi = (Integer)n.getOutput().accept(this);
