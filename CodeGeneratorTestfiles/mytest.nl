@@ -18,7 +18,6 @@ BEGIN
 	i:=1; j:=10;
 	WHILE i<=10 DO BEGIN
 	  a[i]:= (i*0.01)+j;
-	  WRITE(a[i]);
 	  i:=i+1;
 	  j:=j+1
 	END
