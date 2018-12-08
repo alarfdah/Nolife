@@ -17,7 +17,7 @@ BEGIN
     a := 0
 END;
 
-PROCEDURE foo(a, b:INTEGER);
+PROCEDURE foo(a,b:INTEGER);
 BEGIN
   WRITE(a);
   WRITE(b)

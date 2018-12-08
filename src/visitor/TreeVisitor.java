@@ -208,7 +208,7 @@ public class TreeVisitor implements Visitor<Object> {
 	
 	@Override
 	public Object visit(Function n) {
-		src += n.getFunctionKeyword();
+		src += n.getFunctionKeyword() + " label(" + n.getId() + ")";
 		src += "\n";
 		for (ASTNode node : n.getStatements()) {
 			// Can have no parameters. So null node.
@@ -396,7 +396,7 @@ public class TreeVisitor implements Visitor<Object> {
 
 	@Override
 	public Object visit(Procedure n) {
-		src += n.getProcedureKeyword();
+		src += n.getProcedureKeyword() + " label(" + n.getId() + ")";
 		src += "\n";
 		for (ASTNode node : n.getStatements()) {
 			if (node != null) {

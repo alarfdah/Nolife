@@ -10,46 +10,46 @@ PROGRAM subprog;
      a,b,c,d:INTEGER;
      C1,C2:CHARACTER;
 
-
-FUNCTION b4 (a:INTEGER) :INTEGER;
-BEGIN
-	WRITE(4);
-	RETURN a+1
-END;
-
-
-{* test pass by ref parms *}
-PROCEDURE d2(a,b:INTEGER);
-VAR tmp:INTEGER;
-BEGIN
-	WRITE(b);
-        WRITE(a);
-	tmp:=a;
-	a:=b;
-	b:=tmp
-END;
-
-PROCEDURE d3(a,b,c,d:INTEGER);
-BEGIN
-	a:=a+1;
-	b:=b+2;
-	c:=c+3;
-	d:=d
-END;
-
-PROCEDURE d1(a:INTEGER);
-VAR b:INTEGER;
-
-BEGIN
-	b:=a*200;
-	WRITE(a); WRITE(b);
-	d2(a,b);
-	WRITE(a); WRITE(b);
-	d3(a,a,a,b);
-	WRITE(a); WRITE(b);
-	d3(b,b,b,b);
-	WRITE(a); WRITE(b)
-END;
+	
+	FUNCTION b4 (a:INTEGER) :INTEGER;
+	BEGIN
+		WRITE(4);
+		RETURN a+1
+	END;
+	
+	
+	{* test pass by ref parms *}
+	PROCEDURE d2(a,b:INTEGER);
+	VAR tmp:INTEGER;
+	BEGIN
+		WRITE(b);
+	        WRITE(a);
+		tmp:=a;
+		a:=b;
+		b:=tmp
+	END;
+	
+	PROCEDURE d3(a,b,c,d:INTEGER);
+	BEGIN
+		a:=a+1;
+		b:=b+2;
+		c:=c+3;
+		d:=d
+	END;
+	
+	PROCEDURE d1(a:INTEGER);
+	VAR b:INTEGER;
+	
+	BEGIN
+		b:=a*200;
+		WRITE(a); WRITE(b);
+		d2(a,b);
+		WRITE(a); WRITE(b);
+		d3(a,a,a,b);
+		WRITE(a); WRITE(b);
+		d3(b,b,b,b);
+		WRITE(a); WRITE(b)
+	END;
 
 
 {*main*}

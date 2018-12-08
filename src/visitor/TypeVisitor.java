@@ -427,8 +427,8 @@ public class TypeVisitor implements Visitor<Integer> {
 		n.setConvertedType(TypeTable.INTEGER);
 		
 		// Set converted type of children
-		n.getLeftOperand().setConvertedType(resolvedType);
-		n.getRightOperand().setConvertedType(resolvedType);
+		n.getLeftOperand().setConvertedType(n.getLeftOperand().getRealType());
+		n.getRightOperand().setConvertedType(n.getLeftOperand().getRealType());
 		
 		if (resolvedType == TypeTable.ANYTYPE && lOp != TypeTable.ANYTYPE && rOp != TypeTable.ANYTYPE) {
 			System.err.println("Cannot use '=' on type " + TypeTable.getTypeName(lOp) 
@@ -467,8 +467,8 @@ public class TypeVisitor implements Visitor<Integer> {
 		n.setConvertedType(TypeTable.INTEGER);
 		
 		// Set converted type of children
-		n.getLeftOperand().setConvertedType(resolvedType);
-		n.getRightOperand().setConvertedType(resolvedType);
+		n.getLeftOperand().setConvertedType(n.getLeftOperand().getRealType());
+		n.getRightOperand().setConvertedType(n.getLeftOperand().getRealType());
 		
 		
 		if (resolvedType == TypeTable.ANYTYPE && lOp != TypeTable.ANYTYPE && rOp != TypeTable.ANYTYPE) {
@@ -489,8 +489,8 @@ public class TypeVisitor implements Visitor<Integer> {
 	n.setConvertedType(TypeTable.INTEGER);
 	
 	// Set converted type of children
-	n.getLeftOperand().setConvertedType(resolvedType);
-	n.getRightOperand().setConvertedType(resolvedType);
+	n.getLeftOperand().setConvertedType(n.getLeftOperand().getRealType());
+	n.getRightOperand().setConvertedType(n.getLeftOperand().getRealType());
 	
 	
 	if (resolvedType == TypeTable.ANYTYPE && lOp != TypeTable.ANYTYPE && rOp != TypeTable.ANYTYPE) {
@@ -593,8 +593,8 @@ public class TypeVisitor implements Visitor<Integer> {
 		n.setRealType(resolvedType);
 		
 		// Set converted type of children
-		n.getLeftOperand().setConvertedType(resolvedType);
-		n.getRightOperand().setConvertedType(resolvedType);
+		n.getLeftOperand().setConvertedType(n.getLeftOperand().getRealType());
+		n.getRightOperand().setConvertedType(n.getLeftOperand().getRealType());
 		
 		
 		if (resolvedType == TypeTable.ANYTYPE && lOp != TypeTable.ANYTYPE && rOp != TypeTable.ANYTYPE) {
@@ -615,8 +615,8 @@ public class TypeVisitor implements Visitor<Integer> {
 		n.setConvertedType(TypeTable.INTEGER);
 		
 		// Set converted type of children
-		n.getLeftOperand().setConvertedType(resolvedType);
-		n.getRightOperand().setConvertedType(resolvedType);
+		n.getLeftOperand().setConvertedType(n.getLeftOperand().getRealType());
+		n.getRightOperand().setConvertedType(n.getLeftOperand().getRealType());
 		
 		
 		if (resolvedType == TypeTable.ANYTYPE && lOp != TypeTable.ANYTYPE && rOp != TypeTable.ANYTYPE) {
@@ -697,8 +697,8 @@ public class TypeVisitor implements Visitor<Integer> {
 		n.setConvertedType(TypeTable.INTEGER);
 		
 		// Set converted type of children
-		n.getLeftOperand().setConvertedType(resolvedType);
-		n.getRightOperand().setConvertedType(resolvedType);
+		n.getLeftOperand().setConvertedType(n.getLeftOperand().getRealType());
+		n.getRightOperand().setConvertedType(n.getLeftOperand().getRealType());
 		
 		
 		if (resolvedType == TypeTable.ANYTYPE && lOp != TypeTable.ANYTYPE && rOp != TypeTable.ANYTYPE) {

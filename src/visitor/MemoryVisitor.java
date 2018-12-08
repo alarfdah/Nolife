@@ -106,17 +106,30 @@ public class MemoryVisitor implements Visitor<Object> {
 	public Object visit(ArrayDecl n) {
 		String minBound = n.getMinBound().getLabel();
 		String maxBound = n.getMaxBound().getLabel();
+		int intMinBound = -1;
+		int intMaxBound = -1;
 		n.setOffset(getVarOffset());
 		n.setArray(true); // Needed for passing arrays without subscripts
-		n.setMinimumBound(minBound);
-		n.setMaximumBound(maxBound);
+		if (isInteger(maxBound) && isInteger(minBound)) {
+			n.setMinimumBound(minBound);
+			n.setMaximumBound(maxBound);
+		} else {
+			intMinBound = (int)minBound.charAt(1);
+			intMaxBound = (int)maxBound.charAt(1);
+			n.setMinimumBound(String.valueOf(intMinBound));
+			n.setMaximumBound(String.valueOf(intMaxBound));			
+		}
 		if (scopeStack.size() == 2)
 			n.setLocal(true);
 		else 
 			n.setLocal(false);
 		
 		scopeStack.peek().put(n.getId(), n);
-		incrementVarOffset((Integer.parseInt(maxBound) - Integer.parseInt(minBound)) * 4 + 4);
+		if (isInteger(maxBound) && isInteger(minBound)) {
+			incrementVarOffset((Integer.parseInt(maxBound) - Integer.parseInt(minBound)) * 4);			
+		} else {
+			incrementVarOffset((maxBound.charAt(1) - minBound.charAt(1)) * 4);						
+		}
 		return null;
 	}
 
@@ -157,7 +170,7 @@ public class MemoryVisitor implements Visitor<Object> {
 			n.setMinimumBound(minBound);
 			n.setMaximumBound(maxBound);
 		} else {
-			System.out.println("array '" + id + "' never declared!");
+			System.err.println("array '" + id + "' never declared!");
 		}
 		return null;
 	}
@@ -199,7 +212,7 @@ public class MemoryVisitor implements Visitor<Object> {
 			n.setMinimumBound(minBound);
 			n.setMaximumBound(maxBound);
 		} else {
-			System.out.println("array '" + id + "' never declared!");
+			System.err.println("array '" + id + "' never declared!");
 		}
 		return null;
 	}
@@ -311,6 +324,7 @@ public class MemoryVisitor implements Visitor<Object> {
 	public Object visit(Function n) {
 		String id = n.getId();
 		for (ASTNode node : n.getStatements()) {
+			resetVarOffset();
 			// Can have no parameters. So null node.
 			if (node != null) {
 				if (node instanceof Parameters) {
@@ -375,7 +389,7 @@ public class MemoryVisitor implements Visitor<Object> {
 			n.setLocal(local);
 			n.setParam(param);
 		} else {
-			System.out.println("variable '" + id + "' never declared!");
+			System.err.println("variable '" + id + "' never declared!");
 		}
 		return null;
 	}
@@ -415,6 +429,8 @@ public class MemoryVisitor implements Visitor<Object> {
 			n.setOffset(offset);
 			n.setMinimumBound(minBound);
 			n.setMaximumBound(maxBound);
+		} else {
+			System.err.println("variable '" + id + "' never declared!");
 		}
 		return null;
 	}
@@ -482,15 +498,14 @@ public class MemoryVisitor implements Visitor<Object> {
 		resetParamOffset();
 		
 		for (ASTNode node : n.getParameters()) {
-			if (node instanceof Declaration) { // Params in function signature
-				Declaration decl = (Declaration)node;
-				for (ASTNode typeNode : decl.getChildren()) { // For each type
+			if (node instanceof Declare) { // Params in function signature
+				Declare decl = (Declare)node;
+				for (ASTNode typeNode : decl.getDeclarations()) { // For each type
 					if (typeNode.getChild(0) instanceof IdDecl) {
 						IdDecl idDecl = (IdDecl)typeNode.getChild(0);
 						idDecl.setOffset(paramOffset);
 						idDecl.setLocal(true);
 						idDecl.setParam(true);
-						idDecl.setArray(true);
 						scopeStack.peek().put(idDecl.getId(), idDecl);
 					} else if (typeNode.getChild(0) instanceof ArrayDecl) {
 						ArrayDecl arrDecl = (ArrayDecl)typeNode.getChild(0);
@@ -513,11 +528,14 @@ public class MemoryVisitor implements Visitor<Object> {
 
 	@Override
 	public Object visit(Procedure n) {
+		String id = n.getId();
 		for (ASTNode node : n.getStatements()) {
+			resetVarOffset();
 			if (node != null) {
+				if (node instanceof Parameters) {
+					node.setLabel(id);
+				}
 				node.accept(this);
-				resetVarOffset();
-				resetParamOffset();
 			}
 		}
 		System.out.println("*****PROCEDURE(" + n.getId() + ")******");
@@ -634,6 +652,15 @@ public class MemoryVisitor implements Visitor<Object> {
 	    }
 	    
     return sortedMap;
+	}
+	
+	public static boolean isInteger(String str) {
+	    try {
+	        Integer.parseInt(str);
+	        return true;
+	    } catch (NumberFormatException nfe) {
+	        return false;
+	    }
 	}
 
 	
