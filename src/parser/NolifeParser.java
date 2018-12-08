@@ -32,20 +32,22 @@ public class NolifeParser implements NolifeParserConstants {
 
 //  	  	SourceVisitor sv = new SourceVisitor(); // A work in progress
 
-                        System.out.println("*****TYPE CHECKING*****");
-                        TypeVisitor typev = new TypeVisitor();
-                        node.accept(typev);
+                        // Please uncomment to print type checking information
+//			System.out.println("*****TYPE CHECKING*****");
+//			TypeVisitor typev = new TypeVisitor();
+//			node.accept(typev);
 
-                        System.out.println("*****TREE VISITOR*****");
-                        TreeVisitor treev = new TreeVisitor();
-                        node.accept(treev);
-                        System.out.println(treev.getSource());
+                        // Please uncomment to print the tree
+//			System.out.println("*****TREE VISITOR*****");
+//			TreeVisitor treev = new TreeVisitor();
+//			node.accept(treev);
+//			System.out.println(treev.getSource());
 
 //			System.out.println("*****MEMORY VISITOR*****");
                         MemoryVisitor memv = new MemoryVisitor();
                         node.accept(memv);
 
-                        System.out.println("*****CodeVisitor*****");
+                        System.out.println("#*****CodeVisitor*****");
                         CodeVisitor codev = new CodeVisitor();
                         node.accept(codev);
 
@@ -1123,12 +1125,6 @@ public class NolifeParser implements NolifeParserConstants {
     finally { jj_save(1, xla); }
   }
 
-  static private boolean jj_3R_9() {
-    if (jj_3R_10()) return true;
-    if (jj_scan_token(O_ASSIGN)) return true;
-    return false;
-  }
-
   static private boolean jj_3R_10() {
     if (jj_scan_token(O_IDENTIFIER)) return true;
     Token xsp;
@@ -1149,6 +1145,12 @@ public class NolifeParser implements NolifeParserConstants {
 
   static private boolean jj_3_2() {
     if (jj_scan_token(O_ELSE)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_9() {
+    if (jj_3R_10()) return true;
+    if (jj_scan_token(O_ASSIGN)) return true;
     return false;
   }
 

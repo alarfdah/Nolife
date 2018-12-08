@@ -2,5 +2,5 @@
 SRCS=`ls ParserTestFiles/*.nl`
 for f in $SRCS;
 do
-  java -jar nlc.jar $f
+  java -jar nlcTC.jar $f
 done

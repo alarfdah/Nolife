@@ -39,20 +39,22 @@ public class NolifeParser {
   	  	  	
 //  	  	SourceVisitor sv = new SourceVisitor(); // A work in progress
 
-			System.out.println("*****TYPE CHECKING*****");
-			TypeVisitor typev = new TypeVisitor();
-			node.accept(typev);
+			// Please uncomment to print type checking information
+//			System.out.println("*****TYPE CHECKING*****");
+//			TypeVisitor typev = new TypeVisitor();
+//			node.accept(typev);
 
-			System.out.println("*****TREE VISITOR*****");
-			TreeVisitor treev = new TreeVisitor();
-			node.accept(treev);
-			System.out.println(treev.getSource());
+			// Please uncomment to print the tree
+//			System.out.println("*****TREE VISITOR*****");
+//			TreeVisitor treev = new TreeVisitor();
+//			node.accept(treev);
+//			System.out.println(treev.getSource());
 
 //			System.out.println("*****MEMORY VISITOR*****");
 			MemoryVisitor memv = new MemoryVisitor();
 			node.accept(memv);
 
-			System.out.println("*****CodeVisitor*****");
+			System.out.println("#*****CodeVisitor*****");
 			CodeVisitor codev = new CodeVisitor();
 			node.accept(codev);
 

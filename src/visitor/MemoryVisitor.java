@@ -70,20 +70,20 @@ public class MemoryVisitor implements Visitor<Object> {
 	
 	public void printConstantMap() {
 		if (constantMap.size() == 0) {
-			System.out.println("NO CONSTANTS.");
+			System.out.println("# NO CONSTANTS.");
 		}
 		for (ASTNode n : constantMap.values()) {
-			System.out.println("Value: " + n.getLabel() 
+			System.out.println("# Value: " + n.getLabel() 
 			+ ", Type: " + TypeTable.getTypeName(n.getRealType()) + ", Offset: " + n.getOffset());
 		}
 	}
 	
 	public void printVariableMap() {
 		if (scopeStack.peek().size() == 0) {
-			System.out.println("NO VARIABLES.");
+			System.out.println("# NO VARIABLES.");
 		}
 		for (ASTNode n : scopeStack.peek().values()) {
-			System.out.println("Variable: " + n.getLabel() 
+			System.out.println("# Variable: " + n.getLabel() 
 			+ ", Type: " + TypeTable.getTypeName(n.getRealType()) + ", Offset: " + n.getOffset());
 		}
 	}
@@ -334,9 +334,9 @@ public class MemoryVisitor implements Visitor<Object> {
 			}
 		}
 		
-		System.out.println("*****FUNCTION(" + n.getId() + ")******");
+		System.out.println("#*****FUNCTION(" + n.getId() + ")******");
 		printVariableMap();
-		System.out.println("----------------------");
+		System.out.println("#----------------------");
 		return null;
 	}
 
@@ -389,7 +389,7 @@ public class MemoryVisitor implements Visitor<Object> {
 			n.setLocal(local);
 			n.setParam(param);
 		} else {
-			System.err.println("variable '" + id + "' never declared!");
+			System.err.println("#variable '" + id + "' never declared!");
 		}
 		return null;
 	}
@@ -538,9 +538,9 @@ public class MemoryVisitor implements Visitor<Object> {
 				node.accept(this);
 			}
 		}
-		System.out.println("*****PROCEDURE(" + n.getId() + ")******");
+		System.out.println("#*****PROCEDURE(" + n.getId() + ")******");
 		printVariableMap();
-		System.out.println("------------------------");
+		System.out.println("#------------------------");
 		return null;
 	}
 
@@ -550,13 +550,13 @@ public class MemoryVisitor implements Visitor<Object> {
 		for (Statement statement : n.getStatements()) {
 			statement.accept(this);
 		}
-		System.out.println("*****Constant Map*****");
+		System.out.println("#*****Constant Map*****");
 		printConstantMap();
-		System.out.println("----------------------");
+		System.out.println("#----------------------");
 		
-		System.out.println("*****GLOBAL SCOPE*****");
+		System.out.println("#*****GLOBAL SCOPE*****");
 		printVariableMap();
-		System.out.println("----------------------");
+		System.out.println("#----------------------");
 		popFrame();
 		sortedConstMap = sortMap(constantMap);
 		
