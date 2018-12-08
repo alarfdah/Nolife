@@ -1,60 +1,173 @@
-{*********************************************************
+{** $awkdoc$ ********************************************************
 
-This testcase checks subroutine calls, both recursive and
-nonrecursive, as well as parameter passing.
+A version of quicksort for testing recursion: reads and sorts
+19 INTEGER.
 
-*********************************************************}
+** $endawk$ ********************************************************}
 
-PROGRAM subprog;
- VAR i,j,k,l:INTEGER;
-     a,b,c,d:INTEGER;
-     x:ARRAY[1..10] OF INTEGER;
-
-{* pass array as parm *}
-
-PROCEDURE init (a:ARRAY[1..10] OF INTEGER);
-VAR i,j:INTEGER;
-BEGIN
-	i:=1; j:=10;
-	WHILE i<=10 DO BEGIN
-	  a[i]:= (i*0.01)+j;
-	  i:=i+1;
-	  j:=j+1
-	END
-END;
-
-PROCEDURE writearray(z:ARRAY[1..10] OF INTEGER);
-BEGIN
-	WRITE(z[1]);
-	WRITE(z[2]);
-	WRITE(z[3]);
-	WRITE(z[4]);
-	WRITE(z[5]);
-	WRITE(z[6]);
-	WRITE(z[7]);
-	WRITE(z[8]);
-	WRITE(z[9]);
-	WRITE(z[10])
-END;
-
-PROCEDURE inc(a:INTEGER);
-BEGIN
-	a:=a+1
-END;
-
-
-{*main*}
-BEGIN
-	init(x);
-	writearray(x);
-	i:=1;
-	WHILE i<=10 DO BEGIN
-	  x[i]:= x[i]*i;
-	  inc(x[i]); 
-	  i:=i+1
+PROGRAM qs;
+VAR A:  ARRAY [0..20] OF INTEGER;
+	PROCEDURE  readarray;
+	  VAR  i:  INTEGER;
+	BEGIN
+	  WRITE ('A?');
+	  i := 1;
+	  WHILE i < 20 DO
+	    BEGIN
+	      WRITE (i);
+	      READ (A[i]);
+	      i := i + 1
+	    END
 	END;
-	writearray(x)
+	PROCEDURE  writearray;
+	  VAR  i:  INTEGER;
+	BEGIN
+	  WRITE ('A:');
+	  i := 1;
+	  WHILE i < 20 DO
+	    BEGIN
+	      WRITE (A[i]);
+	      i := i + 1
+	    END
+	END;
+	FUNCTION partition(
+	        B:  ARRAY [0..20] OF INTEGER;
+	      p,r:  INTEGER
+	) : INTEGER;
+	  VAR i, j: INTEGER;
+	      x, t,z: INTEGER;
+	BEGIN
+	  x := B[p];
+	  i := p - 1;
+	  j := r + 1;
+	  WHILE 1.7 DO
+	    BEGIN
+	      j := j-1;
+	      WHILE A[j] > x DO
+	        BEGIN
+	          j := j-1
+	        END;
+	      i := i+1;
+	      WHILE A[i] < x DO
+	        BEGIN
+	          i := i+1
+	        END;
+	      IF i < j
+	        THEN
+	          BEGIN
+	            t := A[i];
+	            A[i] := A[j];
+	            A[j] := t
+	          END
+	        ELSE
+	          RETURN j
+	    END
+	END;
+	PROCEDURE quicksort(
+	     Z: ARRAY [0..20] OF INTEGER;
+	     p,r: INTEGER
+	);
+	  VAR q:  INTEGER;
+	BEGIN
+	  IF p < r
+	    THEN
+	      BEGIN
+	        q := partition(Z,p,r);
+	        quicksort(Z,p,q);
+	        quicksort(Z,q+1,r)
+	      END
+	END;
+BEGIN
+  A[0] := 0-1; A[20] :=  1000;  { book does this; don't know why }
+  readarray();
+  writearray();
+  quicksort(A,1,19);
+  writearray()
+END
 
 
+{** $awkdoc$ ********************************************************
 
+A version of quicksort for testing recursion: reads and sorts
+19 INTEGER.
+
+** $endawk$ ********************************************************}
+
+PROGRAM qs;
+VAR A:  ARRAY [1..5] OF INTEGER;
+	PROCEDURE  readarray;
+	  VAR  i:  INTEGER;
+	BEGIN
+	  WRITE ('A?');
+	  i := 1;
+	  WHILE i <= 5 DO
+	    BEGIN
+	      READ (A[i]);
+	      i := i + 1
+	    END
+	END;
+	
+	PROCEDURE  writearray;
+	  VAR  i:  INTEGER;
+	BEGIN
+	  WRITE ('A:');
+	  i := 1;
+	  WHILE i <= 5 DO
+	    BEGIN
+	      WRITE (A[i]);
+	      i := i + 1
+	    END
+	END;
+	
+	FUNCTION partition(
+	        B:  ARRAY [1..5] OF INTEGER;
+	      p,r:  INTEGER
+	) : INTEGER;
+	  VAR i, j: INTEGER;
+	      x, t,z: INTEGER;
+	BEGIN
+	  x := B[p];
+	  i := p - 1;
+	  j := r + 1;
+	  WHILE 1.7 DO
+	    BEGIN
+	      j := j-1;
+	      WHILE A[j] > x DO
+	        BEGIN
+	          j := j-1
+	        END;
+	      i := i+1;
+	      WHILE A[i] < x DO
+	        BEGIN
+	          i := i+1
+	        END;
+	      IF i < j
+	        THEN
+	          BEGIN
+	            t := A[i];
+	            A[i] := A[j];
+	            A[j] := t
+	          END
+	        ELSE
+	          RETURN j
+	    END
+	END;
+	PROCEDURE quicksort(
+	     Z: ARRAY [1..5] OF INTEGER;
+	     p,r: INTEGER
+	);
+	  VAR q:  INTEGER;
+	BEGIN
+	  IF p < r
+	    THEN
+	      BEGIN
+	        q := partition(Z,p,r);
+	        quicksort(Z,p,q);
+	        quicksort(Z,q+1,r)
+	      END
+	END;
+BEGIN
+  readarray();
+  quicksort(A,1,5);
+  writearray()
 END
