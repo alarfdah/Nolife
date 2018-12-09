@@ -73,8 +73,7 @@ public class MemoryVisitor implements Visitor<Object> {
 			System.out.println("# NO CONSTANTS.");
 		}
 		for (ASTNode n : constantMap.values()) {
-			System.out.println("# Value: " + n.getLabel() 
-			+ ", Type: " + TypeTable.getTypeName(n.getRealType()) + ", Offset: " + n.getOffset());
+			System.out.println("# Value: " + n.getLabel() + ", Offset: " + n.getOffset());
 		}
 	}
 	
@@ -83,8 +82,7 @@ public class MemoryVisitor implements Visitor<Object> {
 			System.out.println("# NO VARIABLES.");
 		}
 		for (ASTNode n : scopeStack.peek().values()) {
-			System.out.println("# Variable: " + n.getLabel() 
-			+ ", Type: " + TypeTable.getTypeName(n.getRealType()) + ", Offset: " + n.getOffset());
+			System.out.println("# Variable: " + n.getLabel() + ", Offset: " + n.getOffset());
 		}
 	}
 	

@@ -1,0 +1,11 @@
+#*****FUNCTION(gcd)******
+# Variable: a, Offset: 8
+# Variable: b, Offset: 12
+#----------------------
+#*****Constant Map*****
+# NO CONSTANTS.
+#----------------------
+#*****GLOBAL SCOPE*****
+# Variable: x, Offset: 4
+# Variable: y, Offset: 8
+#----------------------

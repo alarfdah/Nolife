@@ -1,0 +1,28 @@
+#*****FUNCTION(b1)******
+# NO VARIABLES.
+#----------------------
+#*****FUNCTION(b2)******
+# NO VARIABLES.
+#----------------------
+#*****FUNCTION(b3)******
+# NO VARIABLES.
+#----------------------
+#*****FUNCTION(b4)******
+# NO VARIABLES.
+#----------------------
+#*****Constant Map*****
+# NO CONSTANTS.
+#----------------------
+#*****GLOBAL SCOPE*****
+# Variable: a, Offset: 20
+# Variable: b, Offset: 24
+# Variable: c, Offset: 28
+# Variable: d, Offset: 32
+# Variable: x, Offset: 44
+# Variable: i, Offset: 4
+# Variable: j, Offset: 8
+# Variable: k, Offset: 12
+# Variable: l, Offset: 16
+# Variable: C1, Offset: 36
+# Variable: C2, Offset: 40
+#----------------------

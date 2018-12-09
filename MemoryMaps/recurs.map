@@ -1,0 +1,13 @@
+#*****PROCEDURE(decls)******
+# Variable: a, Offset: 8
+#------------------------
+#*****PROCEDURE(foo)******
+# Variable: a, Offset: 8
+# Variable: b, Offset: 12
+#------------------------
+#*****Constant Map*****
+# NO CONSTANTS.
+#----------------------
+#*****GLOBAL SCOPE*****
+# Variable: a, Offset: 4
+#----------------------

@@ -1,0 +1,33 @@
+#*****FUNCTION(b4)******
+# Variable: a, Offset: 8
+#----------------------
+#*****PROCEDURE(d2)******
+# Variable: a, Offset: 8
+# Variable: b, Offset: 12
+# Variable: tmp, Offset: 4
+#------------------------
+#*****PROCEDURE(d3)******
+# Variable: a, Offset: 8
+# Variable: b, Offset: 12
+# Variable: c, Offset: 16
+# Variable: d, Offset: 20
+#------------------------
+#*****PROCEDURE(d1)******
+# Variable: a, Offset: 8
+# Variable: b, Offset: 4
+#------------------------
+#*****Constant Map*****
+# NO CONSTANTS.
+#----------------------
+#*****GLOBAL SCOPE*****
+# Variable: a, Offset: 20
+# Variable: b, Offset: 24
+# Variable: c, Offset: 28
+# Variable: d, Offset: 32
+# Variable: i, Offset: 4
+# Variable: j, Offset: 8
+# Variable: k, Offset: 12
+# Variable: l, Offset: 16
+# Variable: C1, Offset: 36
+# Variable: C2, Offset: 40
+#----------------------

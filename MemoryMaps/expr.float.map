@@ -1,0 +1,17 @@
+#*****Constant Map*****
+# Value: 1.1, Offset: 0
+# Value: 2.2, Offset: 4
+# Value: 3.3, Offset: 8
+# Value: 4.4, Offset: 12
+#----------------------
+#*****GLOBAL SCOPE*****
+# Variable: a, Offset: 4
+# Variable: b, Offset: 8
+# Variable: c, Offset: 12
+# Variable: d, Offset: 16
+# Variable: i, Offset: 20
+# Variable: j, Offset: 24
+# Variable: k, Offset: 28
+# Variable: l, Offset: 32
+# Variable: m, Offset: 36
+#----------------------

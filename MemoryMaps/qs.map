@@ -1,0 +1,30 @@
+#*****PROCEDURE(readarray)******
+# Variable: i, Offset: 4
+#------------------------
+#*****PROCEDURE(writearray)******
+# Variable: i, Offset: 4
+#------------------------
+#*****FUNCTION(partition)******
+# Variable: p, Offset: 12
+# Variable: B, Offset: 8
+# Variable: r, Offset: 16
+# Variable: t, Offset: 16
+# Variable: x, Offset: 12
+# Variable: i, Offset: 4
+# Variable: j, Offset: 8
+# Variable: z, Offset: 20
+#----------------------
+#*****PROCEDURE(quicksort)******
+# Variable: p, Offset: 12
+# Variable: q, Offset: 4
+# Variable: r, Offset: 16
+# Variable: Z, Offset: 8
+#------------------------
+#*****Constant Map*****
+# Value: 'A?', Offset: 0
+# Value: 'A:', Offset: 3
+# Value: 1.7, Offset: 6
+#----------------------
+#*****GLOBAL SCOPE*****
+# Variable: A, Offset: 4
+#----------------------

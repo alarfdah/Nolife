@@ -1,0 +1,10 @@
+#*****FUNCTION(f)******
+# NO VARIABLES.
+#----------------------
+#*****Constant Map*****
+# Value: 1.0, Offset: 0
+# Value: 10.0, Offset: 4
+#----------------------
+#*****GLOBAL SCOPE*****
+# Variable: x, Offset: 4
+#----------------------

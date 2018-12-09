@@ -1,0 +1,12 @@
+#*****PROCEDURE(swap)******
+# Variable: temp, Offset: 4
+# Variable: x, Offset: 8
+# Variable: y, Offset: 12
+#------------------------
+#*****Constant Map*****
+# NO CONSTANTS.
+#----------------------
+#*****GLOBAL SCOPE*****
+# Variable: i, Offset: 4
+# Variable: j, Offset: 8
+#----------------------

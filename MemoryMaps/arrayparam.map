@@ -1,0 +1,25 @@
+#*****PROCEDURE(init)******
+# Variable: a, Offset: 8
+# Variable: i, Offset: 4
+# Variable: j, Offset: 8
+#------------------------
+#*****PROCEDURE(writearray)******
+# Variable: z, Offset: 8
+#------------------------
+#*****PROCEDURE(inc)******
+# Variable: a, Offset: 8
+#------------------------
+#*****Constant Map*****
+# Value: 0.01, Offset: 0
+#----------------------
+#*****GLOBAL SCOPE*****
+# Variable: a, Offset: 20
+# Variable: b, Offset: 24
+# Variable: c, Offset: 28
+# Variable: d, Offset: 32
+# Variable: x, Offset: 36
+# Variable: i, Offset: 4
+# Variable: j, Offset: 8
+# Variable: k, Offset: 12
+# Variable: l, Offset: 16
+#----------------------
